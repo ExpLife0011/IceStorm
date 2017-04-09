@@ -27,12 +27,18 @@
     <ClInclude Include="debug2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="linked_list.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="import_icefltum.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="debug2.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="linked_list.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

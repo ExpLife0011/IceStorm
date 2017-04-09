@@ -185,6 +185,7 @@ IceDisconnectCallback(
     else if (PConnectionCookie == &gPIceComPorts->PClientAppCtrlPort)
     {
         gPIceComPorts->PClientAppCtrlPort = NULL;
+        gPData->IceSettings.BtEnableAppCtrlScan = 0;
     }
 
     if (0 == InterlockedDecrement(&gPIceComPorts->LNrOfConnections))

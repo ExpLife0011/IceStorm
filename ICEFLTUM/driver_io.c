@@ -87,6 +87,57 @@ UninitConnectionToIceFlt(
 
 _Use_decl_anno_impl_
 DWORD
+SendSetOption(
+    DWORD                                   DwOption,
+    DWORD                                   DwValue
+)
+{
+    HRESULT                                 hr;
+    DWORD                                   dwResult;
+    DWORD                                   dwBytesReturned;
+    BYTE                                    pRequestBuffer[sizeof(ICE_GENERIC_PACKET) + sizeof(UINT64)] = { 0 };
+    PICE_GENERIC_PACKET                     pRequestHeader;
+    ICE_GENERIC_PACKET                      result = { 0 };
+
+    hr                                      = S_OK;
+    dwResult                                = ERROR_SUCCESS;
+    pRequestHeader                          = NULL;
+    dwBytesReturned                         = 0;
+
+
+    if (0 == DwOption)
+    {
+        LogError(L"(0 == DwOption)");
+        return ERROR_INVALID_PARAMETER;
+    }
+
+    pRequestHeader = (PICE_GENERIC_PACKET) pRequestBuffer;
+    *((UINT64*) (pRequestHeader + 1)) = DwValue;
+
+    pRequestHeader->DwRequestType = DwOption;
+    pRequestHeader->DwPacketLength = sizeof(pRequestBuffer);
+
+    hr = FilterSendMessage(
+        gIcComPort.HScanCtrlPort,
+        pRequestHeader,
+        pRequestHeader->DwPacketLength,
+        &result,
+        sizeof(ICE_GENERIC_PACKET),
+        &dwBytesReturned
+    );
+
+    dwResult = HRESULT_TO_WIN32ERROR(hr);
+    if (STATUS_SUCCESS != dwResult)
+    {
+        LogErrorWin(dwResult, L"FilterSendMessage for SetOption %d %d", DwOption, DwValue);
+    }
+
+    return dwResult;
+}
+
+
+_Use_decl_anno_impl_
+DWORD
 ReplyScanMessage(
     HANDLE                                  HPort,
     PBYTE                                   PReadBuffer,

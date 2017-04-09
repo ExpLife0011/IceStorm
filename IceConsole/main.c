@@ -197,6 +197,8 @@ wmain(
     }
     __finally
     {
+        IcStopAppCtrlScan();
+
         IcUninitConnectionToIceFlt();
 
         IcFreeIcefltUmAPI();
