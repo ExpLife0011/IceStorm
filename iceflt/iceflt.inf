@@ -1,0 +1,137 @@
+;
+; iceflt.inf
+;
+
+[Version]
+Signature		="$WINDOWS NT$"
+Class       	= "AntiVirus"                               ;This is determined by the work this filter driver does
+ClassGuid   	= {b1d1a169-c54f-4379-81db-bee7d88d7454}    ;This value is determined by the Class
+Provider		=%ManufacturerName%
+CatalogFile		=iceflt.cat
+DriverVer       =11/16/2015,1.0.0.1
+
+[DestinationDirs]
+DefaultDestDir 			= 12
+MiniFilter.DriverFiles  = 12            ;%windir%\system32\drivers
+
+
+;;
+;; Default install sections
+;;
+
+[DefaultInstall]
+OptionDesc          = %ServiceDescription%
+CopyFiles           = MiniFilter.DriverFiles
+
+
+[DefaultInstall.Services]
+AddService          = %ServiceName%,,MiniFilter.Service
+
+
+;;
+;; SERVICE_BOOT_START install sections 
+;;
+
+[BootInstall]
+OptionDesc          = %ServiceDescription%
+CopyFiles           = MiniFilter.DriverFiles
+
+[BootInstall.Services]
+AddService          = %ServiceName%,,MiniFilter.BootService
+
+
+;;
+;; Default uninstall sections
+;;
+
+[DefaultUninstall]
+DelFiles   = MiniFilter.DriverFiles
+DelReg     = MiniFilter.DelRegistry
+
+[DefaultUninstall.Services]
+DelService = %ServiceName%,0x200      ;Ensure service is stopped before deleting
+
+
+;;
+;; Services Section
+;;
+
+
+[MiniFilter.Service]
+DisplayName      = %ServiceName%
+Description      = %ServiceDescription%
+ServiceBinary    = %12%\%DriverName%.sys        ;%windir%\system32\drivers\
+Dependencies     = "FltMgr"
+ServiceType      = 2                            ;SERVICE_FILE_SYSTEM_DRIVER
+StartType        = 3                            ;SERVICE_DEMAND_START
+ErrorControl     = 1                            ;SERVICE_ERROR_NORMAL
+LoadOrderGroup   = "FSFilter Anti-Virus"
+AddReg           = MiniFilter.AddRegistry
+
+
+[MiniFilter.BootService]
+DisplayName      = %ServiceName%
+Description      = %ServiceDescription%
+ServiceBinary    = %12%\%DriverName%.sys			;%windir%\system32\drivers\
+Dependencies     = "FltMgr"
+ServiceType      = 2							;SERVICE_FILE_SYSTEM_DRIVER
+StartType        = 0							;SERVICE_BOOT_START 0
+ErrorControl     = 1							;SERVICE_ERROR_NORMAL
+LoadOrderGroup   = "FSFilter Anti-Virus"
+AddReg           = MiniFilter.AddRegistry
+
+
+;;
+;; Registry Modifications
+;;
+
+[MiniFilter.AddRegistry]
+HKR,,"DebugFlags",0x00010001 ,0x0
+HKR,,"SupportedFeatures",0x00010001,0x3
+HKR,"Instances","DefaultInstance",0x00000000,%DefaultInstance%
+HKR,"Instances\"%Instance1.Name%,"Altitude",0x00000000,%Instance1.Altitude%
+HKR,"Instances\"%Instance1.Name%,"Flags",0x00010001,%Instance1.Flags%
+
+
+
+[MiniFilter.DelRegistry]
+HKR,,DebugFlags
+HKR,Parameters,,0x00002000						;0x00002000 FLG_DELREG_KEYONLY_COMMON
+
+
+;;
+;; Copy Files
+;;
+[MiniFilter.DriverFiles]
+%DriverName%.sys
+
+[SourceDisksFiles]
+iceflt.sys = 1,,
+
+
+;;
+;; SourceDiskNames 
+;;
+[SourceDisksNames]
+1 = %DiskId1%,,,
+
+;;
+;; String Section
+;;
+
+[Strings]
+ManufacturerName		= "Lupean Horatiu"
+ServiceDescription      = "IceFlt Mini-Filter Driver"
+ServiceName             = "iceflt"
+DriverName              = "iceflt"
+VersionStr          	=  1.0.0.1
+DiskId1                 = "IceFlt Installation Disk"
+
+
+;;
+;Instances specific information.
+;;
+DefaultInstance         = "iceflt Instance"
+Instance1.Name          = "iceflt Instance"
+Instance1.Altitude      = "320840"
+Instance1.Flags         = 0x0              ; Allow all attachments

@@ -1,0 +1,114 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Driver Files">
+      <UniqueIdentifier>{8E41214B-6785-4CFE-B992-037D68949A14}</UniqueIdentifier>
+      <Extensions>inf;inv;inx;mof;mc;</Extensions>
+    </Filter>
+    <Filter Include="Source Files\process">
+      <UniqueIdentifier>{be404807-36d1-4e9e-98eb-b3152e4bbd48}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\process">
+      <UniqueIdentifier>{d90946ef-a30a-413c-a142-7f045498a6bc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\communctaion">
+      <UniqueIdentifier>{54571605-082f-4fcf-ab87-cab37854c7d7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\communication">
+      <UniqueIdentifier>{72e02dd2-83cf-4a1a-8df7-462e5db73082}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\utils">
+      <UniqueIdentifier>{02913612-d00b-48bc-8b2e-dca7ed35fcc2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\utils">
+      <UniqueIdentifier>{87f3b5bc-8db6-48d5-95a8-fdcda09fe0a6}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="iceflt.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="registrationdata.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="process_routines.c">
+      <Filter>Source Files\process</Filter>
+    </ClCompile>
+    <ClCompile Include="global_data.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="debug.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="os_version.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="communication.c">
+      <Filter>Source Files\communctaion</Filter>
+    </ClCompile>
+    <ClCompile Include="ice_resources.c">
+      <Filter>Source Files\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="process_list.c">
+      <Filter>Source Files\process</Filter>
+    </ClCompile>
+    <ClCompile Include="ice_appctrl_scan.c">
+      <Filter>Source Files\communctaion</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="iceflt.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="debug.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tags.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="registrationdata.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="process_routines.h">
+      <Filter>Header Files\process</Filter>
+    </ClInclude>
+    <ClInclude Include="global_data.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="communication.h">
+      <Filter>Header Files\communication</Filter>
+    </ClInclude>
+    <ClInclude Include="ice_user_common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ice_resources.h">
+      <Filter>Header Files\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="process_list.h">
+      <Filter>Header Files\process</Filter>
+    </ClInclude>
+    <ClInclude Include="os_version.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ice_app_ctrl_scan.h">
+      <Filter>Header Files\communication</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Inf Include="iceflt.inf">
+      <Filter>Driver Files</Filter>
+    </Inf>
+  </ItemGroup>
+</Project>
