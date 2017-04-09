@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\Internal">
+      <UniqueIdentifier>{7f39da00-e4a0-4503-ae72-26de25fc021c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Internal">
+      <UniqueIdentifier>{9ade5d76-5f49-43f3-bf2f-0131440fe7a6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="exports.c">
@@ -21,8 +27,11 @@
     <ClCompile Include="DLLMain.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="appctrl_scan.c">
+      <Filter>Source Files\Internal</Filter>
+    </ClCompile>
     <ClCompile Include="driver_io.c">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Internal</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -30,10 +39,13 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="driver_io.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Internal</Filter>
+    </ClInclude>
+    <ClInclude Include="appctrl_scan.h">
+      <Filter>Header Files\Internal</Filter>
     </ClInclude>
     <ClInclude Include="global_data.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Internal</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

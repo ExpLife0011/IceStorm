@@ -170,11 +170,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="appctrl_scan.c" />
     <ClCompile Include="DLLMain.c" />
     <ClCompile Include="driver_io.c" />
     <ClCompile Include="exports.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="appctrl_scan.h" />
     <ClInclude Include="driver_io.h" />
     <ClInclude Include="exports.h" />
     <ClInclude Include="global_data.h" />
