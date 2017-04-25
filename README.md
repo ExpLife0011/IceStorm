@@ -9,10 +9,12 @@ Licenta
         - [X] &nbsp; Clear Cache
     - [ ] &nbsp; UM (ICEFLTUM)
         - [X] &nbsp; Register Callback
-        - [ ] &nbsp; Scan
+        - [X] &nbsp; Scan
         - [X] &nbsp; Send Scan Result
-        - [ ] &nbsp; Add Rule
-        - [ ] &nbsp; Local Rule Persistence
+        - [X] &nbsp; Add Rule
+        - [ ] &nbsp; Delete Rule
+        - [ ] &nbsp; Get All Rules
+        - [X] &nbsp; Local Rule Persistence
 
 - [ ] &nbsp; SelfProtect
     - [ ] &nbsp; General Features
