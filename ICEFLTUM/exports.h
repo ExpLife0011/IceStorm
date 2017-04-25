@@ -37,7 +37,7 @@ _Success_(ERROR_SUCCESS == return)
 DWORD
 IcSendSetOption(
     _In_          DWORD                       DwOption,
-    _In_z_        DWORD                       DwValue
+    _In_          DWORD                       DwValue
 );
 
 ICEFLTUM_API
@@ -52,6 +52,24 @@ _Success_(ERROR_SUCCESS == return)
 DWORD
 IcStopAppCtrlScan(
     VOID
+);
+
+ICEFLTUM_API
+_Success_(ERROR_SUCCESS == return)
+DWORD
+IcAddAppCtrlDenyRule(
+    _In_opt_z_  PWCHAR                      PFilePath,
+    _In_opt_    DWORD                       DwPid,
+    _Inout_opt_ DWORD                      *PDwRuleId
+);
+
+ICEFLTUM_API
+_Success_(ERROR_SUCCESS == return)
+DWORD
+IcAddAppCtrlAllowRule(
+    _In_opt_z_  PWCHAR                      PFilePath,
+    _In_opt_    DWORD                       DwPid,
+    _Inout_opt_ DWORD                      *PDwRuleId
 );
 
 #ifdef __cplusplus

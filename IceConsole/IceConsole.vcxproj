@@ -111,6 +111,7 @@
       <AdditionalOptions>
       </AdditionalOptions>
       <FullProgramDatabaseFile>false</FullProgramDatabaseFile>
+      <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
     </Link>
     <PostBuildEvent>
       <Command>REM xcopy $(OutDir)*.* d:\Licenta\Shares\W10x86\temp_share /y /e /s
@@ -136,6 +137,7 @@ REM xcopy $(OutDir)*.* \\192.168.0.104\ice /y /e /s</Command>
       <AdditionalOptions>
       </AdditionalOptions>
       <FullProgramDatabaseFile>false</FullProgramDatabaseFile>
+      <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
     </Link>
     <PostBuildEvent>
       <Command>
@@ -164,6 +166,7 @@ REM xcopy $(OutDir)*.* \\192.168.0.104\ice /y /e /s</Command>
       <AdditionalOptions>
       </AdditionalOptions>
       <FullProgramDatabaseFile>false</FullProgramDatabaseFile>
+      <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
     </Link>
     <PostBuildEvent>
       <Command>xcopy $(OutDir)*.* d:\Licenta\Shares\W10x86\temp_share /y /e /s
@@ -193,6 +196,7 @@ REM xcopy $(OutDir)*.* \\192.168.0.104\ice /y /e /s</Command>
       <AdditionalOptions>
       </AdditionalOptions>
       <FullProgramDatabaseFile>false</FullProgramDatabaseFile>
+      <UACExecutionLevel>RequireAdministrator</UACExecutionLevel>
     </Link>
     <PostBuildEvent>
       <Command>

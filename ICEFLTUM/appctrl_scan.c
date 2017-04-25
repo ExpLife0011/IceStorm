@@ -1,14 +1,14 @@
 #include "appctrl_scan.h"
 #include "driver_io.h"
 #include "debug2.h"
-#include "driver_io.h"
 #include <fltUser.h>
 #include "linked_list.h"
+#include "appctrl_rules.h"
 
 HANDLE              gHThreadAppCtrlListener     = NULL;
 PHANDLE             gPHThreadAppCtrlScanners    = NULL;
 PLIST_ENTRY         gPLEAppCtrlScanRequests     = NULL;
-HANDLE              gHEventScanReqAdded         = NULL;
+HANDLE              gHEventAppCtrlScanReqAdded  = NULL;
 CRITICAL_SECTION    gCSAppCtrlList              = { 0 };
 BOOLEAN             gBAppCtrlStarted            = FALSE;
 
@@ -18,6 +18,18 @@ typedef struct _APPCTRL_SCAN_REQ_NODE
     LIST_ENTRY  Link;
 
 } APPCTRL_SCAN_REQ_NODE, *PAPPCTRL_SCAN_REQ_NODE;
+
+_Success_(return == ERROR_SUCCESS)
+DWORD
+ScanAppCtrlPackage(
+    _In_    PICE_APP_CTRL_SCAN_REQUEST_PACKET       PScanRequest,
+    _Inout_ PICE_APP_CTRL_SCAN_RESULT_PACKET        PResultPack
+)
+{
+    GetAppCtrlScanResult(PScanRequest, PResultPack);
+
+    return ERROR_SUCCESS;
+}
 
 DWORD
 WINAPI 
@@ -55,7 +67,7 @@ ThreadAppCtrlListener(
 
             if (dwStatus != STATUS_SUCCESS)
             {
-                LogErrorNt(dwStatus, L"ReadScanMessage");
+                LogErrorWin(dwStatus, L"ReadScanMessage");
 
                 dwErrCount++;
                 if (dwErrCount == 10)
@@ -74,7 +86,7 @@ ThreadAppCtrlListener(
             pScanReqNode = (PAPPCTRL_SCAN_REQ_NODE) malloc(sizeof(APPCTRL_SCAN_REQ_NODE));
             if (NULL == pScanReqNode)
             {
-                LogErrorNt(ERROR_NOT_ENOUGH_MEMORY, L"malloc pScanReqNode");
+                LogErrorWin(ERROR_NOT_ENOUGH_MEMORY, L"malloc pScanReqNode");
 
                 free(pMessage);
                 pMessage = NULL;
@@ -88,9 +100,9 @@ ThreadAppCtrlListener(
             InsertTailList(gPLEAppCtrlScanRequests, &pScanReqNode->Link);
             LeaveCriticalSection(&gCSAppCtrlList);
 
-            if (!SetEvent(gHEventScanReqAdded))
+            if (!SetEvent(gHEventAppCtrlScanReqAdded))
             {
-                LogErrorNt(GetLastError(), L"SetEvent(gHEventScanReqAdded)");
+                LogErrorWin(GetLastError(), L"SetEvent(gHEventScanReqAdded)");
                 continue;
             }
         }
@@ -111,16 +123,19 @@ ThreadAppCtrlScanner(
     _In_    LPVOID                          PParams
 )
 {
-    DWORD                           dwStatus    = ERROR_SUCCESS;
-    DWORD                           dwThreadId  = GetThreadId(GetCurrentThread());
-    HANDLE                          pEvents[2]  = { 0 };
-    PAPPCTRL_SCAN_REQ_NODE          pReqNode    = NULL;
-    ICE_APP_CTRL_SCAN_RESULT_PACKET resultPack  = { 0 };
+    DWORD                               dwStatus        = ERROR_SUCCESS;
+    DWORD                               dwThreadId      = GetThreadId(GetCurrentThread());
+    HANDLE                              pEvents[2]      = { 0 };
+    PAPPCTRL_SCAN_REQ_NODE              pReqNode        = NULL;
+    ICE_APP_CTRL_SCAN_RESULT_PACKET     resultPack      = { 0 };
+    PFILTER_MESSAGE_HEADER              pMsgHeader      = NULL;
+    PICE_GENERIC_PACKET                 pPacket         = NULL;
+    PICE_APP_CTRL_SCAN_REQUEST_PACKET   pScanRequest    = NULL;
 
     UNREFERENCED_PARAMETER(PParams);
     
     pEvents[0] = gHEventStop;
-    pEvents[1] = gHEventScanReqAdded;
+    pEvents[1] = gHEventAppCtrlScanReqAdded;
     
     LogInfo(L"ThreadAppCtrlScanner %d started", dwThreadId);
 
@@ -134,7 +149,7 @@ ThreadAppCtrlScanner(
 
         if (dwStatus != (WAIT_OBJECT_0 + 1))
         {
-            LogErrorNt(GetLastError(), L"WaitForMultipleObjects");
+            LogErrorWin(GetLastError(), L"WaitForMultipleObjects");
             break;
         }
 
@@ -142,19 +157,19 @@ ThreadAppCtrlScanner(
         pReqNode = CONTAINING_RECORD(RemoveHeadList(gPLEAppCtrlScanRequests), APPCTRL_SCAN_REQ_NODE, Link);
         LeaveCriticalSection(&gCSAppCtrlList);
         
-
-        PFILTER_MESSAGE_HEADER pMsgHeader = (PFILTER_MESSAGE_HEADER) pReqNode->PMessage;
-        PICE_GENERIC_PACKET pPacket = (PICE_GENERIC_PACKET) (pMsgHeader + 1);
-        PICE_APP_CTRL_SCAN_REQUEST_PACKET pReq = (PICE_APP_CTRL_SCAN_REQUEST_PACKET) (pPacket + 1);
+        pMsgHeader = (PFILTER_MESSAGE_HEADER) pReqNode->PMessage;
+        pPacket = (PICE_GENERIC_PACKET) (pMsgHeader + 1);
+        pScanRequest = (PICE_APP_CTRL_SCAN_REQUEST_PACKET) (pPacket + 1);
 
         LogInfo(L"TID %d: Process with pid: %d started. MsgID: %I64d, RepLen: %d, PackLen: %d, ReqType: %d, PPath: %s",
-            dwThreadId, pReq->DwPid, pMsgHeader->MessageId, pMsgHeader->ReplyLength, pPacket->DwPacketLength, pPacket->DwRequestType, pReq->PProcessPath);
+            dwThreadId, pScanRequest->DwPid, pMsgHeader->MessageId, pMsgHeader->ReplyLength, pPacket->DwPacketLength, pPacket->DwRequestType, pScanRequest->PProcessPath);
 
         // scan
         resultPack.NtScanResult = ERROR_SUCCESS;
-        if (wcswcs(pReq->PProcessPath, L"firefox"))
+        dwStatus = ScanAppCtrlPackage(pScanRequest, &resultPack);
+        if (dwStatus != ERROR_SUCCESS)
         {
-            resultPack.NtScanResult = ERROR_ACCESS_DENIED;
+            LogErrorWin(dwStatus, L"ScanAppCtrlPackage failed. Will send allow result.");
         }
 
         // trimite raspunnsul
@@ -185,27 +200,34 @@ StartAppCtrlScan(
     if (gBAppCtrlStarted)
     {
         dwResult = ERROR_ALREADY_INITIALIZED;
-        LogErrorNt(dwResult, L"StartAppCtrlScan already called");
+        LogErrorWin(dwResult, L"StartAppCtrlScan already called");
         return dwResult;
     }
 
     __try
     {
+        dwResult = InitAppCtrlRules();
+        if (ERROR_SUCCESS != dwResult)
+        {
+            LogErrorWin(dwResult, L"InitAppCtrlRules");
+            __leave;
+        }
+
         // stop event
         gHEventStop = CreateEventW(NULL, TRUE, FALSE, NULL);
         if (NULL == gHEventStop)
         {
             dwResult = GetLastError();
-            LogErrorNt(dwResult, L"CreateEventW");
+            LogErrorWin(dwResult, L"CreateEventW");
             __leave;
         }
 
         // scan req added event
-        gHEventScanReqAdded = CreateEvent(NULL, FALSE, FALSE, NULL);
-        if (NULL == gHEventScanReqAdded)
+        gHEventAppCtrlScanReqAdded = CreateEvent(NULL, FALSE, FALSE, NULL);
+        if (NULL == gHEventAppCtrlScanReqAdded)
         {
             dwResult = GetLastError();
-            LogErrorNt(dwResult, L"CreateEvent");
+            LogErrorWin(dwResult, L"CreateEvent");
             __leave;
         }
 
@@ -217,7 +239,7 @@ StartAppCtrlScan(
         if (NULL == gPLEAppCtrlScanRequests)
         {
             dwResult = ERROR_NOT_ENOUGH_MEMORY;
-            LogErrorNt(dwResult, L"malloc gPLEAppCtrlScanRequests");
+            LogErrorWin(dwResult, L"malloc gPLEAppCtrlScanRequests");
             __leave;
         }
         InitializeListHead(gPLEAppCtrlScanRequests);
@@ -227,7 +249,7 @@ StartAppCtrlScan(
         if (NULL == gPHThreadAppCtrlScanners)
         {
             dwResult = ERROR_NOT_ENOUGH_MEMORY;
-            LogErrorNt(dwResult, L"malloc gPHThreadAppCtrlScanners");
+            LogErrorWin(dwResult, L"malloc gPHThreadAppCtrlScanners");
             __leave;
         }
         RtlSecureZeroMemory(gPHThreadAppCtrlScanners, sizeof(HANDLE) * APPCTRL_SCAN_NR_OF_THREADS);
@@ -238,7 +260,7 @@ StartAppCtrlScan(
             if (NULL == gPHThreadAppCtrlScanners[dwIndex])
             {
                 dwResult = GetLastError();
-                LogErrorNt(dwResult, L"CreateThread %d ThreadAppCtrlScanner", dwIndex);
+                LogErrorWin(dwResult, L"CreateThread %d ThreadAppCtrlScanner", dwIndex);
                 __leave;
             }
         }
@@ -248,7 +270,7 @@ StartAppCtrlScan(
         if (NULL == gHThreadAppCtrlListener)
         {
             dwResult = GetLastError();
-            LogErrorNt(dwResult, L"CreateThread ThreadAppCtrlScan");
+            LogErrorWin(dwResult, L"CreateThread ThreadAppCtrlScan");
             __leave;
         }
 
@@ -266,7 +288,9 @@ StartAppCtrlScan(
     {
         if (STATUS_SUCCESS != dwResult)
         {
+            gBAppCtrlStarted = TRUE;
             StopAppCtrlScan();
+            gBAppCtrlStarted = FALSE;
         }
     }
 
@@ -286,8 +310,14 @@ StopAppCtrlScan(
     if (!gBAppCtrlStarted)
     {
         dwResult = ERROR_INIT_STATUS_NEEDED;
-        LogErrorNt(dwResult, L"StartAppCtrlScan was never called or StopAppCtrlScan wa already called");
+        LogErrorWin(dwResult, L"StartAppCtrlScan was never called or StopAppCtrlScan wa already called");
         return dwResult;
+    }
+
+    dwResult = SendSetOption(ICE_FILTER_ENABLE_APPCTRL_SCAN, 0);
+    if (ERROR_SUCCESS != dwResult)
+    {
+        LogWarningWin(dwResult, L"SendSetOption(ICE_FILTER_ENABLE_APPCTRL_SCAN, 0)");
     }
 
     if (NULL != gHEventStop)
@@ -300,7 +330,7 @@ StopAppCtrlScan(
         dwResult = WaitForSingleObject(gHThreadAppCtrlListener, WAIT_TIME_FOR_THREADS);
         if (WAIT_OBJECT_0 != dwResult)
         {
-            LogWarningNt(dwResult, L"WaitForSingleObject(gHThreadAppCtrl)");
+            LogWarningWin(dwResult, L"WaitForSingleObject(gHThreadAppCtrl)");
         }
 
         CloseHandle(gHThreadAppCtrlListener);
@@ -316,7 +346,7 @@ StopAppCtrlScan(
                 dwResult = WaitForSingleObject(gPHThreadAppCtrlScanners[dwIndex], WAIT_TIME_FOR_THREADS);
                 if (WAIT_OBJECT_0 != dwResult)
                 {
-                    LogWarningNt(dwResult, L"WaitForSingleObject(gPHThreadAppCtrlScanners[%d])", dwIndex);
+                    LogWarningWin(dwResult, L"WaitForSingleObject(gPHThreadAppCtrlScanners[%d])", dwIndex);
                 }
 
                 CloseHandle(gPHThreadAppCtrlScanners[dwIndex]);
@@ -359,16 +389,16 @@ StopAppCtrlScan(
         gHEventStop = NULL;
     }
 
-    if (NULL != gHEventScanReqAdded)
+    if (NULL != gHEventAppCtrlScanReqAdded)
     {
-        CloseHandle(gHEventScanReqAdded);
-        gHEventScanReqAdded = NULL;
+        CloseHandle(gHEventAppCtrlScanReqAdded);
+        gHEventAppCtrlScanReqAdded = NULL;
     }
 
-    dwResult = SendSetOption(ICE_FILTER_ENABLE_APPCTRL_SCAN, 0);
+    dwResult = UninitAppCtrlRules();
     if (ERROR_SUCCESS != dwResult)
     {
-        LogWarningNt(dwResult, L"SendSetOption(ICE_FILTER_ENABLE_APPCTRL_SCAN, 0)");
+        LogWarningWin(dwResult, L"UninitAppCtrlRules");
     }
 
     gBAppCtrlStarted = FALSE;

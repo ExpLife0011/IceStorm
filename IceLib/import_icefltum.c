@@ -7,6 +7,8 @@ PFUNC_IcUninitConnectionToIceFlt            IcUninitConnectionToIceFlt  = NULL;
 PFUNC_IcSendSetOption                       IcSendSetOption             = NULL;
 PFUNC_IcStartAppCtrlScan                    IcStartAppCtrlScan          = NULL;
 PFUNC_IcStopAppCtrlScan                     IcStopAppCtrlScan           = NULL;
+PFUNC_IcAddAppCtrlDenyRule                  IcAddAppCtrlDenyRule        = NULL;
+PFUNC_IcAddAppCtrlAllowRule                 IcAddAppCtrlAllowRule       = NULL;
 
 HMODULE                                     gHIcefltUM                  = NULL;
 
@@ -16,9 +18,7 @@ IcImportIcefltUmAPI(
     VOID
 )
 {
-    NTSTATUS                                ntStatus;
-
-    ntStatus                                = STATUS_SUCCESS;
+    NTSTATUS ntStatus = STATUS_SUCCESS;
 
     __try
     {
@@ -72,6 +72,24 @@ IcImportIcefltUmAPI(
             ntStatus = NTSTATUS_FROM_WIN32(GetLastError());
             LogErrorNt(ntStatus, L"GetProcAddress(\"IcStopAppCtrlScan\") failed");
             LogErrorWin(GetLastError(), L"GetProcAddress(\"IcStopAppCtrlScan\") failed");
+            __leave;
+        }
+
+        IcAddAppCtrlDenyRule = (PFUNC_IcAddAppCtrlDenyRule) GetProcAddress(gHIcefltUM, "IcAddAppCtrlDenyRule");
+        if (NULL == IcAddAppCtrlDenyRule)
+        {
+            ntStatus = NTSTATUS_FROM_WIN32(GetLastError());
+            LogErrorNt(ntStatus, L"GetProcAddress(\"IcAddAppCtrlDenyRule\") failed");
+            LogErrorWin(GetLastError(), L"GetProcAddress(\"IcAddAppCtrlDenyRule\") failed");
+            __leave;
+        }
+
+        IcAddAppCtrlAllowRule = (PFUNC_IcAddAppCtrlDenyRule) GetProcAddress(gHIcefltUM, "IcAddAppCtrlAllowRule");
+        if (NULL == IcAddAppCtrlAllowRule)
+        {
+            ntStatus = NTSTATUS_FROM_WIN32(GetLastError());
+            LogErrorNt(ntStatus, L"GetProcAddress(\"IcAddAppCtrlAllowRule\") failed");
+            LogErrorWin(GetLastError(), L"GetProcAddress(\"IcAddAppCtrlAllowRule\") failed");
             __leave;
         }
     }

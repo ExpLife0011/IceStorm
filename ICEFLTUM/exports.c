@@ -1,6 +1,7 @@
 #include "exports.h"
 #include "appctrl_scan.h"
 #include "driver_io.h"
+#include "appctrl_rules.h"
 
 _Use_decl_anno_impl_
 DWORD
@@ -46,4 +47,34 @@ IcStopAppCtrlScan(
 )
 {
     return StopAppCtrlScan();
+}
+
+_Use_decl_anno_impl_
+DWORD
+IcAddAppCtrlDenyRule(
+    PWCHAR                                  PFilePath,
+    DWORD                                   DwPid,
+    DWORD                                  *PDwRuleId
+)
+{
+    if (NULL == PFilePath && 0 == DwPid)
+    {
+        return ERROR_INVALID_PARAMETER;
+    }
+    return AddAppCtrlDenyRule(PFilePath, DwPid, PDwRuleId);
+}
+
+_Use_decl_anno_impl_
+DWORD
+IcAddAppCtrlAllowRule(
+    PWCHAR                                  PFilePath,
+    DWORD                                   DwPid,
+    DWORD                                  *PDwRuleId
+)
+{
+    if (NULL == PFilePath && 0 == DwPid)
+    {
+        return ERROR_INVALID_PARAMETER;
+    }
+    return AddAppCtrlAllowRule(PFilePath, DwPid, PDwRuleId);
 }
