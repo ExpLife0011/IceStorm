@@ -1,31 +1,92 @@
 #pragma once
 
+#include "..\Contrib\SQLite\Source\sqlite3.h"
 
 #define WIN32_NO_STATUS
 #include <windows.h>
 #undef WIN32_NO_STATUS
 
-PCHAR
-SQL_STM_CREATE_TABLES(
+DWORD
+GetLastRowId(
     VOID
 );
 
-PCHAR
-SQL_STM_SEARCH_APPCTRL_DENY_RULE(
-    VOID
+_Success_(return == SQLITE_OK)
+DWORD
+Execute(
+    _In_z_ PCHAR    PCommand
 );
 
-PCHAR
-SQL_STM_SEARCH_APPCTRL_ALLOW_RULE(
-    VOID
+_Success_(return == SQLITE_OK)
+DWORD
+PrepareStmt(
+    _In_z_      PCHAR           PSql,
+    _Inout_     sqlite3_stmt  **PPStmt
 );
 
-PCHAR
-SQL_STM_INSERT_APPCTRL_DENY_RULE(
-    VOID
+_Success_(return == SQLITE_OK)
+DWORD
+FinalizeStmt(
+    _Inout_     sqlite3_stmt   *PStmt
 );
 
-PCHAR
-SQL_STM_INSERT_APPCTRL_ALLOW_RULE(
-    VOID
+_Success_(return == SQLITE_DONE || return == SQLITE_ROW)
+DWORD
+Step(
+    _In_        sqlite3_stmt   *PStmt
+);
+
+_Success_(return == SQLITE_OK)
+DWORD
+Reset(
+    _In_        sqlite3_stmt   *PStmt
+);
+
+_Success_(return == SQLITE_OK)
+DWORD
+BindText(
+    _Inout_     sqlite3_stmt   *PStmt,
+    _In_        DWORD           DwIndex,
+    _In_z_      PCHAR           PValue,
+    _In_        DWORD           DwSize
+);
+
+_Success_(return == SQLITE_OK)
+DWORD
+BindWText(
+    _Inout_     sqlite3_stmt   *PStmt,
+    _In_        DWORD           DwIndex,
+    _In_z_      PWCHAR          PValue,
+    _In_        DWORD           DwSize
+);
+
+_Success_(return == SQLITE_OK)
+DWORD
+BindInt(
+    _Inout_     sqlite3_stmt   *PStmt,
+    _In_        DWORD           DwIndex,
+    _In_        UINT64          QwValue
+);
+
+_Success_(return == SQLITE_OK)
+DWORD
+BindNULL(
+    _Inout_     sqlite3_stmt   *PStmt,
+    _In_        DWORD           DwIndex
+);
+
+_Success_(return == SQLITE_OK)
+DWORD
+BindWTextOrNULL(
+    _Inout_     sqlite3_stmt   *PStmt,
+    _In_        DWORD           DwIndex,
+    _In_z_      PWCHAR          PValue
+);
+
+_Success_(return == SQLITE_OK)
+DWORD
+BindTextOrNULL(
+    _Inout_     sqlite3_stmt   *PStmt,
+    _In_        DWORD           DwIndex,
+    _In_z_      PCHAR           PValue
 );

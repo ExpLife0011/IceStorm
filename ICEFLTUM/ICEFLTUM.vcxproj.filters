@@ -68,6 +68,9 @@
     <ClInclude Include="db_sqlite.h">
       <Filter>Header Files\DB</Filter>
     </ClInclude>
+    <ClInclude Include="db_statements_sql.h">
+      <Filter>Header Files\DB</Filter>
+    </ClInclude>
     <ClInclude Include="db_statements.h">
       <Filter>Header Files\DB</Filter>
     </ClInclude>

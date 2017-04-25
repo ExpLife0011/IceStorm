@@ -5,6 +5,7 @@
 #undef WIN32_NO_STATUS
 
 #include "icecommon.h"
+#include "..\Contrib\SQLite\Source\sqlite3.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -12,6 +13,8 @@ extern "C"
 #endif // __cplusplus
 
 typedef DWORD SQL_ERROR;
+
+extern sqlite3 *gPDB;
 
 _Success_(return == ERROR_SUCCESS)
 SQL_ERROR

@@ -183,6 +183,7 @@
     <ClInclude Include="appctrl_scan.h" />
     <ClInclude Include="db_sqlite.h" />
     <ClInclude Include="db_statements.h" />
+    <ClInclude Include="db_statements_sql.h" />
     <ClInclude Include="driver_io.h" />
     <ClInclude Include="exports.h" />
     <ClInclude Include="global_data.h" />
