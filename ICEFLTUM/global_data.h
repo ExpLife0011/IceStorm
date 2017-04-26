@@ -6,6 +6,8 @@
 #undef WIN32_NO_STATUS
 #include <ntstatus.h>
 
+#include "icecommon.h"
+
 #define WAIT_TIME_FOR_THREADS   ((DWORD) 5000)
 #define MESSAGE_BUFFER_SIZE     ((DWORD) ((2 * 65536) + 1024))
 

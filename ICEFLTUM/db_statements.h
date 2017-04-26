@@ -11,6 +11,11 @@ GetLastRowId(
     VOID
 );
 
+DWORD
+Changes(
+    VOID
+);
+
 _Success_(return == SQLITE_OK)
 DWORD
 Execute(

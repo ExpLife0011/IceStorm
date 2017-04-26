@@ -12,8 +12,8 @@ Licenta
         - [X] &nbsp; Scan
         - [X] &nbsp; Send Scan Result
         - [X] &nbsp; Add Rule
-        - [ ] &nbsp; Delete Rule
-        - [ ] &nbsp; Get All Rules
+        - [X] &nbsp; Delete Rule
+        - [X] &nbsp; Get All Rules
         - [X] &nbsp; Local Rule Persistence
 
 - [ ] &nbsp; SelfProtect

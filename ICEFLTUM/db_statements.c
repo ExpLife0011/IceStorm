@@ -11,6 +11,16 @@ GetLastRowId(
     return (DWORD) sqlite3_last_insert_rowid(gPDB);
 }
 
+DWORD
+Changes(
+    VOID
+)
+{
+    if (NULL == gPDB) return 0;
+
+    return sqlite3_changes(gPDB);
+}
+
 _Success_(return == SQLITE_OK)
 DWORD 
 Execute(
@@ -93,7 +103,7 @@ Step(
     {
         return SQLITE_ERROR;
     }
-
+    
     dwResult = sqlite3_step(PStmt);
     if (dwResult != SQLITE_DONE && dwResult != SQLITE_ROW)
     {
@@ -111,12 +121,17 @@ Reset(
     _In_        sqlite3_stmt   *PStmt
 )
 {
-    DWORD dwResult = SQLITE_OK;
-    PCHAR pText = NULL;
+    DWORD dwResult  = SQLITE_OK;
+    PCHAR pText     = NULL;
 
     if (NULL == gPDB)
     {
         return SQLITE_ERROR;
+    }
+
+    if (NULL == PStmt)
+    {
+        return ERROR_SUCCESS;
     }
 
     dwResult = sqlite3_reset(PStmt);

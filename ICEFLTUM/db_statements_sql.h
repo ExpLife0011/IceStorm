@@ -35,7 +35,7 @@ SQL_STM_SEARCH_APPCTRL_DENY_RULE(
     VOID
 )
 {
-    return
+    return 
         "SELECT "
         "  [add_time] "
         "FROM "
@@ -93,4 +93,100 @@ SQL_STM_INSERT_APPCTRL_ALLOW_RULE(
         "VALUES "
         "   (?, ?, ?, ?);"
         "";
+}
+
+__inline
+PCHAR
+SQL_STM_DELETE_APPCTRL_DENY_RULE(
+    VOID
+)
+{
+    return
+        "DELETE FROM "
+        "  [appctrl_deny_rules] "
+        "WHERE "
+        "  [id] = ?"
+        "";
+}
+
+__inline
+PCHAR
+SQL_STM_DELETE_APPCTRL_ALLOW_RULE(
+    VOID
+)
+{
+    return
+        "DELETE FROM "
+        "  [appctrl_allow_rules] "
+        "WHERE "
+        "  [id] = ?"
+        "";
+}
+
+__inline
+PCHAR
+SQL_STM_UPDATE_APPCTRL_DENY_RULE(
+    VOID
+)
+{
+    return
+        "UPDATE [appctrl_deny_rules] "
+        "SET "
+        "  [file_path] = ?, "
+        "  [pid] = ? "
+        "WHERE "
+        "  [id] = ?"
+        "";
+}
+
+__inline
+PCHAR
+SQL_STM_UPDATE_APPCTRL_ALLOW_RULE(
+    VOID
+)
+{
+    return
+        "UPDATE [appctrl_allow_rules] "
+        "SET "
+        "  [file_path] = ?, "
+        "  [pid] = ? "
+        "WHERE "
+        "  [id] = ?"
+        "";
+}
+
+__inline
+PCHAR
+SQL_STM_GET_APPCTRL_DENY_RULES(
+    VOID
+)
+{
+    return "SELECT * FROM [appctrl_deny_rules];";
+}
+
+__inline
+PCHAR
+SQL_STM_GET_APPCTRL_ALLOW_RULES(
+    VOID
+)
+{
+    return "SELECT * FROM [appctrl_allow_rules];";
+}
+
+__inline
+PCHAR
+SQL_STM_GET_APPCTRL_DENY_RULES_COUNT(
+    VOID
+)
+{
+    return "SELECT COUNT(*) FROM [appctrl_deny_rules];";
+}
+
+__inline
+PCHAR
+SQL_STM_GET_APPCTRL_ALLOW_RULES_COUNT(
+    VOID
+)
+{
+    return "SELECT COUNT(*) FROM [appctrl_allow_rules];";
 }

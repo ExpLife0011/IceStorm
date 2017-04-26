@@ -11,6 +11,10 @@
 #define CMD_ENABLE_APPCTRL                  L"enable appctrl"
 #define CMD_ADD_PID_APPCTRL_RULE            L"add appctrl pid"
 #define CMD_ADD_PATH_APPCTRL_RULE           L"add appctrl path"
+#define CMD_DELETE_APPCTRL_DENY_RULE        L"delete appctrl deny"
+#define CMD_DELETE_APPCTRL_ALLOW_RULE       L"delete appctrl allow"
+#define CMD_UPDATE_APPCTRL_RULE             L"update appctrl"
+#define CMD_GET_APPCTRL_RULES               L"get appctrl"
 #define CMD_EXIT                            L"exit"
 
 VOID
@@ -22,8 +26,12 @@ PrintHelp(
     printf(" - %S : this screen\n", CMD_HELP);
     printf(" - %S <optiion> <value>: setoption in driver\n", CMD_SETOPTION);
     printf(" - %S <value>: enable / disable (1 / 0) appctrl scan\n", CMD_ENABLE_APPCTRL);
-    printf(" - %S <verdict 0 - allow, 1 - deny> <pid>\n", CMD_ADD_PID_APPCTRL_RULE);
-    printf(" - %S <verdict 0 - allow, 1 - deny> <path>\n", CMD_ADD_PATH_APPCTRL_RULE);
+    printf(" - %S <verdict 0 - allow, 1 - deny> <pid>: adds a rule by pid\n", CMD_ADD_PID_APPCTRL_RULE);
+    printf(" - %S <verdict 0 - allow, 1 - deny> <path>: adds a rule by path\n", CMD_ADD_PATH_APPCTRL_RULE);
+    printf(" - %S <rule_id>: deletes a deny rule\n", CMD_DELETE_APPCTRL_DENY_RULE);
+    printf(" - %S <rule_id>: deletes an allow rule\n", CMD_DELETE_APPCTRL_ALLOW_RULE);
+    printf(" - %S <is_deny 0 / 1> <rule_id> <pid> <path: can be \"NULL\">: updates a rule\n", CMD_UPDATE_APPCTRL_RULE);
+    printf(" - %S : get all aptctrl rules\n", CMD_GET_APPCTRL_RULES);
     printf(" - %S : exit console\n", CMD_EXIT);
 }
 
@@ -232,6 +240,158 @@ AddAppCtrlPathRule(
     printf("Command returned: %d\n", dwResult);
     printf(">> Rule ID: %d\n", dwRuleId);
 }
+
+VOID
+DeleteAppCtrlRule(
+    _In_z_      PWCHAR                      PCmd,
+    _In_        BOOLEAN                     BIsDenyRule
+)
+{
+    DWORD       dwRuleId    = 0;
+    DWORD       dwIndex     = 0;
+    DWORD       dwResult    = 0;
+
+    if (L'\0' == PCmd[0] || L'\n' == PCmd[0])
+    {
+        printf("Invalid command format!\n");
+        PrintHelp();
+        return;
+    }
+
+    if (L' ' != PCmd[0])
+    {
+        printf("Invalid command!\n");
+        PrintHelp();
+        return;
+    }
+
+    for (dwIndex = 1; (L' ' == PCmd[dwIndex]) && (L'\0' != PCmd[dwIndex]); dwIndex++);
+    dwRuleId = _wtoi(PCmd + dwIndex);
+    if (
+        (0 == dwRuleId && PCmd[dwIndex] != L'0')
+        )
+    {
+        printf("Invalid RULE_ID!\n");
+        PrintHelp();
+        return;
+    }
+
+    dwResult = BIsDenyRule ? IcDeleteAppCtrlDenyRule(dwRuleId) : IcDeleteAppCtrlAllowRule(dwRuleId);
+    printf("Command returned: %d", dwResult);
+}
+
+VOID
+UpdateAppCtrlRule(
+    _In_z_      PWCHAR                      PCmd
+)
+{
+    DWORD       dwIsDeny    = 0;
+    DWORD       dwIndex     = 0;
+    DWORD       dwRuleId    = 0;
+    DWORD       dwPid       = 0;
+    DWORD       dwResult    = ERROR_SUCCESS;
+    PWCHAR      pPath       = NULL;
+
+    if (L'\0' == PCmd[0] || L'\n' == PCmd[0])
+    {
+        printf("Invalid command format!\n");
+        PrintHelp();
+        return;
+    }
+
+    if (L' ' != PCmd[0])
+    {
+        printf("Invalid command!\n");
+        PrintHelp();
+        return;
+    }
+
+    //printf(" - %S <is_deny 0 / 1> <rule_id> <pid> <path: can be \"NULL\">: updates a rule\n", CMD_UPDATE_APPCTRL_RULE);
+
+
+    for (dwIndex = 1; (L' ' == PCmd[dwIndex]) && (L'\0' != PCmd[dwIndex]); dwIndex++);
+    dwIsDeny = _wtoi(PCmd + dwIndex);
+    if (
+        (0 == dwIsDeny && PCmd[dwIndex] != L'0') ||
+        (0 != dwIsDeny && 1 != dwIsDeny)
+        )
+    {
+        printf("Invalid IS_DENY_RULE!\n");
+        PrintHelp();
+        return;
+    }
+
+    for (; (L' ' != PCmd[dwIndex]) && (L'\0' != PCmd[dwIndex]); dwIndex++);
+    for (; (L' ' == PCmd[dwIndex]) && (L'\0' != PCmd[dwIndex]); dwIndex++);
+    dwRuleId = _wtoi(PCmd + dwIndex);
+    if (0 == dwRuleId && PCmd[dwIndex] != L'0')
+    {
+        printf("Invalid RULE_ID!\n");
+        PrintHelp();
+        return;
+    }
+
+    for (; (L' ' != PCmd[dwIndex]) && (L'\0' != PCmd[dwIndex]); dwIndex++);
+    for (; (L' ' == PCmd[dwIndex]) && (L'\0' != PCmd[dwIndex]); dwIndex++);
+    dwPid = _wtoi(PCmd + dwIndex);
+    if (0 == dwPid && PCmd[dwIndex] != L'0')
+    {
+        printf("Invalid PID!\n");
+        PrintHelp();
+        return;
+    }
+
+    for (; (L' ' != PCmd[dwIndex]) && (L'\0' != PCmd[dwIndex]); dwIndex++);
+    for (; (L' ' == PCmd[dwIndex]) && (L'\0' != PCmd[dwIndex]); dwIndex++);
+    pPath = PCmd + dwIndex;
+    for (; (L'\n' != PCmd[dwIndex]) && (L'\0' != PCmd[dwIndex]); dwIndex++);
+    PCmd[dwIndex] = 0;
+    if (0 == pPath)
+    {
+        printf("Invalid PATH!\n");
+        PrintHelp();
+        return;
+    }
+
+
+    printf("dwIsDeny::: %d.\n", dwIsDeny);
+    printf("dwRuleId::: %d.\n", dwRuleId);
+    printf("dwPid::: %d.\n", dwPid);
+    printf("path::: %S.\n", pPath);
+    dwResult = dwIsDeny ? IcUpdateAppCtrlDenyRule(dwRuleId, pPath, dwPid) : IcUpdateAppCtrlAllowRule(dwRuleId, pPath, dwPid);
+    printf("Command returned: %d\n", dwResult);
+}
+
+VOID
+GetAllAppCtrl(
+    _In_z_      PWCHAR                      PCmd
+)
+{
+    PIC_APPCTRL_RULE    pRules      = NULL;
+    DWORD               dwLen       = 0;
+    DWORD               dwResult    = ERROR_SUCCESS;
+
+    if (L'\0' != PCmd[0] && L'\n' != PCmd[0])
+    {
+        printf("Invalid command!\n");
+        PrintHelp();
+        return;
+    }
+
+    dwResult = IcGetAppCtrlRules(TRUE, TRUE, &pRules, &dwLen);
+    printf("Command returned: %d\n", dwResult);
+    if (0 == dwResult)
+    {
+        printf("\n\n-------- Rules --------:\n");
+        for (DWORD i = 0; i < dwLen; i++)
+        {
+            printf("%s %d, pid: %d, path: %S, add: %d\n", pRules[i].DwVerdict ? "DENY  " : "ALLOW ", pRules[i].DwRuleId, pRules[i].DwPid, pRules[i].PFilePath, pRules[i].DwAddTime);
+        }
+    }
+
+    IcFreeAppCtrlRulesList(pRules, dwLen);
+}
+
 DWORD
 wmain(
     _In_        DWORD                       DwArgc,
@@ -299,6 +459,22 @@ wmain(
             else if (0 == _wcsnicmp(pCmd, CMD_ADD_PATH_APPCTRL_RULE, wcslen(CMD_ADD_PATH_APPCTRL_RULE)))
             {
                 AddAppCtrlPathRule(pCmd + wcslen(CMD_ADD_PATH_APPCTRL_RULE));
+            }
+            else if (0 == _wcsnicmp(pCmd, CMD_DELETE_APPCTRL_DENY_RULE, wcslen(CMD_DELETE_APPCTRL_DENY_RULE)))
+            {
+                DeleteAppCtrlRule(pCmd + wcslen(CMD_DELETE_APPCTRL_DENY_RULE), TRUE);
+            }
+            else if (0 == _wcsnicmp(pCmd, CMD_DELETE_APPCTRL_ALLOW_RULE, wcslen(CMD_DELETE_APPCTRL_ALLOW_RULE)))
+            {
+                DeleteAppCtrlRule(pCmd + wcslen(CMD_DELETE_APPCTRL_ALLOW_RULE), FALSE);
+            }
+            else if (0 == _wcsnicmp(pCmd, CMD_UPDATE_APPCTRL_RULE, wcslen(CMD_UPDATE_APPCTRL_RULE)))
+            {
+                UpdateAppCtrlRule(pCmd + wcslen(CMD_UPDATE_APPCTRL_RULE));
+            }
+            else if (0 == _wcsnicmp(pCmd, CMD_GET_APPCTRL_RULES, wcslen(CMD_GET_APPCTRL_RULES)))
+            {
+                GetAllAppCtrl(pCmd + wcslen(CMD_GET_APPCTRL_RULES));
             }
             else if (0 == _wcsnicmp(pCmd, CMD_EXIT, wcslen(CMD_EXIT)))
             {        
