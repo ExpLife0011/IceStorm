@@ -6,13 +6,11 @@
 #include <ntstatus.h>
 
 
-_Success_(NT_SUCCESS(return))
 NTSTATUS
 IceProLstInitialize(
     _In_        WORD                        WMaximumCacheSize
 );
 
-_Success_(NT_SUCCESS(return))
 VOID
 IceProLstUninitialize(
     VOID
@@ -21,6 +19,11 @@ IceProLstUninitialize(
 VOID
 IceProLstClearAll(
     VOID
+);
+
+NTSTATUS
+IceProLstAddProcess(
+    _In_z_ PWCHAR                           PPath
 );
 
 #endif // !__PROCESS_LIST_H__

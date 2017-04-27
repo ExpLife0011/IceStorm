@@ -1,6 +1,7 @@
 #include "appctrl_rules.h"
 #include "debug2.h"
 #include "db_sqlite.h"
+#include "icecommon.h"
 
 DWORD
 InitAppCtrlRules(
@@ -45,80 +46,49 @@ UninitAppCtrlRules(
     return dwResult;
 }
 
-
 _Use_decl_anno_impl_
 DWORD
 GetAppCtrlScanResult(
-    PICE_APP_CTRL_SCAN_REQUEST_PACKET       PScanRequest,
-    PICE_APP_CTRL_SCAN_RESULT_PACKET        PResultPack
+    IC_APPCTRL_RULE                        *PRule,
+    ICE_APP_CTRL_SCAN_RESULT_PACKET        *PResultPack
 )
 {
+    ICE_SCAN_VERDICT verdict = IcScanVerdict_Allow;
 
-    BOOLEAN     bBlockProcess = FALSE;
-    BOOLEAN     bHasDenyRule = FALSE;
-    BOOLEAN     bHasAllowRule = FALSE;
-    DWORD       dwDenyTimestamp = 0;
-    DWORD       dwAllowTimestamp = 0;
-
-
-    do
+    if (ERROR_SUCCESS != DbGetAppCtrlVerdict(PRule, &verdict))
     {
-        if (ERROR_SUCCESS != DbContainsAppCtrlDenyRule(PScanRequest, &bHasDenyRule, &dwDenyTimestamp) || !bHasDenyRule)
-        {
-            break;
-        }
-        bBlockProcess = TRUE;
-
-        if (ERROR_SUCCESS != DbContainsAppCtrlAllowRule(PScanRequest, &bHasAllowRule, &dwAllowTimestamp) || !bHasAllowRule)
-        {
-            break;
-        }
-
-        if (dwDenyTimestamp < dwAllowTimestamp)
-        {
-            bBlockProcess = FALSE;
-        }
-
-    } while (0);
-
-    PResultPack->NtScanResult = bBlockProcess ? STATUS_ACCESS_DENIED : STATUS_SUCCESS;
+        verdict = IcScanVerdict_Allow;
+    }
+    PResultPack->NtScanResult = verdict;
 
     return ERROR_SUCCESS;
 }
 
-_Success_(ERROR_SUCCESS == return)
+_Use_decl_anno_impl_
 DWORD
-AddAppCtrlDenyRule(
-    _In_z_      PWCHAR                      PFilePath,
-    _In_        DWORD                       DwPid,
-    _Inout_opt_ DWORD                      *PDwRuleId
+AddAppCtrlRule(
+    PWCHAR                                  PProcessPath,
+    DWORD                                   DwPid,
+    PWCHAR                                  PParentPath,
+    DWORD                                   DwParentPid,
+    ICE_SCAN_VERDICT                        Verdict,
+    DWORD                                  *PDwRuleId
 )
 {
-    DWORD dwStatus = ERROR_SUCCESS;
+    DWORD               dwStatus    = ERROR_SUCCESS;
+    IC_APPCTRL_RULE     rule        = { 0 };
 
-    dwStatus = DbAddAppCtrlRule(PFilePath, DwPid, TRUE, PDwRuleId);
+    rule.PProcessPath = PProcessPath;
+    rule.DwPid = DwPid;
+    rule.PParentPath = PParentPath;
+    rule.DwParentPid = DwParentPid;
+    rule.Verdict = Verdict;
+
+
+    dwStatus = DbAddAppCtrlRule(&rule, PDwRuleId);
     if (ERROR_SUCCESS != dwStatus)
     {
-        LogErrorWin(dwStatus, L"DbAddAppCtrlRule(%s, %d, TRUE)", PFilePath, DwPid);
-    }
-
-    return dwStatus;
-}
-
-_Success_(ERROR_SUCCESS == return)
-DWORD
-AddAppCtrlAllowRule(
-    _In_z_      PWCHAR                      PFilePath,
-    _In_        DWORD                       DwPid,
-    _Inout_opt_ DWORD                      *PDwRuleId
-)
-{
-    DWORD dwStatus = ERROR_SUCCESS;
-
-    dwStatus = DbAddAppCtrlRule(PFilePath, DwPid, FALSE, PDwRuleId);
-    if (ERROR_SUCCESS != dwStatus)
-    {
-        LogErrorWin(dwStatus, L"DbAddAppCtrlRule(%s, %d, FALSE)", PFilePath, DwPid);
+        LogErrorWin(dwStatus, L"DbAddAppCtrlRule(%s, %d)", PProcessPath, DwPid);
     }
 
     return dwStatus;
@@ -126,16 +96,16 @@ AddAppCtrlAllowRule(
 
 _Use_decl_anno_impl_
 DWORD
-DeleteAppCtrlDenyRule(
+DeleteAppCtrlRule(
     DWORD                                   DwRuleId
 )
 {
     DWORD dwStatus = ERROR_SUCCESS;
 
-    dwStatus = DbDeleteAppCtrlRule(DwRuleId, TRUE);
+    dwStatus = DbDeleteAppCtrlRule(DwRuleId);
     if (ERROR_SUCCESS != dwStatus)
     {
-        LogErrorWin(dwStatus, L"DbDeleteAppCtrlRule(%d, TRUE)", DwRuleId);
+        LogErrorWin(dwStatus, L"DbDeleteAppCtrlRule(%d)", DwRuleId);
     }
 
     return dwStatus;
@@ -143,54 +113,29 @@ DeleteAppCtrlDenyRule(
 
 _Use_decl_anno_impl_
 DWORD
-DeleteAppCtrlAllowRule(
-    DWORD                                   DwRuleId
-)
-{
-    DWORD dwStatus = ERROR_SUCCESS;
-
-    dwStatus = DbDeleteAppCtrlRule(DwRuleId, FALSE);
-    if (ERROR_SUCCESS != dwStatus)
-    {
-        LogErrorWin(dwStatus, L"DbDeleteAppCtrlRule(%d, FALSE)", DwRuleId);
-    }
-
-    return dwStatus;
-}
-
-_Use_decl_anno_impl_
-DWORD
-UpdateAppCtrlDenyRule(
+UpdateAppCtrlRule(
     DWORD                                   DwRuleId,
-    PWCHAR                                  PFilePath,
-    DWORD                                   DwPid
+    PWCHAR                                  PProcessPath,
+    DWORD                                   DwPid,
+    PWCHAR                                  PParentPath,
+    DWORD                                   DwParentPid,
+    ICE_SCAN_VERDICT                        Verdict
 )
 {
-    DWORD dwStatus = ERROR_SUCCESS;
+    DWORD               dwStatus    = ERROR_SUCCESS;
+    IC_APPCTRL_RULE     rule        = { 0 };
 
-    dwStatus = DbUpdateAppCtrlRule(DwRuleId, PFilePath, DwPid, TRUE);
+    rule.PProcessPath = PProcessPath;
+    rule.DwPid = DwPid;
+    rule.PParentPath = PParentPath;
+    rule.DwParentPid = DwParentPid;
+    rule.Verdict = Verdict;
+
+
+    dwStatus = DbUpdateAppCtrlRule(DwRuleId, &rule);
     if (ERROR_SUCCESS != dwStatus)
     {
-        LogErrorWin(dwStatus, L"DbDeleteAppCtrlRule(%d, %s, %d, TRUE)", DwRuleId, PFilePath, DwPid);
-    }
-
-    return dwStatus;
-}
-
-_Use_decl_anno_impl_
-DWORD
-UpdateAppCtrlAllowRule(
-    DWORD                                   DwRuleId,
-    PWCHAR                                  PFilePath,
-    DWORD                                   DwPid
-)
-{
-    DWORD dwStatus = ERROR_SUCCESS;
-
-    dwStatus = DbUpdateAppCtrlRule(DwRuleId, PFilePath, DwPid, FALSE);
-    if (ERROR_SUCCESS != dwStatus)
-    {
-        LogErrorWin(dwStatus, L"DbDeleteAppCtrlRule(%d, %s, %d, FALSE)", DwRuleId, PFilePath, DwPid);
+        LogErrorWin(dwStatus, L"DbUpdateAppCtrlRule(%d, %s, %d, TRUE)", DwRuleId, PProcessPath, DwPid);
     }
 
     return dwStatus;
@@ -199,13 +144,11 @@ UpdateAppCtrlAllowRule(
 _Use_decl_anno_impl_
 DWORD
 GetAppCtrlRules(
-    BOOLEAN                                 BGetAllowRules,
-    BOOLEAN                                 BGetDenyRules,
     PIC_APPCTRL_RULE                       *PPRules,
     DWORD                                  *PDwLength
 )
 {
-    return DbGetAppCtrlRules(BGetAllowRules, BGetDenyRules, PPRules, PDwLength);
+    return DbGetAppCtrlRules(PPRules, PDwLength);
 }
 
 _Use_decl_anno_impl_

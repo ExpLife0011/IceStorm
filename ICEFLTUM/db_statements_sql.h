@@ -12,18 +12,13 @@ SQL_STM_CREATE_TABLES(
 {
     return
         // AppCtrl Rules
-        "CREATE TABLE IF NOT EXISTS [appctrl_deny_rules] ("
+        "CREATE TABLE IF NOT EXISTS [appctrl_rules] ("
         "  [id] INTEGER PRIMARY KEY AUTOINCREMENT, "
-        "  [file_path] TEXT, "
+        "  [process_path] TEXT, "
         "  [pid] INT, "
-        "  [add_time] INTEGER "
-        ");"
-        ""
-        ""
-        "CREATE TABLE IF NOT EXISTS [appctrl_allow_rules] ("
-        "  [id] INTEGER PRIMARY KEY AUTOINCREMENT, "
-        "  [file_path] TEXT, "
-        "  [pid] INT, "
+        "  [parent_path] TEXT, "
+        "  [parent_pid] INT, "
+        "  [verdict] INT, "
         "  [add_time] INTEGER "
         ");"
         "";
@@ -31,79 +26,49 @@ SQL_STM_CREATE_TABLES(
 
 __inline
 PCHAR
-SQL_STM_SEARCH_APPCTRL_DENY_RULE(
-    VOID
-)
-{
-    return 
-        "SELECT "
-        "  [add_time] "
-        "FROM "
-        "  [appctrl_deny_rules] "
-        "WHERE "
-        "  (([pid] IS NOT NULL) AND ([pid] = ?)) OR "
-        "  (([file_path] IS NOT NULL) AND ([file_path] = ?)) "
-        "ORDER BY"
-        "  [add_time] DESC;"
-        "";
-}
-
-__inline
-PCHAR
-SQL_STM_SEARCH_APPCTRL_ALLOW_RULE(
+SQL_STM_SEARCH_APPCTRL_RULE(
     VOID
 )
 {
     return
         "SELECT "
-        "  [add_time] "
+        "  [id], [verdict] "
         "FROM "
-        "  [appctrl_allow_rules] "
+        "  [appctrl_rules] "
         "WHERE "
-        "  (([pid] IS NOT NULL) AND ([pid] = ?)) OR "
-        "  (([file_path] IS NOT NULL) AND ([file_path] = ?)) "
+        "  (([process_path] IS NULL) OR ([process_path] = ?)) AND "
+        "  (([pid] IS NULL) OR ([pid] = ?)) AND "
+        "  (([parent_path] IS NULL) OR ([parent_path] = ?)) AND"
+        "  (([parent_pid] IS NULL) OR ([parent_pid] = ?)) "
         "ORDER BY"
-        "  [add_time] DESC;"
+        "  [add_time] DESC "
+        "LIMIT 1;"
         "";
 }
 
 __inline
 PCHAR
-SQL_STM_INSERT_APPCTRL_DENY_RULE(
+SQL_STM_INSERT_APPCTRL_RULE(
     VOID
 )
 {
     return
-        "INSERT INTO [appctrl_deny_rules] "
-        "   ([id], [file_path], [pid], [add_time]) "
+        "INSERT INTO [appctrl_rules] "
+        "   ([id], [process_path], [pid], [parent_path], [parent_pid], [verdict], [add_time]) "
         "VALUES "
-        "   (?, ?, ?, ?);"
+        "   (?, ?, ?, ?, ?, ?, ?);"
         "";
 }
 
 __inline
 PCHAR
-SQL_STM_INSERT_APPCTRL_ALLOW_RULE(
-    VOID
-)
-{
-    return
-        "INSERT INTO [appctrl_allow_rules] "
-        "   ([id], [file_path], [pid], [add_time]) "
-        "VALUES "
-        "   (?, ?, ?, ?);"
-        "";
-}
-
-__inline
-PCHAR
-SQL_STM_DELETE_APPCTRL_DENY_RULE(
+SQL_STM_DELETE_APPCTRL_RULE(
     VOID
 )
 {
     return
         "DELETE FROM "
-        "  [appctrl_deny_rules] "
+        "  [appctrl_rules] "
         "WHERE "
         "  [id] = ?"
         "";
@@ -111,29 +76,18 @@ SQL_STM_DELETE_APPCTRL_DENY_RULE(
 
 __inline
 PCHAR
-SQL_STM_DELETE_APPCTRL_ALLOW_RULE(
+SQL_STM_UPDATE_APPCTRL_RULE(
     VOID
 )
 {
     return
-        "DELETE FROM "
-        "  [appctrl_allow_rules] "
-        "WHERE "
-        "  [id] = ?"
-        "";
-}
-
-__inline
-PCHAR
-SQL_STM_UPDATE_APPCTRL_DENY_RULE(
-    VOID
-)
-{
-    return
-        "UPDATE [appctrl_deny_rules] "
+        "UPDATE [appctrl_rules] "
         "SET "
-        "  [file_path] = ?, "
-        "  [pid] = ? "
+        "  [process_path] = ?, "
+        "  [pid] = ?, "
+        "  [parent_path] = ?, "
+        "  [parent_pid] = ?, "
+        "  [verdict] = ? "
         "WHERE "
         "  [id] = ?"
         "";
@@ -141,52 +95,18 @@ SQL_STM_UPDATE_APPCTRL_DENY_RULE(
 
 __inline
 PCHAR
-SQL_STM_UPDATE_APPCTRL_ALLOW_RULE(
+SQL_STM_GET_APPCTRL_RULES(
     VOID
 )
 {
-    return
-        "UPDATE [appctrl_allow_rules] "
-        "SET "
-        "  [file_path] = ?, "
-        "  [pid] = ? "
-        "WHERE "
-        "  [id] = ?"
-        "";
+    return "SELECT * FROM [appctrl_rules];";
 }
 
 __inline
 PCHAR
-SQL_STM_GET_APPCTRL_DENY_RULES(
+SQL_STM_GET_APPCTRL_RULES_COUNT(
     VOID
 )
 {
-    return "SELECT * FROM [appctrl_deny_rules];";
-}
-
-__inline
-PCHAR
-SQL_STM_GET_APPCTRL_ALLOW_RULES(
-    VOID
-)
-{
-    return "SELECT * FROM [appctrl_allow_rules];";
-}
-
-__inline
-PCHAR
-SQL_STM_GET_APPCTRL_DENY_RULES_COUNT(
-    VOID
-)
-{
-    return "SELECT COUNT(*) FROM [appctrl_deny_rules];";
-}
-
-__inline
-PCHAR
-SQL_STM_GET_APPCTRL_ALLOW_RULES_COUNT(
-    VOID
-)
-{
-    return "SELECT COUNT(*) FROM [appctrl_allow_rules];";
+    return "SELECT COUNT(*) FROM [appctrl_rules];";
 }

@@ -105,6 +105,9 @@
     <ClInclude Include="ice_app_ctrl_scan.h">
       <Filter>Header Files\communication</Filter>
     </ClInclude>
+    <ClInclude Include="defines.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Inf Include="iceflt.inf">

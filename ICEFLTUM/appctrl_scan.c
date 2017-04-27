@@ -22,11 +22,11 @@ typedef struct _APPCTRL_SCAN_REQ_NODE
 _Success_(return == ERROR_SUCCESS)
 DWORD
 ScanAppCtrlPackage(
-    _In_    PICE_APP_CTRL_SCAN_REQUEST_PACKET       PScanRequest,
-    _Inout_ PICE_APP_CTRL_SCAN_RESULT_PACKET        PResultPack
+    _In_    IC_APPCTRL_RULE                        *PRule,
+    _Inout_ ICE_APP_CTRL_SCAN_RESULT_PACKET        *PResultPack
 )
 {
-    GetAppCtrlScanResult(PScanRequest, PResultPack);
+    GetAppCtrlScanResult(PRule, PResultPack);
 
     return ERROR_SUCCESS;
 }
@@ -116,6 +116,51 @@ ThreadAppCtrlListener(
     return 0;
 }
 
+VOID
+FreeRule(
+    _Inout_     IC_APPCTRL_RULE                *PRule
+)
+{
+    if (NULL != PRule->PProcessPath)
+    {
+        free(PRule->PProcessPath);
+        PRule->PProcessPath = NULL;
+    }
+
+    if (NULL != PRule->PParentPath)
+    {
+        free(PRule->PParentPath);
+        PRule->PParentPath = NULL;
+    }
+}
+
+VOID
+BuildRuleFromScanRequest(
+    _In_    ICE_APP_CTRL_SCAN_REQUEST_PACKET   *PScanRequest,
+    _Out_   IC_APPCTRL_RULE                    *PRule
+)
+{
+    DWORD dwSize = 0;
+
+    PRule->DwPid = PScanRequest->DwPid;
+    PRule->DwParentPid = PScanRequest->DwParentPid;
+
+    dwSize = PScanRequest->DwProcessPathSize + sizeof(WCHAR);
+    PRule->PProcessPath = (PWCHAR) malloc(dwSize);
+    if (NULL == PRule->PProcessPath) return;
+    RtlSecureZeroMemory(PRule->PProcessPath, dwSize);
+    RtlCopyMemory(PRule->PProcessPath, PScanRequest->PStrings, PScanRequest->DwProcessPathSize);
+
+    dwSize = PScanRequest->DwParentPathSize + sizeof(WCHAR);
+    PRule->PParentPath = (PWCHAR) malloc(dwSize);
+    if (NULL == PRule->PParentPath) return;
+    RtlSecureZeroMemory(PRule->PParentPath, dwSize);
+    RtlCopyMemory(
+        PRule->PParentPath, 
+        ((PBYTE) PScanRequest->PStrings) + PScanRequest->DwProcessPathSize, 
+        PScanRequest->DwParentPathSize
+    );
+}
 
 DWORD
 WINAPI
@@ -126,6 +171,7 @@ ThreadAppCtrlScanner(
     DWORD                               dwStatus        = ERROR_SUCCESS;
     DWORD                               dwThreadId      = GetThreadId(GetCurrentThread());
     HANDLE                              pEvents[2]      = { 0 };
+    IC_APPCTRL_RULE                     rule            = { 0 };
     PAPPCTRL_SCAN_REQ_NODE              pReqNode        = NULL;
     ICE_APP_CTRL_SCAN_RESULT_PACKET     resultPack      = { 0 };
     PFILTER_MESSAGE_HEADER              pMsgHeader      = NULL;
@@ -133,6 +179,7 @@ ThreadAppCtrlScanner(
     PICE_APP_CTRL_SCAN_REQUEST_PACKET   pScanRequest    = NULL;
 
     UNREFERENCED_PARAMETER(PParams);
+    UNREFERENCED_PARAMETER(dwThreadId);
     
     pEvents[0] = gHEventStop;
     pEvents[1] = gHEventAppCtrlScanReqAdded;
@@ -161,12 +208,14 @@ ThreadAppCtrlScanner(
         pPacket = (PICE_GENERIC_PACKET) (pMsgHeader + 1);
         pScanRequest = (PICE_APP_CTRL_SCAN_REQUEST_PACKET) (pPacket + 1);
 
+        BuildRuleFromScanRequest(pScanRequest, &rule);
+
         LogInfo(L"TID %d: Process with pid: %d started. MsgID: %I64d, RepLen: %d, PackLen: %d, ReqType: %d, PPath: %s",
-            dwThreadId, pScanRequest->DwPid, pMsgHeader->MessageId, pMsgHeader->ReplyLength, pPacket->DwPacketLength, pPacket->DwRequestType, pScanRequest->PProcessPath);
+            dwThreadId, rule.DwPid, pMsgHeader->MessageId, pMsgHeader->ReplyLength, pPacket->DwPacketLength, pPacket->DwRequestType, rule.PProcessPath);
 
         // scan
         resultPack.NtScanResult = ERROR_SUCCESS;
-        dwStatus = ScanAppCtrlPackage(pScanRequest, &resultPack);
+        dwStatus = ScanAppCtrlPackage(&rule, &resultPack);
         if (dwStatus != ERROR_SUCCESS)
         {
             LogErrorWin(dwStatus, L"ScanAppCtrlPackage failed. Will send allow result.");
@@ -180,6 +229,8 @@ ThreadAppCtrlScanner(
 
         free(pReqNode);
         pReqNode = NULL;
+
+        FreeRule(&rule);
     }
 
     

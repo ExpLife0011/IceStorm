@@ -244,20 +244,35 @@ BindNULL(
 
 _Success_(return == SQLITE_OK)
 DWORD
+BindIntOrNULLIfVal(
+    _Inout_     sqlite3_stmt   *PStmt,
+    _In_        DWORD           DwIndex,
+    _In_        UINT64          QwValue,
+    _In_        UINT64          QwValueForNULL // if QwValue == QwValueForNULL => Bind NULL
+)
+{
+    if (QwValue == QwValueForNULL)
+    {
+        return BindNULL(PStmt, DwIndex);
+    }
+
+    return BindInt(PStmt, DwIndex, QwValue);
+}
+
+_Success_(return == SQLITE_OK)
+DWORD
 BindWTextOrNULL(
     _Inout_     sqlite3_stmt   *PStmt,
     _In_        DWORD           DwIndex,
     _In_z_      PWCHAR          PValue
 )
 {
-    if (PValue != NULL)
-    {
-        return BindWText(PStmt, DwIndex, PValue, wcslen(PValue) * sizeof(WCHAR));
-    }
-    else
+    if (PValue == NULL)
     {
         return BindNULL(PStmt, DwIndex);
     }
+    
+    return BindWText(PStmt, DwIndex, PValue, (DWORD) (wcslen(PValue) * sizeof(WCHAR)));
 }
 
 _Success_(return == SQLITE_OK)
@@ -268,12 +283,9 @@ BindTextOrNULL(
     _In_z_      PCHAR           PValue
 )
 {
-    if (PValue != NULL)
-    {
-        return BindText(PStmt, DwIndex, PValue, strlen(PValue));
-    }
-    else
+    if (PValue == NULL)
     {
         return BindNULL(PStmt, DwIndex);
     }
+    return BindText(PStmt, DwIndex, PValue, (DWORD) strlen(PValue));
 }

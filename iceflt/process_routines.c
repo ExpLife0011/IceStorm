@@ -4,6 +4,18 @@
 #include "process_list.h"
 #include "ice_app_ctrl_scan.h"
 
+VOID IceStartProcessCallback(PEPROCESS PProcess, HANDLE HProcessId, PPS_CREATE_NOTIFY_INFO PCreateInfo);
+VOID IceStopProcessCallback(PEPROCESS PProcess, HANDLE HProcessId);
+VOID IceCreateProcessCallback(PEPROCESS PProcess, HANDLE HProcessId, PPS_CREATE_NOTIFY_INFO PCreateInfo);
+
+#ifdef ALLOC_PRAGMA
+    #pragma alloc_text(PAGE, IceStartProcessCallback)
+    #pragma alloc_text(PAGE, IceStopProcessCallback)
+    #pragma alloc_text(PAGE, IceCreateProcessCallback)
+    #pragma alloc_text(INIT, IceRegisterProcessCallback)
+#endif
+
+
 VOID
 IceStartProcessCallback(
     _Inout_     PEPROCESS                   PProcess,
@@ -11,11 +23,10 @@ IceStartProcessCallback(
     _Inout_opt_ PPS_CREATE_NOTIFY_INFO      PCreateInfo
 )
 {
-    NTSTATUS                                ntStatus;
-    NTSTATUS                                ntScanResult;
+    NTSTATUS    ntStatus        = STATUS_SUCCESS;;
+    NTSTATUS    ntScanResult    = STATUS_SUCCESS;;
 
-    ntStatus                                = STATUS_SUCCESS;
-    ntScanResult                            = STATUS_SUCCESS;
+    PAGED_CODE();
 
     LogInfo("Process %wZ (%d) starting", PCreateInfo->ImageFileName, (ULONG)(ULONG_PTR) HProcessId);
 
@@ -55,7 +66,10 @@ IceStopProcessCallback(
     _In_        HANDLE                      HProcessId
     )
 {
-    PProcess; HProcessId;
+    PAGED_CODE();
+    UNREFERENCED_PARAMETER(PProcess);
+    UNREFERENCED_PARAMETER(HProcessId);
+
     LogInfo("Process %d stoping", (ULONG)(ULONG_PTR) HProcessId);
 }
 

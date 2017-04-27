@@ -51,39 +51,26 @@ IcStopAppCtrlScan(
 
 _Use_decl_anno_impl_
 DWORD
-IcAddAppCtrlDenyRule(
-    PWCHAR                                  PFilePath,
+IcAddAppCtrlRule(
+    PWCHAR                                  PProcessPath,
     DWORD                                   DwPid,
+    PWCHAR                                  PParentPath,
+    DWORD                                   DwParentPid,
+    ICE_SCAN_VERDICT                        Verdict,
     DWORD                                  *PDwRuleId
 )
 {
-    if (NULL == PFilePath && 0 == DwPid)
+    if (NULL == PProcessPath && 0 == DwPid && NULL == PParentPath && 0 == DwParentPid)
     {
         return ERROR_INVALID_PARAMETER;
     }
 
-    return AddAppCtrlDenyRule(PFilePath, DwPid, PDwRuleId);
+    return AddAppCtrlRule(PProcessPath, DwPid, PParentPath, DwParentPid, Verdict, PDwRuleId);
 }
 
 _Use_decl_anno_impl_
 DWORD
-IcAddAppCtrlAllowRule(
-    PWCHAR                                  PFilePath,
-    DWORD                                   DwPid,
-    DWORD                                  *PDwRuleId
-)
-{
-    if (NULL == PFilePath && 0 == DwPid)
-    {
-        return ERROR_INVALID_PARAMETER;
-    }
-    
-    return AddAppCtrlAllowRule(PFilePath, DwPid, PDwRuleId);
-}
-
-_Use_decl_anno_impl_
-DWORD
-IcDeleteAppCtrlDenyRule(
+IcDeleteAppCtrlRule(
     DWORD                                   DwRuleId
 )
 {
@@ -92,74 +79,42 @@ IcDeleteAppCtrlDenyRule(
         return ERROR_INVALID_PARAMETER;
     }
 
-    return DeleteAppCtrlDenyRule(DwRuleId);
+    return DeleteAppCtrlRule(DwRuleId);
 }
 
 _Use_decl_anno_impl_
 DWORD
-IcDeleteAppCtrlAllowRule(
-    DWORD                                   DwRuleId
-)
-{
-    if (DwRuleId == 0)
-    {
-        return ERROR_INVALID_PARAMETER;
-    }
-
-    return DeleteAppCtrlAllowRule(DwRuleId);
-}
-
-_Use_decl_anno_impl_
-DWORD
-IcUpdateAppCtrlDenyRule(
+IcUpdateAppCtrlRule(
     DWORD                                   DwRuleId,
-    PWCHAR                                  PFilePath,
-    DWORD                                   DwPid
+    PWCHAR                                  PProcessPath,
+    DWORD                                   DwPid,
+    PWCHAR                                  PParentPath,
+    DWORD                                   DwParentPid,
+    ICE_SCAN_VERDICT                        Verdict
 )
 {
-    if (DwRuleId == 0 || (PFilePath == NULL && DwPid == 0))
+    if ((DwRuleId == 0) || (NULL == PProcessPath && 0 == DwPid && NULL == PParentPath && 0 == DwParentPid))
+
     {
         return ERROR_INVALID_PARAMETER;
     }
 
-    return UpdateAppCtrlDenyRule(DwRuleId, PFilePath, DwPid);
-}
-
-_Use_decl_anno_impl_
-DWORD
-IcUpdateAppCtrlAllowRule(
-    DWORD                                   DwRuleId,
-    PWCHAR                                  PFilePath,
-    DWORD                                   DwPid
-)
-{
-    if (DwRuleId == 0 || (PFilePath == NULL && DwPid == 0))
-    {
-        return ERROR_INVALID_PARAMETER;
-    }
-
-    return UpdateAppCtrlAllowRule(DwRuleId, PFilePath, DwPid);
+    return UpdateAppCtrlRule(DwRuleId, PProcessPath, DwPid, PParentPath, DwParentPid, Verdict);
 }
 
 _Use_decl_anno_impl_
 DWORD
 IcGetAppCtrlRules(
-    BOOLEAN                                 BGetAllowRules,
-    BOOLEAN                                 BGetDenyRules,
     PIC_APPCTRL_RULE                       *PPRules,
     DWORD                                  *PDwLength
 )
 {
-    if (
-        (!BGetDenyRules && !BGetDenyRules) ||
-        (NULL == PPRules) ||
-        (NULL == PDwLength)
-        )
+    if ((NULL == PPRules) || (NULL == PDwLength))
     {
         return ERROR_INVALID_PARAMETER;
     }
 
-    return GetAppCtrlRules(BGetAllowRules, BGetDenyRules, PPRules, PDwLength);
+    return GetAppCtrlRules(PPRules, PDwLength);
 }
 
 _Use_decl_anno_impl_

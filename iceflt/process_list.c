@@ -1,6 +1,13 @@
 #include "debug.h"
 #include "process_list.h"
 
+#ifdef ALLOC_PRAGMA
+    #pragma alloc_text(PAGE, IceProLstInitialize)
+    #pragma alloc_text(PAGE, IceProLstUninitialize)
+    #pragma alloc_text(PAGE, IceProLstClearAll)
+    #pragma alloc_text(PAGE, IceProLstAddProcess)
+#endif
+
 typedef struct _ICE_PROCESS_LIST
 {
     KGUARDED_MUTEX                          Mutex;
@@ -24,6 +31,8 @@ IceProLstInitialize(
 )
 {
     NTSTATUS ntStatus = STATUS_SUCCESS;
+
+    PAGED_CODE();
 
     __try
     {
@@ -66,6 +75,8 @@ IceProLstUninitialize(
     VOID
 )
 {
+    PAGED_CODE();
+
     if (NULL == gPProcCache)
     {
         return;
@@ -93,6 +104,8 @@ IceProLstClearAll(
     VOID
 )
 {
+    PAGED_CODE();
+
     if (NULL == gPProcCache)
     {
         return;
@@ -105,11 +118,12 @@ IceProLstAddProcess(
     PWCHAR                                  PPath
 )
 {
-    NTSTATUS                                ntStatus;
-    PICE_PROCESS_INFO_NODE                  pProcInfoNode;
+    NTSTATUS                ntStatus        = STATUS_SUCCESS;
+    PICE_PROCESS_INFO_NODE  pProcInfoNode   = NULL;
 
-    ntStatus                                = STATUS_SUCCESS;
-    pProcInfoNode                           = NULL;
+    PAGED_CODE();
+    
+    pProcInfoNode;
 
     if (NULL == gPProcCache)
     {

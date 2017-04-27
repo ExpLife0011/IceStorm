@@ -31,50 +31,34 @@ DBInit(
 
 _Success_(return == ERROR_SUCCESS)
 DWORD
-DbContainsAppCtrlDenyRule(
-    _In_    PICE_APP_CTRL_SCAN_REQUEST_PACKET   PScanRequest,
-    _Inout_ BOOLEAN                            *PBHasDenyRule,
-    _Inout_ DWORD                              *PDwDenyTimestamp
-);
-
-_Success_(return == ERROR_SUCCESS)
-DWORD
-DbContainsAppCtrlAllowRule(
-    _In_    PICE_APP_CTRL_SCAN_REQUEST_PACKET   PScanRequest,
-    _Inout_ BOOLEAN                            *PBHasAllowRule,
-    _Inout_ DWORD                              *PDwAllowTimestamp
+DbGetAppCtrlVerdict(
+    _In_    IC_APPCTRL_RULE                    *PRule,
+    _Out_   ICE_SCAN_VERDICT                   *PVerdict
 );
 
 _Success_(ERROR_SUCCESS == return)
 DWORD
 DbAddAppCtrlRule(
-    _In_z_      PWCHAR                      PFilePath,
-    _In_        DWORD                       DwPid,
-    _In_        BOOLEAN                     BIsDenyRule,
+    _In_        IC_APPCTRL_RULE            *PRule,
     _Inout_opt_ DWORD                      *PDwRuleId
 );
 
 _Success_(ERROR_SUCCESS == return)
 DWORD
 DbDeleteAppCtrlRule(
-    _In_        DWORD                       DwRuleId,
-    _In_        BOOLEAN                     BIsDenyRule
+    _In_        DWORD                       DwRuleId
 );
 
 _Success_(ERROR_SUCCESS == return)
 DWORD
 DbUpdateAppCtrlRule(
     _In_        DWORD                       DwRuleId,
-    _In_z_      PWCHAR                      PFilePath,
-    _In_        DWORD                       DwPid,
-    _In_        BOOLEAN                     BIsDenyRule
+    _In_        IC_APPCTRL_RULE            *PRule
 );
 
 _Success_(ERROR_SUCCESS == return)
 DWORD
 DbGetAppCtrlRules(
-    _In_        BOOLEAN                     BGetAllowRules,
-    _In_        BOOLEAN                     BGetDenyRules,
     _Inout_     PIC_APPCTRL_RULE           *PPRules,
     _Inout_     DWORD                      *PDwLength
 );

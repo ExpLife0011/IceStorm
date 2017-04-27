@@ -52,67 +52,6 @@ CreateTables(
     return dwStatus;
 }
 
-_Success_(return == SQLITE_OK)
-DWORD
-SearchAppCtrlRule(
-    _In_        PICE_APP_CTRL_SCAN_REQUEST_PACKET   PScanReq,
-    _In_z_      BOOLEAN     BDenyTable,
-    _Inout_     BOOLEAN    *PBHasRule,
-    _Inout_     DWORD      *PDwRuleTimestamp
-)
-{
-    DWORD           dwStatus        = SQLITE_OK;
-    DWORD           dwStepResult    = 0;
-    sqlite3_stmt   *pStatement      = NULL;
-
-    __try
-    {
-        if (SQLITE_OK != (dwStatus = PrepareStmt(BDenyTable ? SQL_STM_SEARCH_APPCTRL_DENY_RULE() : SQL_STM_SEARCH_APPCTRL_ALLOW_RULE(), &pStatement))) __leave;
-        
-        if (SQLITE_OK != (dwStatus = BindInt(pStatement, 1, PScanReq->DwPid))) __leave;
-
-        if (PScanReq->PProcessPath != NULL)
-        {
-            if (SQLITE_OK != (dwStatus = BindWText(pStatement, 2, PScanReq->PProcessPath, PScanReq->DwProcessPathSize))) __leave;
-        }
-        else
-        {
-            if (SQLITE_OK != (dwStatus = BindNULL(pStatement, 2))) __leave;
-        }
-
-        dwStepResult = Step(pStatement);
-        if (dwStepResult != SQLITE_DONE && dwStepResult != SQLITE_ROW)
-        {
-            dwStatus = dwStepResult;
-            __leave;
-        }
-        
-        if (dwStepResult == SQLITE_DONE)
-        {
-            LogInfo(L"No %s rule found.", BDenyTable ? L"deny" : L"allow");
-            *PBHasRule = FALSE;
-            *PDwRuleTimestamp = 0;
-            __leave;
-        }
-
-        *PBHasRule = TRUE;
-        *PDwRuleTimestamp = (DWORD) sqlite3_column_int64(pStatement, 0);
-        LogInfo(L"Found %s rule with timestamp: %d.", BDenyTable ? L"deny" : L"allow", *PDwRuleTimestamp);
-    }
-    __finally
-    {
-        Reset(pStatement);
-
-        if (NULL != pStatement)
-        {
-            FinalizeStmt(pStatement);
-            pStatement = NULL;
-        }
-    }
-
-    return dwStatus;
-}
-
 _Success_(return != NULL)
 PWCHAR
 CreateCopyOfWString(
@@ -138,15 +77,16 @@ CreateCopyOfWString(
 VOID
 CreateAppCtrlRuleRow(
     _Inout_     sqlite3_stmt                   *PStatement,
-    _Inout_     IC_APPCTRL_RULE                *PRule,
-    _In_        DWORD                           DwVerdict                       
+    _Inout_     IC_APPCTRL_RULE                *PRule
 )
 {
     PRule->DwRuleId = (DWORD) sqlite3_column_int64(PStatement, 0);
-    PRule->DwVerdict = DwVerdict;
-    PRule->PFilePath = CreateCopyOfWString(sqlite3_column_type(PStatement, 1) == SQLITE_NULL ? NULL : (PWCHAR) sqlite3_column_text16(PStatement, 1));
+    PRule->PProcessPath = CreateCopyOfWString(sqlite3_column_type(PStatement, 1) == SQLITE_NULL ? NULL : (PWCHAR) sqlite3_column_text16(PStatement, 1));
     PRule->DwPid = (DWORD) sqlite3_column_int64(PStatement, 2);
-    PRule->DwAddTime = (DWORD) sqlite3_column_int64(PStatement, 3);
+    PRule->PParentPath = CreateCopyOfWString(sqlite3_column_type(PStatement, 1) == SQLITE_NULL ? NULL : (PWCHAR) sqlite3_column_text16(PStatement, 3));
+    PRule->DwParentPid = (DWORD) sqlite3_column_int64(PStatement, 4);
+    PRule->Verdict = (DWORD) sqlite3_column_int64(PStatement, 5);
+    PRule->DwAddTime = (DWORD) sqlite3_column_int64(PStatement, 6);
 }
 
 DWORD
@@ -249,32 +189,64 @@ DBUninit(
 
 _Use_decl_anno_impl_
 DWORD
-DbContainsAppCtrlDenyRule(
-    PICE_APP_CTRL_SCAN_REQUEST_PACKET   PScanRequest,
-    BOOLEAN                            *PBHasDenyRule,
-    DWORD                              *PDwDenyTimestamp
+DbGetAppCtrlVerdict(
+    IC_APPCTRL_RULE                    *PRule,
+    ICE_SCAN_VERDICT                   *PVerdict
 )
 {
-    return SearchAppCtrlRule(PScanRequest, TRUE, PBHasDenyRule, PDwDenyTimestamp);
-}
+    DWORD           dwStatus        = SQLITE_OK;
+    DWORD           dwStepResult    = 0;
+    DWORD           dwIndex         = 1;
+    DWORD           dwRuleId        = 0;
+    DWORD           dwVerdict       = 0;
+    sqlite3_stmt   *pStatement      = NULL;
 
-_Use_decl_anno_impl_
-DWORD
-DbContainsAppCtrlAllowRule(
-    PICE_APP_CTRL_SCAN_REQUEST_PACKET   PScanRequest,
-    BOOLEAN                            *PBHasAllowRule,
-    DWORD                              *PDwAllowTimestamp
-)
-{
-    return SearchAppCtrlRule(PScanRequest, FALSE, PBHasAllowRule, PDwAllowTimestamp);
+    __try
+    {
+        if (SQLITE_OK != (dwStatus = PrepareStmt(SQL_STM_SEARCH_APPCTRL_RULE(), &pStatement))) __leave;
+
+        if (SQLITE_OK != (dwStatus = BindWTextOrNULL(pStatement, dwIndex++, PRule->PProcessPath))) __leave;
+        if (SQLITE_OK != (dwStatus = BindIntOrNULLIfVal(pStatement, dwIndex++, PRule->DwPid, 0))) __leave;
+        if (SQLITE_OK != (dwStatus = BindWTextOrNULL(pStatement, dwIndex++, PRule->PParentPath))) __leave;
+        if (SQLITE_OK != (dwStatus = BindIntOrNULLIfVal(pStatement, dwIndex++, PRule->DwParentPid, 0))) __leave;
+
+        dwStepResult = Step(pStatement);
+        if (dwStepResult != SQLITE_DONE && dwStepResult != SQLITE_ROW)
+        {
+            dwStatus = dwStepResult;
+            __leave;
+        }
+
+        if (dwStepResult == SQLITE_DONE)
+        {
+            LogInfo(L"No rule found.");
+            *PVerdict = IcScanVerdict_Allow;
+            __leave;
+        }
+
+        dwRuleId = (DWORD) sqlite3_column_int64(pStatement, 0);
+        dwVerdict = (DWORD) sqlite3_column_int64(pStatement, 1);
+        LogInfo(L"Found %s rule, id: %d.", dwVerdict ? L"DENY" : L"ALLOW", dwRuleId);
+
+        *PVerdict = dwVerdict;
+    }
+    __finally
+    {
+        if (NULL != pStatement)
+        {
+            Reset(pStatement);
+            FinalizeStmt(pStatement);
+            pStatement = NULL;
+        }
+    }
+
+    return dwStatus;
 }
 
 _Use_decl_anno_impl_
 DWORD
 DbAddAppCtrlRule(
-    PWCHAR                              PFilePath,
-    DWORD                               DwPid,
-    BOOLEAN                             BIsDenyRule,
+    IC_APPCTRL_RULE                    *PRule,
     DWORD                              *PDwRuleId
 )
 {
@@ -286,23 +258,16 @@ DbAddAppCtrlRule(
 
     __try
     {
-        if (SQLITE_OK != (dwStatus = PrepareStmt(BIsDenyRule ? SQL_STM_INSERT_APPCTRL_DENY_RULE() : SQL_STM_INSERT_APPCTRL_ALLOW_RULE(), &pStatement))) __leave;
+        if (SQLITE_OK != (dwStatus = PrepareStmt(SQL_STM_INSERT_APPCTRL_RULE(), &pStatement))) __leave;
         
         if (SQLITE_OK != (dwStatus = BindNULL(pStatement, dwIndex++))) __leave;
-        
-        if (SQLITE_OK != (dwStatus = BindWTextOrNULL(pStatement, dwIndex++, PFilePath))) __leave;
-        
-        if (0 != DwPid)
-        {
-            if (SQLITE_OK != (dwStatus = BindInt(pStatement, dwIndex++, DwPid))) __leave;
-        }
-        else
-        {
-            if (SQLITE_OK != (dwStatus = BindNULL(pStatement, dwIndex++))) __leave;
-        }
-
+        if (SQLITE_OK != (dwStatus = BindWTextOrNULL(pStatement, dwIndex++, PRule->PProcessPath))) __leave;
+        if (SQLITE_OK != (dwStatus = BindIntOrNULLIfVal(pStatement, dwIndex++, PRule->DwPid, 0))) __leave;
+        if (SQLITE_OK != (dwStatus = BindWTextOrNULL(pStatement, dwIndex++, PRule->PParentPath))) __leave;
+        if (SQLITE_OK != (dwStatus = BindIntOrNULLIfVal(pStatement, dwIndex++, PRule->DwParentPid, 0))) __leave;
+        printf(">>>>>>>>>>>>>>>>>>>>>>> VERDICT:::: %d\n", PRule->Verdict);
+        if (SQLITE_OK != (dwStatus = BindInt(pStatement, dwIndex++, PRule->Verdict))) __leave;
         if (SQLITE_OK != (dwStatus = BindInt(pStatement, dwIndex++, _time64(NULL)))) __leave;
-
 
         dwStepResult = Step(pStatement);
         if (dwStepResult != SQLITE_DONE)
@@ -317,7 +282,7 @@ DbAddAppCtrlRule(
             *PDwRuleId = dwRuleId;
         }
 
-        LogInfo(L"%s rule with id: %d was inserted with success", BIsDenyRule ? L"Deny" : L"Allow", dwRuleId);
+        LogInfo(L"%s rule with id: %d was inserted with success", PRule->Verdict ? L"Deny" : L"Allow", dwRuleId);
     }
     __finally
     {
@@ -336,8 +301,7 @@ DbAddAppCtrlRule(
 _Use_decl_anno_impl_
 DWORD
 DbDeleteAppCtrlRule(
-    DWORD                               DwRuleId,
-    BOOLEAN                             BIsDenyRule
+    DWORD                               DwRuleId
 )
 {
     DWORD           dwStatus        = SQLITE_OK;
@@ -346,7 +310,7 @@ DbDeleteAppCtrlRule(
 
     __try
     {
-        if (SQLITE_OK != (dwStatus = PrepareStmt(BIsDenyRule ? SQL_STM_DELETE_APPCTRL_DENY_RULE() : SQL_STM_DELETE_APPCTRL_ALLOW_RULE(), &pStatement))) __leave;
+        if (SQLITE_OK != (dwStatus = PrepareStmt(SQL_STM_DELETE_APPCTRL_RULE(), &pStatement))) __leave;
         if (SQLITE_OK != (dwStatus = BindInt(pStatement, 1, DwRuleId))) __leave;
         dwStepResult = Step(pStatement);
         if (dwStepResult != SQLITE_DONE)
@@ -362,7 +326,7 @@ DbDeleteAppCtrlRule(
             __leave;
         }
 
-        LogInfo(L"%s rule with id %d was deleted with success", BIsDenyRule ? L"Deny" : L"Allow", DwRuleId);
+        LogInfo(L"Rule with id %d was deleted with success", DwRuleId);
     }
     __finally
     {
@@ -382,9 +346,7 @@ _Use_decl_anno_impl_
 DWORD
 DbUpdateAppCtrlRule(
     DWORD                               DwRuleId,
-    PWCHAR                              PFilePath,
-    DWORD                               DwPid,
-    BOOLEAN                             BIsDenyRule
+    IC_APPCTRL_RULE                    *PRule
 )
 {
     DWORD           dwStatus        = SQLITE_OK;
@@ -394,21 +356,14 @@ DbUpdateAppCtrlRule(
 
     __try
     {
-        if (SQLITE_OK != (dwStatus = PrepareStmt(BIsDenyRule ? SQL_STM_UPDATE_APPCTRL_DENY_RULE() : SQL_STM_UPDATE_APPCTRL_ALLOW_RULE(), &pStatement))) __leave;
+        if (SQLITE_OK != (dwStatus = PrepareStmt(SQL_STM_UPDATE_APPCTRL_RULE(), &pStatement))) __leave;
 
-        if (SQLITE_OK != (dwStatus = BindWTextOrNULL(pStatement, dwIndex++, PFilePath))) __leave;
-
-        if (0 != DwPid)
-        {
-            if (SQLITE_OK != (dwStatus = BindInt(pStatement, dwIndex++, DwPid))) __leave;
-        }
-        else
-        {
-            if (SQLITE_OK != (dwStatus = BindNULL(pStatement, dwIndex++))) __leave;
-        }
-
+        if (SQLITE_OK != (dwStatus = BindWTextOrNULL(pStatement, dwIndex++, PRule->PProcessPath))) __leave;
+        if (SQLITE_OK != (dwStatus = BindIntOrNULLIfVal(pStatement, dwIndex++, PRule->DwPid, 0))) __leave;
+        if (SQLITE_OK != (dwStatus = BindWTextOrNULL(pStatement, dwIndex++, PRule->PParentPath))) __leave;
+        if (SQLITE_OK != (dwStatus = BindIntOrNULLIfVal(pStatement, dwIndex++, PRule->DwParentPid, 0))) __leave;
+        if (SQLITE_OK != (dwStatus = BindInt(pStatement, dwIndex++, PRule->Verdict))) __leave;
         if (SQLITE_OK != (dwStatus = BindInt(pStatement, dwIndex++, DwRuleId))) __leave;
-
 
         dwStepResult = Step(pStatement);
         if (dwStepResult != SQLITE_DONE)
@@ -424,7 +379,7 @@ DbUpdateAppCtrlRule(
             __leave;
         }
 
-        LogInfo(L"%s rule with id: %d was Updated with success", BIsDenyRule ? L"Deny" : L"Allow", DwRuleId);
+        LogInfo(L"Rule with id: %d was Updated with success", DwRuleId);
     }
     __finally
     {
@@ -443,8 +398,6 @@ DbUpdateAppCtrlRule(
 _Use_decl_anno_impl_
 DWORD
 DbGetAppCtrlRules(
-    BOOLEAN                                 BGetAllowRules,
-    BOOLEAN                                 BGetDenyRules,
     PIC_APPCTRL_RULE                       *PPRules,
     DWORD                                  *PDwLength
 )
@@ -452,34 +405,13 @@ DbGetAppCtrlRules(
     DWORD               dwStatus            = SQLITE_OK;
     DWORD               dwStepResult        = 0;
     DWORD               dwIndex             = 0;
-    DWORD               dwNrOfAllowRules    = 0;
-    DWORD               dwNrOfDenyRules     = 0;
     DWORD               dwNrOfRules         = 0;
     PIC_APPCTRL_RULE    pRules              = NULL;
-    sqlite3_stmt       *pGetAllowStatement  = NULL;
-    sqlite3_stmt       *pGetDenyStatement   = NULL;
-
+    sqlite3_stmt       *pStatement          = NULL;
+    
     __try
     {
-        if (BGetAllowRules)
-        {
-            dwNrOfAllowRules = GetNumberOfRows(SQL_STM_GET_APPCTRL_ALLOW_RULES_COUNT());
-            if (dwNrOfAllowRules != 0)
-            {
-                if (SQLITE_OK != (dwStatus = PrepareStmt(SQL_STM_GET_APPCTRL_ALLOW_RULES(), &pGetAllowStatement))) __leave;
-            }
-        }
-
-        if (BGetDenyRules)
-        {
-            dwNrOfDenyRules = GetNumberOfRows(SQL_STM_GET_APPCTRL_DENY_RULES_COUNT());
-            if (dwNrOfDenyRules != 0)
-            {
-                if (SQLITE_OK != (dwStatus = PrepareStmt(SQL_STM_GET_APPCTRL_DENY_RULES(), &pGetDenyStatement))) __leave;
-            }
-        }
-
-        dwNrOfRules = dwNrOfAllowRules + dwNrOfDenyRules;
+        dwNrOfRules = GetNumberOfRows(SQL_STM_GET_APPCTRL_RULES_COUNT());
         if (dwNrOfRules == 0)
         {
             dwStatus = ERROR_NOT_FOUND;
@@ -496,60 +428,33 @@ DbGetAppCtrlRules(
         }
         RtlSecureZeroMemory(pRules, dwNrOfRules * sizeof(IC_APPCTRL_RULE));
 
-        if (0 != dwNrOfAllowRules)
+        if (SQLITE_OK != (dwStatus = PrepareStmt(SQL_STM_GET_APPCTRL_RULES(), &pStatement))) __leave;
+        
+        dwStepResult = Step(pStatement);
+        if (SQLITE_ROW != dwStepResult && SQLITE_DONE != dwStepResult)
         {
-            dwStepResult = Step(pGetAllowStatement);
-            if (SQLITE_ROW != dwStepResult)
-            {
-                dwStatus = dwStepResult;
-                LogErrorWin(dwStepResult, L"Step(pGetAllowStatement)");
-                __leave;
-            }
-
-            while (SQLITE_ROW == dwStepResult && dwIndex < dwNrOfAllowRules)
-            {
-                CreateAppCtrlRuleRow(pGetAllowStatement, pRules + dwIndex, ERROR_SUCCESS);
-                dwStepResult = Step(pGetAllowStatement);
-                dwIndex++;
-            }
+            dwStatus = dwStepResult;
+            __leave;
         }
 
-        if (0 != dwNrOfDenyRules)
+        while (SQLITE_ROW == dwStepResult && dwIndex < dwNrOfRules)
         {
-            dwStepResult = Step(pGetDenyStatement);
-            if (SQLITE_ROW != dwStepResult)
-            {
-                dwStatus = dwStepResult;
-                LogErrorWin(dwStepResult, L"Step(pGetDenyStatement)");
-                __leave;
-            }
-
-            while (SQLITE_ROW == dwStepResult && dwIndex < dwNrOfRules)
-            {
-                CreateAppCtrlRuleRow(pGetDenyStatement, pRules + dwIndex, ERROR_ACCESS_DENIED);
-                dwStepResult = Step(pGetDenyStatement);
-                dwIndex++;
-            }
+            CreateAppCtrlRuleRow(pStatement, pRules + dwIndex);
+            dwStepResult = Step(pStatement);
+            dwIndex++;
         }
-
+        
         *PPRules = pRules;
         *PDwLength = dwNrOfRules;
-        LogInfo(L"Retrived %d rows (%d allow, %d deny)", dwNrOfRules, dwNrOfAllowRules, dwNrOfDenyRules);
+        LogInfo(L"Retrived %d rows", dwNrOfRules);
     }
     __finally
     {
-        if (NULL != pGetAllowStatement)
+        if (NULL != pStatement)
         {
-            Reset(pGetAllowStatement);
-            FinalizeStmt(pGetAllowStatement);
-            pGetAllowStatement = NULL;
-        }
-
-        if (NULL != pGetDenyStatement)
-        {
-            Reset(pGetDenyStatement);
-            FinalizeStmt(pGetDenyStatement);
-            pGetDenyStatement = NULL;
+            Reset(pStatement);
+            FinalizeStmt(pStatement);
+            pStatement = NULL;
         }
 
         if (ERROR_SUCCESS != dwStatus)
@@ -574,10 +479,16 @@ DbFreeAppCtrlRulesList(
 
     for (dwIdx = 0; dwIdx < DwLength; dwIdx++)
     {
-        if (NULL != PRules[dwIdx].PFilePath)
+        if (NULL != PRules[dwIdx].PParentPath)
         {
-            free(PRules[dwIdx].PFilePath);
-            PRules[dwIdx].PFilePath = NULL;
+            free(PRules[dwIdx].PParentPath);
+            PRules[dwIdx].PParentPath = NULL;
+        }
+
+        if (NULL != PRules[dwIdx].PParentPath)
+        {
+            free(PRules[dwIdx].PParentPath);
+            PRules[dwIdx].PParentPath = NULL;
         }
     }
     

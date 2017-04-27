@@ -58,59 +58,38 @@ IcStopAppCtrlScan(
 ICEFLTUM_API
 _Success_(ERROR_SUCCESS == return)
 DWORD
-IcAddAppCtrlDenyRule(
-    _In_opt_z_  PWCHAR                      PFilePath,
+IcAddAppCtrlRule(
+    _In_opt_z_  PWCHAR                      PProcessPath,
     _In_opt_    DWORD                       DwPid,
+    _In_opt_z_  PWCHAR                      PParentPath,
+    _In_opt_    DWORD                       DwParentPid,
+    _In_        ICE_SCAN_VERDICT            Verdict,
     _Inout_opt_ DWORD                      *PDwRuleId
 );
 
 ICEFLTUM_API
 _Success_(ERROR_SUCCESS == return)
 DWORD
-IcAddAppCtrlAllowRule(
-    _In_opt_z_  PWCHAR                      PFilePath,
+IcDeleteAppCtrlRule(
+    _In_        DWORD                       DwRuleId
+);
+
+ICEFLTUM_API
+_Success_(ERROR_SUCCESS == return)
+DWORD
+IcUpdateAppCtrlRule(
+    _In_        DWORD                       DwRuleId,
+    _In_opt_z_  PWCHAR                      PProcessPath,
     _In_opt_    DWORD                       DwPid,
-    _Inout_opt_ DWORD                      *PDwRuleId
-);
-
-ICEFLTUM_API
-_Success_(ERROR_SUCCESS == return)
-DWORD
-IcDeleteAppCtrlDenyRule(
-    _In_        DWORD                       DwRuleId
-);
-
-ICEFLTUM_API
-_Success_(ERROR_SUCCESS == return)
-DWORD
-IcDeleteAppCtrlAllowRule(
-    _In_        DWORD                       DwRuleId
-);
-
-ICEFLTUM_API
-_Success_(ERROR_SUCCESS == return)
-DWORD
-IcUpdateAppCtrlDenyRule(
-    _In_        DWORD                       DwRuleId,
-    _In_opt_z_  PWCHAR                      PFilePath,
-    _In_opt_    DWORD                       DwPid
-);
-
-ICEFLTUM_API
-_Success_(ERROR_SUCCESS == return)
-DWORD
-IcUpdateAppCtrlAllowRule(
-    _In_        DWORD                       DwRuleId,
-    _In_opt_z_  PWCHAR                      PFilePath,
-    _In_opt_    DWORD                       DwPid
+    _In_opt_z_  PWCHAR                      PParentPath,
+    _In_opt_    DWORD                       DwParentPid,
+    _In_        ICE_SCAN_VERDICT            Verdict
 );
 
 ICEFLTUM_API
 _Success_(ERROR_SUCCESS == return)
 DWORD
 IcGetAppCtrlRules(
-    _In_        BOOLEAN                     BGetAllowRules,
-    _In_        BOOLEAN                     BGetDenyRules,
     _Inout_     PIC_APPCTRL_RULE           *PPRules,
     _Inout_     DWORD                      *PDwLength
 );

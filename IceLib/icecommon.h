@@ -8,11 +8,15 @@
 
 typedef struct _IC_APPCTRL_RULE
 {
-    DWORD       DwRuleId;
-    DWORD       DwVerdict;
-    PWCHAR      PFilePath;
-    DWORD       DwPid;
-    DWORD       DwAddTime;
+    DWORD               DwRuleId;
+    ICE_SCAN_VERDICT    Verdict;
+
+    PWCHAR              PProcessPath;
+    DWORD               DwPid;
+    PWCHAR              PParentPath;
+    DWORD               DwParentPid;
+
+    DWORD               DwAddTime;
 
 } IC_APPCTRL_RULE, *PIC_APPCTRL_RULE;
 

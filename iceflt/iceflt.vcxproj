@@ -328,6 +328,7 @@
   <ItemGroup>
     <ClInclude Include="communication.h" />
     <ClInclude Include="debug.h" />
+    <ClInclude Include="defines.h" />
     <ClInclude Include="iceflt.h" />
     <ClInclude Include="global_data.h" />
     <ClInclude Include="ice_app_ctrl_scan.h" />

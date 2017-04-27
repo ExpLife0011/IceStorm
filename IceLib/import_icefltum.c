@@ -7,12 +7,9 @@ PFUNC_IcUninitConnectionToIceFlt            IcUninitConnectionToIceFlt  = NULL;
 PFUNC_IcSendSetOption                       IcSendSetOption             = NULL;
 PFUNC_IcStartAppCtrlScan                    IcStartAppCtrlScan          = NULL;
 PFUNC_IcStopAppCtrlScan                     IcStopAppCtrlScan           = NULL;
-PFUNC_IcAddAppCtrlDenyRule                  IcAddAppCtrlDenyRule        = NULL;
-PFUNC_IcAddAppCtrlAllowRule                 IcAddAppCtrlAllowRule       = NULL;
-PFUNC_IcDeleteAppCtrlDenyRule               IcDeleteAppCtrlDenyRule     = NULL;
-PFUNC_IcDeleteAppCtrlAllowRule              IcDeleteAppCtrlAllowRule    = NULL;
-PFUNC_IcUpdateAppCtrlDenyRule               IcUpdateAppCtrlDenyRule     = NULL;
-PFUNC_IcUpdateAppCtrlAllowRule              IcUpdateAppCtrlAllowRule    = NULL;
+PFUNC_IcAddAppCtrlRule                      IcAddAppCtrlRule            = NULL;
+PFUNC_IcDeleteAppCtrlRule                   IcDeleteAppCtrlRule         = NULL;
+PFUNC_IcUpdateAppCtrlRule                   IcUpdateAppCtrlRule         = NULL;
 PFUNC_IcGetAppCtrlRules                     IcGetAppCtrlRules           = NULL;
 PFUNC_IcFreeAppCtrlRulesList                IcFreeAppCtrlRulesList      = NULL;
 
@@ -81,57 +78,30 @@ IcImportIcefltUmAPI(
             __leave;
         }
 
-        IcAddAppCtrlDenyRule = (PFUNC_IcAddAppCtrlDenyRule) GetProcAddress(gHIcefltUM, "IcAddAppCtrlDenyRule");
-        if (NULL == IcAddAppCtrlDenyRule)
+        IcAddAppCtrlRule = (PFUNC_IcAddAppCtrlRule) GetProcAddress(gHIcefltUM, "IcAddAppCtrlRule");
+        if (NULL == IcAddAppCtrlRule)
         {
             ntStatus = NTSTATUS_FROM_WIN32(GetLastError());
-            LogErrorNt(ntStatus, L"GetProcAddress(\"IcAddAppCtrlDenyRule\") failed");
-            LogErrorWin(GetLastError(), L"GetProcAddress(\"IcAddAppCtrlDenyRule\") failed");
+            LogErrorNt(ntStatus, L"GetProcAddress(\"IcAddAppCtrlRule\") failed");
+            LogErrorWin(GetLastError(), L"GetProcAddress(\"IcAddAppCtrlRule\") failed");
             __leave;
         }
 
-        IcAddAppCtrlAllowRule = (PFUNC_IcAddAppCtrlDenyRule) GetProcAddress(gHIcefltUM, "IcAddAppCtrlAllowRule");
-        if (NULL == IcAddAppCtrlAllowRule)
+        IcDeleteAppCtrlRule = (PFUNC_IcDeleteAppCtrlRule) GetProcAddress(gHIcefltUM, "IcDeleteAppCtrlRule");
+        if (NULL == IcDeleteAppCtrlRule)
         {
             ntStatus = NTSTATUS_FROM_WIN32(GetLastError());
-            LogErrorNt(ntStatus, L"GetProcAddress(\"IcAddAppCtrlAllowRule\") failed");
-            LogErrorWin(GetLastError(), L"GetProcAddress(\"IcAddAppCtrlAllowRule\") failed");
+            LogErrorNt(ntStatus, L"GetProcAddress(\"IcDeleteAppCtrlRule\") failed");
+            LogErrorWin(GetLastError(), L"GetProcAddress(\"IcDeleteAppCtrlRule\") failed");
             __leave;
         }
 
-        IcDeleteAppCtrlDenyRule = (PFUNC_IcDeleteAppCtrlDenyRule) GetProcAddress(gHIcefltUM, "IcDeleteAppCtrlDenyRule");
-        if (NULL == IcDeleteAppCtrlDenyRule)
+        IcUpdateAppCtrlRule = (PFUNC_IcUpdateAppCtrlRule) GetProcAddress(gHIcefltUM, "IcUpdateAppCtrlRule");
+        if (NULL == IcUpdateAppCtrlRule)
         {
             ntStatus = NTSTATUS_FROM_WIN32(GetLastError());
-            LogErrorNt(ntStatus, L"GetProcAddress(\"IcDeleteAppCtrlDenyRule\") failed");
-            LogErrorWin(GetLastError(), L"GetProcAddress(\"IcDeleteAppCtrlDenyRule\") failed");
-            __leave;
-        }
-
-        IcDeleteAppCtrlAllowRule = (PFUNC_IcDeleteAppCtrlAllowRule) GetProcAddress(gHIcefltUM, "IcDeleteAppCtrlAllowRule");
-        if (NULL == IcDeleteAppCtrlAllowRule)
-        {
-            ntStatus = NTSTATUS_FROM_WIN32(GetLastError());
-            LogErrorNt(ntStatus, L"GetProcAddress(\"IcDeleteAppCtrlAllowRule\") failed");
-            LogErrorWin(GetLastError(), L"GetProcAddress(\"IcDeleteAppCtrlAllowRule\") failed");
-            __leave;
-        }
-
-        IcUpdateAppCtrlDenyRule = (PFUNC_IcUpdateAppCtrlDenyRule) GetProcAddress(gHIcefltUM, "IcUpdateAppCtrlDenyRule");
-        if (NULL == IcUpdateAppCtrlDenyRule)
-        {
-            ntStatus = NTSTATUS_FROM_WIN32(GetLastError());
-            LogErrorNt(ntStatus, L"GetProcAddress(\"IcUpdateAppCtrlDenyRule\") failed");
-            LogErrorWin(GetLastError(), L"GetProcAddress(\"IcUpdateAppCtrlDenyRule\") failed");
-            __leave;
-        }
-
-        IcUpdateAppCtrlAllowRule = (PFUNC_IcUpdateAppCtrlAllowRule) GetProcAddress(gHIcefltUM, "IcUpdateAppCtrlAllowRule");
-        if (NULL == IcUpdateAppCtrlAllowRule)
-        {
-            ntStatus = NTSTATUS_FROM_WIN32(GetLastError());
-            LogErrorNt(ntStatus, L"GetProcAddress(\"IcUpdateAppCtrlAllowRule\") failed");
-            LogErrorWin(GetLastError(), L"GetProcAddress(\"IcUpdateAppCtrlAllowRule\") failed");
+            LogErrorNt(ntStatus, L"GetProcAddress(\"IcUpdateAppCtrlRule\") failed");
+            LogErrorWin(GetLastError(), L"GetProcAddress(\"IcUpdateAppCtrlRule\") failed");
             __leave;
         }
 
@@ -175,12 +145,9 @@ IcFreeIcefltUmAPI(
     IcSendSetOption = NULL;
     IcStartAppCtrlScan = NULL;
     IcStopAppCtrlScan = NULL;
-    IcAddAppCtrlDenyRule = NULL;
-    IcAddAppCtrlAllowRule = NULL;
-    IcDeleteAppCtrlDenyRule = NULL;
-    IcDeleteAppCtrlAllowRule = NULL;
-    IcUpdateAppCtrlDenyRule = NULL;
-    IcUpdateAppCtrlAllowRule = NULL;
+    IcAddAppCtrlRule = NULL;
+    IcDeleteAppCtrlRule = NULL;
+    IcUpdateAppCtrlRule = NULL;
     IcGetAppCtrlRules = NULL;
     IcFreeAppCtrlRulesList = NULL;
 

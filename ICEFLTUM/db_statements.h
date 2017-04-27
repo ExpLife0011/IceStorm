@@ -95,3 +95,12 @@ BindTextOrNULL(
     _In_        DWORD           DwIndex,
     _In_z_      PCHAR           PValue
 );
+
+_Success_(return == SQLITE_OK)
+DWORD
+BindIntOrNULLIfVal(
+    _Inout_     sqlite3_stmt   *PStmt,
+    _In_        DWORD           DwIndex,
+    _In_        UINT64          QwValue,
+    _In_        UINT64          QwValueForNULL // if QwValue == QwValueForNULL => Bind NULL
+);

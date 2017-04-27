@@ -30,8 +30,10 @@ typedef struct _ICE_GENERIC_PACKET
 typedef struct _ICE_APP_CTRL_SCAN_REQUEST_PACKET
 {
     DWORD                                   DwPid;
+    DWORD                                   DwParentPid;
     DWORD                                   DwProcessPathSize;
-    WCHAR                                   PProcessPath[1];
+    DWORD                                   DwParentPathSize;
+    WCHAR                                   PStrings[1];
 } ICE_APP_CTRL_SCAN_REQUEST_PACKET, *PICE_APP_CTRL_SCAN_REQUEST_PACKET;
 
 typedef struct _ICE_APP_CTRL_SCAN_RESULT_PACKET
@@ -67,6 +69,13 @@ typedef enum _ICE_FILTER_REQUEST_TYPE
     ICE_FILTER_REPLY_SCAN_REQUEST_PROCESS = 10
     //__ICE_FILTER_MAXIMUM_COMMAND__
 } ICE_FILTER_REQUEST_TYPE;
+
+
+typedef enum _ICE_SCAN_VERDICT
+{
+    IcScanVerdict_Allow = 0, // ERROR_SUCCESS
+    IcScanVerdict_Deny = 5 // ERROR_ACCESS_DENIED
+} ICE_SCAN_VERDICT;
 
 
 
