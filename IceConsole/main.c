@@ -139,12 +139,18 @@ AddAppCtrlRule(
 {
     DWORD   dwResult            = ERROR_SUCCESS;
     DWORD   dwRuleId            = 0;
+    DWORD   dwPathMatch         = 0;
     WCHAR   pAuxCmd[MAX_PATH]   = { 0 };
     WCHAR   pPath[MAX_PATH]     = { 0 };
     DWORD   dwPid               = 0;
+    DWORD   dwParPathMatch      = 0;
     WCHAR   pParPath[MAX_PATH]  = { 0 };
     DWORD   dwParPid            = 0;
     DWORD   dwVerdict           = 0;
+
+    printf("    * Path Matcher: ");
+    fgetws(pAuxCmd, MAX_PATH, stdin);
+    dwPathMatch = _wtoi(pAuxCmd);
 
     printf("    * Path: ");
     fgetws(pPath, MAX_PATH, stdin);
@@ -153,6 +159,10 @@ AddAppCtrlRule(
     printf("    * PID: ");
     fgetws(pAuxCmd, MAX_PATH, stdin);
     dwPid = _wtoi(pAuxCmd);
+
+    printf("    * Parent Path Matcher: ");
+    fgetws(pAuxCmd, MAX_PATH, stdin);
+    dwParPathMatch = _wtoi(pAuxCmd);
 
     printf("    * ParentPath: ");
     fgetws(pParPath, MAX_PATH, stdin);
@@ -168,8 +178,10 @@ AddAppCtrlRule(
 
 
     dwResult = IcAddAppCtrlRule(
+        dwPathMatch,
         !_wcsicmp(pPath, L"NULL") ? NULL : pPath, 
         dwPid, 
+        dwParPathMatch,
         !_wcsicmp(pParPath, L"NULL") ? NULL : pParPath, 
         dwParPid, 
         dwVerdict, 
@@ -225,8 +237,10 @@ UpdateAppCtrlRule(
     DWORD   dwResult            = ERROR_SUCCESS;
     DWORD   dwRuleId            = 0;
     WCHAR   pAuxCmd[MAX_PATH]   = { 0 };
+    DWORD   dwPathMatch         = 0;
     WCHAR   pPath[MAX_PATH]     = { 0 };
     DWORD   dwPid               = 0;
+    DWORD   dwParPathMatch      = 0;
     WCHAR   pParPath[MAX_PATH]  = { 0 };
     DWORD   dwParPid            = 0;
     DWORD   dwVerdict           = 0;
@@ -235,6 +249,10 @@ UpdateAppCtrlRule(
     fgetws(pAuxCmd, MAX_PATH, stdin);
     dwRuleId = _wtoi(pAuxCmd);
 
+    printf("    * Path Matcher: ");
+    fgetws(pAuxCmd, MAX_PATH, stdin);
+    dwPathMatch = _wtoi(pAuxCmd);
+
     printf("    * Path: ");
     fgetws(pPath, MAX_PATH, stdin);
     pPath[wcslen(pPath) - 1] = 0;
@@ -242,6 +260,10 @@ UpdateAppCtrlRule(
     printf("    * PID: ");
     fgetws(pAuxCmd, MAX_PATH, stdin);
     dwPid = _wtoi(pAuxCmd);
+
+    printf("    * Parent Path Matcher: ");
+    fgetws(pAuxCmd, MAX_PATH, stdin);
+    dwParPathMatch = _wtoi(pAuxCmd);
 
     printf("    * ParentPath: ");
     fgetws(pParPath, MAX_PATH, stdin);
@@ -258,8 +280,10 @@ UpdateAppCtrlRule(
 
     dwResult = IcUpdateAppCtrlRule(
         dwRuleId,
+        dwPathMatch,
         !_wcsicmp(pPath, L"NULL") ? NULL : pPath, 
         dwPid, 
+        dwParPathMatch,
         !_wcsicmp(pParPath, L"NULL") ? NULL : pParPath, 
         dwParPid, 
         dwVerdict
@@ -291,10 +315,12 @@ GetAllAppCtrl(
         printf("\n\n-------- Rules --------:\n");
         for (DWORD i = 0; i < dwLen; i++)
         {
-            printf("Rule %02d, path: [%S], pid: %d, parPath: [%S], parPid: %d, verdict: %s (%d), add: %d\n", 
+            printf("Rule %02d, pM: %d, path: [%S], pid: %d, ppM: %d, parPath: [%S], parPid: %d, verdict: %s (%d), add: %d\n", 
                 pRules[i].DwRuleId, 
-                pRules[i].PProcessPath, 
+                pRules[i].MatcherProcessPath,
+                pRules[i].PProcessPath,
                 pRules[i].DwPid, 
+                pRules[i].MatcherParentPath,
                 pRules[i].PParentPath,
                 pRules[i].DwParentPid,
                 pRules[i].Verdict ? "DENY" : "ALLOW", 

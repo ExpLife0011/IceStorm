@@ -81,12 +81,14 @@ CreateAppCtrlRuleRow(
 )
 {
     PRule->DwRuleId = (DWORD) sqlite3_column_int64(PStatement, 0);
-    PRule->PProcessPath = CreateCopyOfWString(sqlite3_column_type(PStatement, 1) == SQLITE_NULL ? NULL : (PWCHAR) sqlite3_column_text16(PStatement, 1));
-    PRule->DwPid = (DWORD) sqlite3_column_int64(PStatement, 2);
-    PRule->PParentPath = CreateCopyOfWString(sqlite3_column_type(PStatement, 1) == SQLITE_NULL ? NULL : (PWCHAR) sqlite3_column_text16(PStatement, 3));
-    PRule->DwParentPid = (DWORD) sqlite3_column_int64(PStatement, 4);
-    PRule->Verdict = (DWORD) sqlite3_column_int64(PStatement, 5);
-    PRule->DwAddTime = (DWORD) sqlite3_column_int64(PStatement, 6);
+    PRule->MatcherProcessPath = (DWORD) sqlite3_column_int64(PStatement, 1);
+    PRule->PProcessPath = CreateCopyOfWString(sqlite3_column_type(PStatement, 2) == SQLITE_NULL ? NULL : (PWCHAR) sqlite3_column_text16(PStatement, 2));
+    PRule->DwPid = (DWORD) sqlite3_column_int64(PStatement, 3);
+    PRule->MatcherParentPath = (DWORD) sqlite3_column_int64(PStatement, 4);
+    PRule->PParentPath = CreateCopyOfWString(sqlite3_column_type(PStatement, 5) == SQLITE_NULL ? NULL : (PWCHAR) sqlite3_column_text16(PStatement, 5));
+    PRule->DwParentPid = (DWORD) sqlite3_column_int64(PStatement, 6);
+    PRule->Verdict = (DWORD) sqlite3_column_int64(PStatement, 6);
+    PRule->DwAddTime = (DWORD) sqlite3_column_int64(PStatement, 7);
 }
 
 DWORD
@@ -206,7 +208,9 @@ DbGetAppCtrlVerdict(
         if (SQLITE_OK != (dwStatus = PrepareStmt(SQL_STM_SEARCH_APPCTRL_RULE(), &pStatement))) __leave;
 
         if (SQLITE_OK != (dwStatus = BindWTextOrNULL(pStatement, dwIndex++, PRule->PProcessPath))) __leave;
+        if (SQLITE_OK != (dwStatus = BindWTextOrNULL(pStatement, dwIndex++, PRule->PProcessPath))) __leave;
         if (SQLITE_OK != (dwStatus = BindIntOrNULLIfVal(pStatement, dwIndex++, PRule->DwPid, 0))) __leave;
+        if (SQLITE_OK != (dwStatus = BindWTextOrNULL(pStatement, dwIndex++, PRule->PParentPath))) __leave;
         if (SQLITE_OK != (dwStatus = BindWTextOrNULL(pStatement, dwIndex++, PRule->PParentPath))) __leave;
         if (SQLITE_OK != (dwStatus = BindIntOrNULLIfVal(pStatement, dwIndex++, PRule->DwParentPid, 0))) __leave;
 
@@ -220,7 +224,7 @@ DbGetAppCtrlVerdict(
         if (dwStepResult == SQLITE_DONE)
         {
             LogInfo(L"No rule found.");
-            *PVerdict = IcScanVerdict_Allow;
+            *PVerdict = IceScanVerdict_Allow;
             __leave;
         }
 
@@ -261,11 +265,12 @@ DbAddAppCtrlRule(
         if (SQLITE_OK != (dwStatus = PrepareStmt(SQL_STM_INSERT_APPCTRL_RULE(), &pStatement))) __leave;
         
         if (SQLITE_OK != (dwStatus = BindNULL(pStatement, dwIndex++))) __leave;
+        if (SQLITE_OK != (dwStatus = BindInt(pStatement, dwIndex++, PRule->MatcherProcessPath))) __leave;
         if (SQLITE_OK != (dwStatus = BindWTextOrNULL(pStatement, dwIndex++, PRule->PProcessPath))) __leave;
         if (SQLITE_OK != (dwStatus = BindIntOrNULLIfVal(pStatement, dwIndex++, PRule->DwPid, 0))) __leave;
+        if (SQLITE_OK != (dwStatus = BindInt(pStatement, dwIndex++, PRule->MatcherParentPath))) __leave;
         if (SQLITE_OK != (dwStatus = BindWTextOrNULL(pStatement, dwIndex++, PRule->PParentPath))) __leave;
         if (SQLITE_OK != (dwStatus = BindIntOrNULLIfVal(pStatement, dwIndex++, PRule->DwParentPid, 0))) __leave;
-        printf(">>>>>>>>>>>>>>>>>>>>>>> VERDICT:::: %d\n", PRule->Verdict);
         if (SQLITE_OK != (dwStatus = BindInt(pStatement, dwIndex++, PRule->Verdict))) __leave;
         if (SQLITE_OK != (dwStatus = BindInt(pStatement, dwIndex++, _time64(NULL)))) __leave;
 
@@ -286,10 +291,9 @@ DbAddAppCtrlRule(
     }
     __finally
     {
-        Reset(pStatement);
-
         if (NULL != pStatement)
         {
+            Reset(pStatement);
             FinalizeStmt(pStatement);
             pStatement = NULL;
         }
@@ -330,10 +334,9 @@ DbDeleteAppCtrlRule(
     }
     __finally
     {
-        Reset(pStatement);
-
         if (NULL != pStatement)
         {
+            Reset(pStatement);
             FinalizeStmt(pStatement);
             pStatement = NULL;
         }
@@ -358,8 +361,10 @@ DbUpdateAppCtrlRule(
     {
         if (SQLITE_OK != (dwStatus = PrepareStmt(SQL_STM_UPDATE_APPCTRL_RULE(), &pStatement))) __leave;
 
+        if (SQLITE_OK != (dwStatus = BindInt(pStatement, dwIndex++, PRule->MatcherProcessPath))) __leave;
         if (SQLITE_OK != (dwStatus = BindWTextOrNULL(pStatement, dwIndex++, PRule->PProcessPath))) __leave;
         if (SQLITE_OK != (dwStatus = BindIntOrNULLIfVal(pStatement, dwIndex++, PRule->DwPid, 0))) __leave;
+        if (SQLITE_OK != (dwStatus = BindInt(pStatement, dwIndex++, PRule->MatcherParentPath))) __leave;
         if (SQLITE_OK != (dwStatus = BindWTextOrNULL(pStatement, dwIndex++, PRule->PParentPath))) __leave;
         if (SQLITE_OK != (dwStatus = BindIntOrNULLIfVal(pStatement, dwIndex++, PRule->DwParentPid, 0))) __leave;
         if (SQLITE_OK != (dwStatus = BindInt(pStatement, dwIndex++, PRule->Verdict))) __leave;
@@ -383,10 +388,9 @@ DbUpdateAppCtrlRule(
     }
     __finally
     {
-        Reset(pStatement);
-
         if (NULL != pStatement)
         {
+            Reset(pStatement);
             FinalizeStmt(pStatement);
             pStatement = NULL;
         }

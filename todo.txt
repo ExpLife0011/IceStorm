@@ -1,3 +1,3 @@
 AppCtrl:
 - cache km ?
-- adaugare WString_Mathcer (equals, regex)
+

@@ -210,6 +210,7 @@ BindInt(
         return SQLITE_ERROR;
     }
 
+    
     dwResult = sqlite3_bind_int64(PStmt, DwIndex, QwValue);
     if (dwResult != SQLITE_OK)
     {

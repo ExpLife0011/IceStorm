@@ -52,8 +52,10 @@ IcStopAppCtrlScan(
 _Use_decl_anno_impl_
 DWORD
 IcAddAppCtrlRule(
+    IC_STRING_MATCHER                       MatcherProcessPath,
     PWCHAR                                  PProcessPath,
     DWORD                                   DwPid,
+    IC_STRING_MATCHER                       MatcherParentPath,
     PWCHAR                                  PParentPath,
     DWORD                                   DwParentPid,
     ICE_SCAN_VERDICT                        Verdict,
@@ -65,7 +67,7 @@ IcAddAppCtrlRule(
         return ERROR_INVALID_PARAMETER;
     }
 
-    return AddAppCtrlRule(PProcessPath, DwPid, PParentPath, DwParentPid, Verdict, PDwRuleId);
+    return AddAppCtrlRule(MatcherProcessPath, PProcessPath, DwPid, MatcherParentPath, PParentPath, DwParentPid, Verdict, PDwRuleId);
 }
 
 _Use_decl_anno_impl_
@@ -86,8 +88,10 @@ _Use_decl_anno_impl_
 DWORD
 IcUpdateAppCtrlRule(
     DWORD                                   DwRuleId,
+    IC_STRING_MATCHER                       MatcherProcessPath,
     PWCHAR                                  PProcessPath,
     DWORD                                   DwPid,
+    IC_STRING_MATCHER                       MatcherParentPath,
     PWCHAR                                  PParentPath,
     DWORD                                   DwParentPid,
     ICE_SCAN_VERDICT                        Verdict
@@ -99,7 +103,7 @@ IcUpdateAppCtrlRule(
         return ERROR_INVALID_PARAMETER;
     }
 
-    return UpdateAppCtrlRule(DwRuleId, PProcessPath, DwPid, PParentPath, DwParentPid, Verdict);
+    return UpdateAppCtrlRule(DwRuleId, MatcherProcessPath, PProcessPath, DwPid, MatcherParentPath, PParentPath, DwParentPid, Verdict);
 }
 
 _Use_decl_anno_impl_
@@ -131,4 +135,3 @@ IcFreeAppCtrlRulesList(
 
     FreeAppCtrlRulesList(PRules, DwLength);
 }
-

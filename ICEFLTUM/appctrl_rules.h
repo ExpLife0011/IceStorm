@@ -25,8 +25,10 @@ GetAppCtrlScanResult(
 _Success_(ERROR_SUCCESS == return)
 DWORD
 AddAppCtrlRule(
+    _In_        IC_STRING_MATCHER           MatcherProcessPath,
     _In_opt_z_  PWCHAR                      PProcessPath,
     _In_opt_    DWORD                       DwPid,
+    _In_        IC_STRING_MATCHER           MatcherParentPath,
     _In_opt_z_  PWCHAR                      PParentPath,
     _In_opt_    DWORD                       DwParentPid,
     _In_        ICE_SCAN_VERDICT            Verdict,
@@ -43,8 +45,10 @@ _Success_(ERROR_SUCCESS == return)
 DWORD
 UpdateAppCtrlRule(
     _In_        DWORD                       DwRuleId,
+    _In_        IC_STRING_MATCHER           MatcherProcessPath,
     _In_opt_z_  PWCHAR                      PProcessPath,
     _In_opt_    DWORD                       DwPid,
+    _In_        IC_STRING_MATCHER           MatcherParentPath,
     _In_opt_z_  PWCHAR                      PParentPath,
     _In_opt_    DWORD                       DwParentPid,
     _In_        ICE_SCAN_VERDICT            Verdict

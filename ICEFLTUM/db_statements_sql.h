@@ -14,8 +14,10 @@ SQL_STM_CREATE_TABLES(
         // AppCtrl Rules
         "CREATE TABLE IF NOT EXISTS [appctrl_rules] ("
         "  [id] INTEGER PRIMARY KEY AUTOINCREMENT, "
+        "  [matcher_process_path] INT NOT NULL DEFAULT 0, "
         "  [process_path] TEXT, "
         "  [pid] INT, "
+        "  [matcher_parent_path] INT NOT NULL DEFAULT 0, "
         "  [parent_path] TEXT, "
         "  [parent_pid] INT, "
         "  [verdict] INT, "
@@ -36,11 +38,15 @@ SQL_STM_SEARCH_APPCTRL_RULE(
         "FROM "
         "  [appctrl_rules] "
         "WHERE "
-        "  (([process_path] IS NULL) OR ([process_path] = ?)) AND "
+        "  (([process_path] IS NULL) OR "
+        "     ((([matcher_process_path] = 0) AND ([process_path] = ? COLLATE NOCASE)) OR "
+        "     (([matcher_process_path] = 1) AND (? LIKE [process_path] COLLATE NOCASE)))) AND "
         "  (([pid] IS NULL) OR ([pid] = ?)) AND "
-        "  (([parent_path] IS NULL) OR ([parent_path] = ?)) AND"
+        "  (([parent_path] IS NULL) OR "
+        "     ((([matcher_parent_path] = 0) AND ([parent_path] = ? COLLATE NOCASE)) OR "
+        "     (([matcher_parent_path] = 1) AND (? LIKE [parent_path] COLLATE NOCASE)))) AND "
         "  (([parent_pid] IS NULL) OR ([parent_pid] = ?)) "
-        "ORDER BY"
+        "ORDER BY "
         "  [add_time] DESC "
         "LIMIT 1;"
         "";
@@ -54,9 +60,9 @@ SQL_STM_INSERT_APPCTRL_RULE(
 {
     return
         "INSERT INTO [appctrl_rules] "
-        "   ([id], [process_path], [pid], [parent_path], [parent_pid], [verdict], [add_time]) "
+        "   ([id], [matcher_process_path], [process_path], [pid], [matcher_parent_path], [parent_path], [parent_pid], [verdict], [add_time]) "
         "VALUES "
-        "   (?, ?, ?, ?, ?, ?, ?);"
+        "   (?, ?, ?, ?, ?, ?, ?, ?, ?);"
         "";
 }
 
@@ -83,8 +89,10 @@ SQL_STM_UPDATE_APPCTRL_RULE(
     return
         "UPDATE [appctrl_rules] "
         "SET "
+        "  [matcher_process_path] = ?, "
         "  [process_path] = ?, "
         "  [pid] = ?, "
+        "  [matcher_parent_path] = ?, "
         "  [parent_path] = ?, "
         "  [parent_pid] = ?, "
         "  [verdict] = ? "

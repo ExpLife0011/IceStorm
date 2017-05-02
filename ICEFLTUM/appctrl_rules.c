@@ -53,11 +53,11 @@ GetAppCtrlScanResult(
     ICE_APP_CTRL_SCAN_RESULT_PACKET        *PResultPack
 )
 {
-    ICE_SCAN_VERDICT verdict = IcScanVerdict_Allow;
+    ICE_SCAN_VERDICT verdict = IceScanVerdict_Allow;
 
     if (ERROR_SUCCESS != DbGetAppCtrlVerdict(PRule, &verdict))
     {
-        verdict = IcScanVerdict_Allow;
+        verdict = IceScanVerdict_Allow;
     }
     PResultPack->NtScanResult = verdict;
 
@@ -67,8 +67,10 @@ GetAppCtrlScanResult(
 _Use_decl_anno_impl_
 DWORD
 AddAppCtrlRule(
+    IC_STRING_MATCHER                       MatcherProcessPath,
     PWCHAR                                  PProcessPath,
     DWORD                                   DwPid,
+    IC_STRING_MATCHER                       MatcherParentPath,
     PWCHAR                                  PParentPath,
     DWORD                                   DwParentPid,
     ICE_SCAN_VERDICT                        Verdict,
@@ -76,21 +78,93 @@ AddAppCtrlRule(
 )
 {
     DWORD               dwStatus    = ERROR_SUCCESS;
+    DWORD               dwLen       = 0;
+    DWORD               dwIdx       = 0;
+    PWCHAR              pAuxPath    = NULL;
+    PWCHAR              pAuxPPath   = NULL;
     IC_APPCTRL_RULE     rule        = { 0 };
 
-    rule.PProcessPath = PProcessPath;
-    rule.DwPid = DwPid;
-    rule.PParentPath = PParentPath;
-    rule.DwParentPid = DwParentPid;
-    rule.Verdict = Verdict;
-
-
-    dwStatus = DbAddAppCtrlRule(&rule, PDwRuleId);
-    if (ERROR_SUCCESS != dwStatus)
+    __try
     {
-        LogErrorWin(dwStatus, L"DbAddAppCtrlRule(%s, %d)", PProcessPath, DwPid);
-    }
+        if (NULL != PProcessPath)
+        {
+            dwLen = (DWORD) (wcslen(PProcessPath) + 1);
+            pAuxPath = (PWCHAR) malloc(dwLen * sizeof(WCHAR));
+            if (NULL == pAuxPath)
+            {
+                dwStatus = ERROR_NOT_ENOUGH_MEMORY;
+                __leave;
+            }
 
+            if (MatcherProcessPath == IcStringMatcher_Wildmat)
+            {
+                for (dwIdx = 0; dwIdx < dwLen; dwIdx++)
+                {
+                    if (PProcessPath[dwIdx] == L'*') pAuxPath[dwIdx] = L'%';
+                    else if (PProcessPath[dwIdx] == L'?') pAuxPath[dwIdx] = L'_';
+                    else pAuxPath[dwIdx] = PProcessPath[dwIdx];
+                }
+            }
+            else
+            {
+                memcpy(pAuxPath, PProcessPath, dwLen * sizeof(WCHAR));
+            }
+        }
+
+        if (NULL != PParentPath)
+        {
+            dwLen = (DWORD) (wcslen(PParentPath) + 1);
+            pAuxPPath = (PWCHAR) malloc(dwLen * sizeof(WCHAR));
+            if (NULL == pAuxPPath)
+            {
+                dwStatus = ERROR_NOT_ENOUGH_MEMORY;
+                __leave;
+            }
+
+            if (MatcherParentPath == IcStringMatcher_Wildmat)
+            {
+                for (dwIdx = 0; dwIdx < dwLen; dwIdx++)
+                {
+                    if (PParentPath[dwIdx] == L'*') pAuxPPath[dwIdx] = L'%';
+                    else if (PParentPath[dwIdx] == L'?') pAuxPPath[dwIdx] = L'_';
+                    else pAuxPPath[dwIdx] = PParentPath[dwIdx];
+                }
+            }
+            else
+            {
+                memcpy(pAuxPPath, PParentPath, dwLen * sizeof(WCHAR));
+            }
+        }
+
+        rule.MatcherProcessPath = MatcherProcessPath;
+        rule.PProcessPath       = pAuxPath;
+        rule.DwPid              = DwPid;
+        rule.MatcherParentPath  = MatcherParentPath;
+        rule.PParentPath        = pAuxPPath;
+        rule.DwParentPid        = DwParentPid;
+        rule.Verdict            = Verdict;
+
+        dwStatus = DbAddAppCtrlRule(&rule, PDwRuleId);
+        if (ERROR_SUCCESS != dwStatus)
+        {
+            LogErrorWin(dwStatus, L"DbAddAppCtrlRule(%s, %d)", PProcessPath, DwPid);
+        }
+    }
+    __finally
+    {
+        if (NULL != pAuxPath)
+        {
+            free(pAuxPath);
+            pAuxPath = NULL;
+        }
+
+        if (NULL != pAuxPPath)
+        {
+            free(pAuxPPath);
+            pAuxPPath = NULL;
+        }
+    }
+   
     return dwStatus;
 }
 
@@ -115,27 +189,101 @@ _Use_decl_anno_impl_
 DWORD
 UpdateAppCtrlRule(
     DWORD                                   DwRuleId,
+    IC_STRING_MATCHER                       MatcherProcessPath,
     PWCHAR                                  PProcessPath,
     DWORD                                   DwPid,
+    IC_STRING_MATCHER                       MatcherParentPath,
     PWCHAR                                  PParentPath,
     DWORD                                   DwParentPid,
     ICE_SCAN_VERDICT                        Verdict
 )
 {
     DWORD               dwStatus    = ERROR_SUCCESS;
+    DWORD               dwLen       = 0;
+    DWORD               dwIdx       = 0;
+    PWCHAR              pAuxPath    = NULL;
+    PWCHAR              pAuxPPath   = NULL;
     IC_APPCTRL_RULE     rule        = { 0 };
 
-    rule.PProcessPath = PProcessPath;
-    rule.DwPid = DwPid;
-    rule.PParentPath = PParentPath;
-    rule.DwParentPid = DwParentPid;
-    rule.Verdict = Verdict;
-
-
-    dwStatus = DbUpdateAppCtrlRule(DwRuleId, &rule);
-    if (ERROR_SUCCESS != dwStatus)
+    __try
     {
-        LogErrorWin(dwStatus, L"DbUpdateAppCtrlRule(%d, %s, %d, TRUE)", DwRuleId, PProcessPath, DwPid);
+        if (NULL != PProcessPath)
+        {
+            dwLen = (DWORD) (wcslen(PProcessPath) + 1);
+            pAuxPath = (PWCHAR) malloc(dwLen * sizeof(WCHAR));
+            if (NULL == pAuxPath)
+            {
+                dwStatus = ERROR_NOT_ENOUGH_MEMORY;
+                __leave;
+            }
+
+            if (MatcherProcessPath == IcStringMatcher_Wildmat)
+            {
+                for (dwIdx = 0; dwIdx < dwLen; dwIdx++)
+                {
+                    if (PProcessPath[dwIdx] == L'*') pAuxPath[dwIdx] = L'%';
+                    else if (PProcessPath[dwIdx] == L'?') pAuxPath[dwIdx] = L'_';
+                    else pAuxPath[dwIdx] = PProcessPath[dwIdx];
+                }
+            }
+            else
+            {
+                memcpy(pAuxPath, PProcessPath, dwLen * sizeof(WCHAR));
+            }
+        }
+
+        if (NULL != PParentPath)
+        {
+            dwLen = (DWORD) (wcslen(PParentPath) + 1);
+            pAuxPPath = (PWCHAR) malloc(dwLen * sizeof(WCHAR));
+            if (NULL == pAuxPPath)
+            {
+                dwStatus = ERROR_NOT_ENOUGH_MEMORY;
+                __leave;
+            }
+
+            if (MatcherParentPath == IcStringMatcher_Wildmat)
+            {
+                for (dwIdx = 0; dwIdx < dwLen; dwIdx++)
+                {
+                    if (PParentPath[dwIdx] == L'*') pAuxPPath[dwIdx] = L'%';
+                    else if (PParentPath[dwIdx] == L'?') pAuxPPath[dwIdx] = L'_';
+                    else pAuxPPath[dwIdx] = PParentPath[dwIdx];
+                }
+            }
+            else
+            {
+                memcpy(pAuxPPath, PParentPath, dwLen * sizeof(WCHAR));
+            }
+        }
+
+        rule.MatcherProcessPath = MatcherProcessPath;
+        rule.PProcessPath       = pAuxPath;
+        rule.DwPid              = DwPid;
+        rule.MatcherParentPath  = MatcherParentPath;
+        rule.PParentPath        = pAuxPPath;
+        rule.DwParentPid        = DwParentPid;
+        rule.Verdict            = Verdict;
+
+        dwStatus = DbUpdateAppCtrlRule(DwRuleId, &rule);
+        if (ERROR_SUCCESS != dwStatus)
+        {
+            LogErrorWin(dwStatus, L"DbUpdateAppCtrlRule(%d, %s, %d, TRUE)", DwRuleId, PProcessPath, DwPid);
+        }
+    }
+    __finally
+    {
+        if (NULL != pAuxPath)
+        {
+            free(pAuxPath);
+            pAuxPath = NULL;
+        }
+
+        if (NULL != pAuxPPath)
+        {
+            free(pAuxPPath);
+            pAuxPPath = NULL;
+        }
     }
 
     return dwStatus;

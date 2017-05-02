@@ -40,13 +40,15 @@ DWORD(*PFUNC_IcStopAppCtrlScan) (
 typedef
 _Success_(ERROR_SUCCESS == return)
 DWORD(*PFUNC_IcAddAppCtrlRule) (
+    _In_        IC_STRING_MATCHER           MatcherProcessPath,
     _In_opt_z_  PWCHAR                      PProcessPath,
     _In_opt_    DWORD                       DwPid,
+    _In_        IC_STRING_MATCHER           MatcherParentPath,
     _In_opt_z_  PWCHAR                      PParentPath,
     _In_opt_    DWORD                       DwParentPid,
     _In_        ICE_SCAN_VERDICT            Verdict,
     _Inout_opt_ DWORD                      *PDwRuleId
-    );
+);
 
 typedef
 _Success_(ERROR_SUCCESS == return)
@@ -58,8 +60,10 @@ typedef
 _Success_(ERROR_SUCCESS == return)
 DWORD (*PFUNC_IcUpdateAppCtrlRule) (
     _In_        DWORD                       DwRuleId,
+    _In_        IC_STRING_MATCHER           MatcherProcessPath,
     _In_opt_z_  PWCHAR                      PProcessPath,
     _In_opt_    DWORD                       DwPid,
+    _In_        IC_STRING_MATCHER           MatcherParentPath,
     _In_opt_z_  PWCHAR                      PParentPath,
     _In_opt_    DWORD                       DwParentPid,
     _In_        ICE_SCAN_VERDICT            Verdict

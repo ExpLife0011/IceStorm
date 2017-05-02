@@ -129,6 +129,7 @@ IceGetProcessPathByPid(
     return ntStatus;
 }
 
+FORCEINLINE
 ULONG
 GetScanRequestSize(
     _In_    PEPROCESS                           PProcess,
@@ -138,6 +139,8 @@ GetScanRequestSize(
 )
 {
     ULONG ulSize = 0;
+
+    PAGED_CODE();
 
     PProcess, HProcessId;
 
@@ -162,6 +165,8 @@ IceBuildScanRequest(
 )
 {
     NTSTATUS ntStatus = STATUS_SUCCESS;
+
+    PAGED_CODE();
 
     if (NULL == PProcess || NULL == HProcessId || NULL == PUSProcPath || NULL == PScanRequest || NULL == PCreateInfo)
     {

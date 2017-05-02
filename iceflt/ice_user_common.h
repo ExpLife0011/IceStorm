@@ -73,8 +73,8 @@ typedef enum _ICE_FILTER_REQUEST_TYPE
 
 typedef enum _ICE_SCAN_VERDICT
 {
-    IcScanVerdict_Allow = 0, // ERROR_SUCCESS
-    IcScanVerdict_Deny = 5 // ERROR_ACCESS_DENIED
+    IceScanVerdict_Allow = 0, // ERROR_SUCCESS
+    IceScanVerdict_Deny = 5 // ERROR_ACCESS_DENIED
 } ICE_SCAN_VERDICT;
 
 

@@ -59,8 +59,10 @@ ICEFLTUM_API
 _Success_(ERROR_SUCCESS == return)
 DWORD
 IcAddAppCtrlRule(
+    _In_        IC_STRING_MATCHER           MatcherProcessPath,
     _In_opt_z_  PWCHAR                      PProcessPath,
     _In_opt_    DWORD                       DwPid,
+    _In_        IC_STRING_MATCHER           MatcherParentPath,
     _In_opt_z_  PWCHAR                      PParentPath,
     _In_opt_    DWORD                       DwParentPid,
     _In_        ICE_SCAN_VERDICT            Verdict,
@@ -79,8 +81,10 @@ _Success_(ERROR_SUCCESS == return)
 DWORD
 IcUpdateAppCtrlRule(
     _In_        DWORD                       DwRuleId,
+    _In_        IC_STRING_MATCHER           MatcherProcessPath,
     _In_opt_z_  PWCHAR                      PProcessPath,
     _In_opt_    DWORD                       DwPid,
+    _In_        IC_STRING_MATCHER           MatcherParentPath,
     _In_opt_z_  PWCHAR                      PParentPath,
     _In_opt_    DWORD                       DwParentPid,
     _In_        ICE_SCAN_VERDICT            Verdict

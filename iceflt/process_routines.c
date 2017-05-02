@@ -3,6 +3,7 @@
 #include "global_data.h"
 #include "process_list.h"
 #include "ice_app_ctrl_scan.h"
+#include "ice_user_common.h"
 
 VOID IceStartProcessCallback(PEPROCESS PProcess, HANDLE HProcessId, PPS_CREATE_NOTIFY_INFO PCreateInfo);
 VOID IceStopProcessCallback(PEPROCESS PProcess, HANDLE HProcessId);
@@ -55,7 +56,7 @@ IceStartProcessCallback(
 
     }
 
-    if (ntScanResult == 5) ntScanResult = STATUS_ACCESS_DENIED;
+    if (ntScanResult == IceScanVerdict_Deny) ntScanResult = STATUS_ACCESS_DENIED;
     LogInfo("[AppCtrl] Process %wZ (%d) scan result: %d (%s)", PCreateInfo->ImageFileName, (ULONG)(ULONG_PTR) HProcessId, ntScanResult, ntScanResult ? "DENY" : "ALLOW");
     PCreateInfo->CreationStatus = ntScanResult;
 }
