@@ -19,7 +19,7 @@ DrvDumpMemory(
     _In_ DWORD DwLength
 );
 
-#define ICE_LOG_FORMAT                                              "Ice %-11s %-20s Line: %4d :: "
+#define ICE_LOG_FORMAT                                              "Ice %-11s %-25s %4d :: "
 
 #define IceDebugLog(PLevel, PFile, DwLine, PFormat, ...)            KdPrint((ICE_LOG_FORMAT, PLevel, PFile, DwLine)),    \
                                                                     KdPrint((PFormat "\n", __VA_ARGS__))

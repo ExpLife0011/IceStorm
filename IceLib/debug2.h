@@ -38,7 +38,7 @@ IcDebugPrint(
 
 #define __FILENAME__ (((NULL != strchr(__FILE__, '\\')) && (NULL != strchr(strrchr(__FILE__, '\\') - 12, '\\'))) ? (strchr(strrchr(__FILE__, '\\') - 12, '\\') + 1) : __FILE__)
 
-#define IC_LOG_FORMAT                                                   L"%-10s %30S %4d :: "
+#define IC_LOG_FORMAT                                                   L"IUM %-11s %-25S %4d -- "
 
 #define IcDebugLog(PLevel, PFormat, ...)                                IcDebugPrint(IC_LOG_FORMAT, PLevel, __FILENAME__, __LINE__),     \
                                                                         IcDebugPrint(PFormat L"\n", __VA_ARGS__)

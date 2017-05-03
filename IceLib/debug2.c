@@ -1,5 +1,6 @@
 #include "debug2.h"
 
+#define MAX_LOG_MESSAGE_LENGTH 2048
 
 BOOLEAN
 WIN32_FROM_HRESULT(
@@ -2336,8 +2337,18 @@ IcDebugPrint(
     ...
 )
 {
+    WCHAR pMessage[MAX_LOG_MESSAGE_LENGTH];
+
     va_list args;
     va_start(args, PFormat);
-    vwprintf(PFormat, args);
+    vswprintf_s(pMessage, MAX_LOG_MESSAGE_LENGTH, PFormat, args);
     va_end(args);
+
+    pMessage[MAX_LOG_MESSAGE_LENGTH - 1] = 0;
+    wprintf(pMessage);
+
+    OutputDebugStringW(pMessage);
+
+
+
 }
