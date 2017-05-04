@@ -6,7 +6,7 @@
 
 _Success_(FALSE != return)
 BOOLEAN
-VerifyWindowsVersion(
+IceVerifyWindowsVersion(
     _In_        RTL_OSVERSIONINFOEXW       *PVersionInfo, 
     _In_        ULONGLONG                   UllConditionMask
 );

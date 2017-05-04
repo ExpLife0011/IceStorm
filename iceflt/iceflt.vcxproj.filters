@@ -35,6 +35,18 @@
     <Filter Include="Header Files\utils">
       <UniqueIdentifier>{87f3b5bc-8db6-48d5-95a8-fdcda09fe0a6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\filesystem">
+      <UniqueIdentifier>{8ca8fbe8-0168-4e09-bbed-f463150659f4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\filesystem">
+      <UniqueIdentifier>{b9c08aad-5ae0-417d-9a07-5e1a30101467}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\loadimage">
+      <UniqueIdentifier>{3597877d-69e2-43bb-853c-18e69233342d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\loadimage">
+      <UniqueIdentifier>{8a2bdeb9-8de6-4f6b-98de-f926eac48733}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="iceflt.c">
@@ -66,6 +78,12 @@
     </ClCompile>
     <ClCompile Include="ice_appctrl_scan.c">
       <Filter>Source Files\communctaion</Filter>
+    </ClCompile>
+    <ClCompile Include="fs_routines.c">
+      <Filter>Source Files\filesystem</Filter>
+    </ClCompile>
+    <ClCompile Include="acquireforsection.c">
+      <Filter>Source Files\loadimage</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -107,6 +125,12 @@
     </ClInclude>
     <ClInclude Include="defines.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fs_routines.h">
+      <Filter>Header Files\filesystem</Filter>
+    </ClInclude>
+    <ClInclude Include="acquireforsection.h">
+      <Filter>Header Files\loadimage</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

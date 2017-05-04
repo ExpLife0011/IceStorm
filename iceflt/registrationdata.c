@@ -1,4 +1,6 @@
 #include "registrationdata.h"
+#include "fs_routines.h"
+#include "acquireforsection.h"
 
 #ifdef ALLOC_DATA_PRAGMA
 #pragma data_seg("INIT")
@@ -26,13 +28,14 @@ CONST FLT_CONTEXT_REGISTRATION ContextRegistration_Win8[] = {
 
 CONST FLT_OPERATION_REGISTRATION Callbacks[] = 
 {
-    //{IRP_MJ_CREATE, 		0, PreCreate, 	PostCreate},
-    //{IRP_MJ_CLEANUP, 		0, PreCleanup, 	PostCleanup},
-    //{IRP_MJ_SET_INFORMATION, 	0, PreSetInfo, 	PostSetInfo},
-    //{IRP_MJ_WRITE, 			0, PreWrite, 		PostWrite},
-    //{IRP_MJ_FILE_SYSTEM_CONTROL, 	0, PreFsctl, 	PostFsctl},
-    //{IRP_MJ_VOLUME_MOUNT, 		0, PreMountVolume, 	NULL},
-    //{IRP_MJ_ACQUIRE_FOR_SECTION_SYNCHRONIZATION, 0, PreAcquireForSection, NULL},
+    {IRP_MJ_CREATE,                 0, IcePreCreate,            IcePostCreate},
+    {IRP_MJ_READ,                   0, IcePreRead,              IcePostRead},
+    {IRP_MJ_WRITE,                  0, IcePreWrite,             IcePostWrite},
+    {IRP_MJ_CLEANUP,                0, IcePreCleanup,           IcePostCleanup},
+    {IRP_MJ_SET_INFORMATION,        0, IcePreSetInfo, 	        IcePostSetInfo},
+    {IRP_MJ_FILE_SYSTEM_CONTROL,    0, IcePreFileSystemControl, IcePostFileSystemControl},
+    {IRP_MJ_VOLUME_MOUNT,           0, IcePreMountVolume,       NULL},
+    {IRP_MJ_ACQUIRE_FOR_SECTION_SYNCHRONIZATION, 0, IcePreAcquireForSection, NULL},
     {IRP_MJ_OPERATION_END}
 };
 

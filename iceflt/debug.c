@@ -2296,7 +2296,7 @@ IceNtStatusToString(
 
 
 VOID
-DrvDumpMemory(
+IceDrvDumpMemory(
     _In_ PVOID PAddress,
     _In_ DWORD DwLength
 )

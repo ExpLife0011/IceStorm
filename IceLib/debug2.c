@@ -28,6 +28,7 @@ HRESULT_TO_WIN32ERROR(
 )
 {
     DWORD win32error = 0;
+
     if (WIN32_FROM_HRESULT(HRes, &win32error))
     {
         return win32error;
@@ -38,9 +39,6 @@ HRESULT_TO_WIN32ERROR(
     }
 }
 
-//
-// IcNtStatusToString
-//
 _Use_decl_anno_impl_
 PCHAR
 IcNtStatusToString(
@@ -2348,7 +2346,4 @@ IcDebugPrint(
     wprintf(pMessage);
 
     OutputDebugStringW(pMessage);
-
-
-
 }

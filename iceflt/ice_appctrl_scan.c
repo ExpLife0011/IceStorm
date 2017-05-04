@@ -5,7 +5,7 @@
 
 
 PICE_GENERIC_PACKET IceAllocRequest(_In_ ULONG UlSize, _In_ ULONG Tag);
-ULONG GetScanRequestSize(_In_ PEPROCESS PProcess, _In_ HANDLE HProcessId, _In_ PUNICODE_STRING PUSProcPath, _In_ PUNICODE_STRING PUSParentPath);
+ULONG IceGetScanRequestSize(_In_ PEPROCESS PProcess, _In_ HANDLE HProcessId, _In_ PUNICODE_STRING PUSProcPath, _In_ PUNICODE_STRING PUSParentPath);
 NTSTATUS IceBuildScanRequest(_In_ PEPROCESS PProcess, _In_ HANDLE HProcessId, _In_ PPS_CREATE_NOTIFY_INFO PCreateInfo, 
     _In_ PUNICODE_STRING PUSProcPath, _In_opt_ PUNICODE_STRING PUSParentPath, _Inout_ PICE_APP_CTRL_SCAN_REQUEST_PACKET PScanRequest);
 NTSTATUS IceGetProcessPathByPid(_In_ HANDLE HProcessId, _Out_ UNICODE_STRING **PPPath);
@@ -14,7 +14,7 @@ NTSTATUS IceGetProcessPathByHandle(_In_ HANDLE HProcess, _Out_ UNICODE_STRING **
 #ifdef ALLOC_PRAGMA
     #pragma alloc_text(PAGE, IceAppCtrlScanProcess)
     #pragma alloc_text(PAGE, IceBuildScanRequest)
-    #pragma alloc_text(PAGE, GetScanRequestSize)
+    #pragma alloc_text(PAGE, IceGetScanRequestSize)
     #pragma alloc_text(PAGE, IceAllocRequest)
     #pragma alloc_text(PAGE, IceGetProcessPathByPid)
     #pragma alloc_text(PAGE, IceGetProcessPathByHandle)
@@ -131,7 +131,7 @@ IceGetProcessPathByPid(
 
 FORCEINLINE
 ULONG
-GetScanRequestSize(
+IceGetScanRequestSize(
     _In_    PEPROCESS                           PProcess,
     _In_    HANDLE                              HProcessId,
     _In_    PUNICODE_STRING                     PUSProcPath,
@@ -247,7 +247,7 @@ IceAppCtrlScanProcess(
         IceGetProcessPathByPid(PCreateInfo->ParentProcessId, &pParentPath);
 
         // construiesc pachetul pentru scanare
-        ulPacketLength = GetScanRequestSize(PProcess, HProcessId, pProcPath, pParentPath);
+        ulPacketLength = IceGetScanRequestSize(PProcess, HProcessId, pProcPath, pParentPath);
         pPacket = IceAllocRequest(ulPacketLength, TAG_ICSP);
         if (NULL == pPacket)
         {

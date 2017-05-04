@@ -314,8 +314,10 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="acquireforsection.c" />
     <ClCompile Include="communication.c" />
     <ClCompile Include="debug.c" />
+    <ClCompile Include="fs_routines.c" />
     <ClCompile Include="iceflt.c" />
     <ClCompile Include="global_data.c" />
     <ClCompile Include="ice_appctrl_scan.c" />
@@ -326,9 +328,11 @@
     <ClCompile Include="registrationdata.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="acquireforsection.h" />
     <ClInclude Include="communication.h" />
     <ClInclude Include="debug.h" />
     <ClInclude Include="defines.h" />
+    <ClInclude Include="fs_routines.h" />
     <ClInclude Include="iceflt.h" />
     <ClInclude Include="global_data.h" />
     <ClInclude Include="ice_app_ctrl_scan.h" />

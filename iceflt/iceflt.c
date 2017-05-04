@@ -4,6 +4,7 @@
 #include "global_data.h"
 #include "process_routines.h"
 #include "communication.h"
+#include "acquireforsection.h"
 
 DRIVER_INITIALIZE DriverEntry;
 
@@ -32,7 +33,7 @@ IceInitConfigRegistry(
 
 _Use_decl_anno_impl_
 BOOLEAN
-VerifyWindowsVersion(
+IceVerifyWindowsVersion(
     RTL_OSVERSIONINFOEXW                    *PVersionInfo,
     ULONGLONG                               UllConditionMask
 );
@@ -68,7 +69,7 @@ IsWindows10OrLater(
 #pragma alloc_text(INIT, IsWindows8OrLater)
 #pragma alloc_text(INIT, IsWindows81OrLater)
 #pragma alloc_text(INIT, IsWindows10OrLater)
-#pragma alloc_text(INIT, VerifyWindowsVersion)
+#pragma alloc_text(INIT, IceVerifyWindowsVersion)
 #pragma alloc_text(INIT, DriverEntry)
 #endif    
 
@@ -87,6 +88,8 @@ IceDriverCleanup(
     }
 
     IceCleanupCommPorts();
+
+    IceCleanupLoadImage();
 
     IceCleanupProcessCalback();
 
@@ -176,6 +179,13 @@ DriverEntry(
         if (!NT_SUCCESS(ntStatus))
         {
             LogErrorNt(ntStatus, "IceRegisterProcessCallback failed");
+            __leave;
+        }
+
+        ntStatus = IceRegisterLoadImageCallback();
+        if (!NT_SUCCESS(ntStatus))
+        {
+            LogErrorNt(ntStatus, "IceRegisterLoadImageCallback failed");
             __leave;
         }
 

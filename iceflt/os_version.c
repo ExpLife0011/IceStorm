@@ -2,7 +2,7 @@
 
 _Use_decl_anno_impl_
 BOOLEAN
-VerifyWindowsVersion(
+IceVerifyWindowsVersion(
     RTL_OSVERSIONINFOEXW                    *PVersionInfo, 
     ULONGLONG                               UllConditionMask
 )
@@ -26,7 +26,7 @@ IsWindows7OrLater(
     ConditionMask = VerSetConditionMask(0, VER_MAJORVERSION, VER_GREATER_EQUAL);
     ConditionMask = VerSetConditionMask(ConditionMask, VER_MINORVERSION, VER_GREATER_EQUAL);
 
-    return VerifyWindowsVersion(&VersionInfo, ConditionMask);
+    return IceVerifyWindowsVersion(&VersionInfo, ConditionMask);
 }
 
 _Use_decl_anno_impl_
@@ -45,7 +45,7 @@ IsWindows8OrLater(
     ConditionMask = VerSetConditionMask(0, VER_MAJORVERSION, VER_GREATER_EQUAL);
     ConditionMask = VerSetConditionMask(ConditionMask, VER_MINORVERSION, VER_GREATER_EQUAL);
 
-    return VerifyWindowsVersion(&VersionInfo, ConditionMask);
+    return IceVerifyWindowsVersion(&VersionInfo, ConditionMask);
 }
 
 _Use_decl_anno_impl_
@@ -64,7 +64,7 @@ IsWindows81OrLater(
     ConditionMask = VerSetConditionMask(0, VER_MAJORVERSION, VER_GREATER_EQUAL);
     ConditionMask = VerSetConditionMask(ConditionMask, VER_MINORVERSION, VER_GREATER_EQUAL);
 
-    return VerifyWindowsVersion(&VersionInfo, ConditionMask);
+    return IceVerifyWindowsVersion(&VersionInfo, ConditionMask);
 }
 
 _Use_decl_anno_impl_
@@ -81,5 +81,5 @@ IsWindows10OrLater(
 
     ConditionMask = VerSetConditionMask(0, VER_MAJORVERSION, VER_GREATER_EQUAL);
 
-    return VerifyWindowsVersion(&VersionInfo, ConditionMask);
+    return IceVerifyWindowsVersion(&VersionInfo, ConditionMask);
 }
