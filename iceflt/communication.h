@@ -27,14 +27,15 @@ typedef struct _ICE_COMMUNCATION_PORTS
 
 EXTERN_C PICE_COMMUNCATION_PORTS gPIceComPorts;
 
-VOID
-IceCleanupCommPorts(
-    VOID
-);
 
 _Success_(NT_SUCCESS(return))
 NTSTATUS
 IceInitCommPorts(
+    VOID
+);
+
+VOID
+IceCleanupCommPorts(
     VOID
 );
 

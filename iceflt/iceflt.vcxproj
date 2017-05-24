@@ -317,13 +317,15 @@
     <ClCompile Include="acquireforsection.c" />
     <ClCompile Include="communication.c" />
     <ClCompile Include="debug.c" />
+    <ClCompile Include="fs_helpers.c" />
     <ClCompile Include="fs_routines.c" />
     <ClCompile Include="iceflt.c" />
     <ClCompile Include="global_data.c" />
     <ClCompile Include="ice_appctrl_scan.c" />
+    <ClCompile Include="ice_fs_scan.c" />
     <ClCompile Include="ice_resources.c" />
     <ClCompile Include="os_version.c" />
-    <ClCompile Include="process_list.c" />
+    <ClCompile Include="process_op.c" />
     <ClCompile Include="process_routines.c" />
     <ClCompile Include="registrationdata.c" />
   </ItemGroup>
@@ -332,17 +334,20 @@
     <ClInclude Include="communication.h" />
     <ClInclude Include="debug.h" />
     <ClInclude Include="defines.h" />
+    <ClInclude Include="fs_helpers.h" />
     <ClInclude Include="fs_routines.h" />
     <ClInclude Include="iceflt.h" />
     <ClInclude Include="global_data.h" />
     <ClInclude Include="ice_app_ctrl_scan.h" />
+    <ClInclude Include="ice_fs_scan.h" />
     <ClInclude Include="ice_resources.h" />
     <ClInclude Include="ice_user_common.h" />
     <ClInclude Include="os_version.h" />
-    <ClInclude Include="process_list.h" />
+    <ClInclude Include="process_op.h" />
     <ClInclude Include="process_routines.h" />
     <ClInclude Include="registrationdata.h" />
     <ClInclude Include="tags.h" />
+    <ClInclude Include="utility.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,6 +1,40 @@
 ﻿#include "fs_routines.h"
 #include "debug.h"
 #include "global_data.h"
+#include "fs_helpers.h"
+#include "utility.h"
+#include "process_op.h"
+#include "ice_fs_scan.h"
+#include "ice_user_common.h"
+
+PCHAR GET_FLAGS_STR(ULONG f)
+{
+    DWORD dwLen = 500;
+    PCHAR s = ExAllocatePoolWithTag(NonPagedPool, dwLen, 'aaaa');
+    s[0] = 0;
+
+    if (!f)
+    {
+        sprintf_s(s, dwLen, "NONE???");
+        return s;
+    }
+    
+    if (f & ICE_FS_FLAG_CREATE) sprintf_s(s, dwLen, "%s_CREATE", s);
+    if (f & ICE_FS_FLAG_OPEN) sprintf_s(s, dwLen, "%s_OPEN", s);
+    if (f & ICE_FS_FLAG_READ) sprintf_s(s, dwLen, "%s_READ", s);
+    if (f & ICE_FS_FLAG_WRITE) sprintf_s(s, dwLen, "%s_WRITE", s);
+    if (f & ICE_FS_FLAG_DELETE) sprintf_s(s, dwLen, "%s_DELETE", s);
+
+    return s;
+}
+
+VOID
+IceGetFsScanFlags(
+    _In_    ULONG       CreateDisposition,
+    _In_    ULONG       DesiredAccess,
+    _In_    ULONG       CreateOptions,
+    _Out_   ULONG      *PFsScanFlags
+);
 
 #ifdef ALLOC_PRAGMA
     #pragma alloc_text(PAGE, IcePreCreate)
@@ -16,7 +50,68 @@
     #pragma alloc_text(PAGE, IcePreFileSystemControl)
     #pragma alloc_text(PAGE, IcePostFileSystemControl)
     #pragma alloc_text(PAGE, IcePreMountVolume)
+    #pragma alloc_text(PAGE, IceGetFsScanFlags)
 #endif
+
+VOID
+IceGetFsScanFlags(
+    _In_    ULONG       CreateDisposition,
+    _In_    ULONG       DesiredAccess,
+    _In_    ULONG       CreateOptions,
+    _Out_   ULONG      *PFsScanFlags
+)
+{
+    ULONG flags = 0;
+
+    DesiredAccess &= (~SYNCHRONIZE);
+
+    if (
+        (DesiredAccess & (FILE_READ_DATA | FILE_READ_ATTRIBUTES | FILE_READ_EA | READ_CONTROL | FILE_EXECUTE | READ_CONTROL |
+                            FILE_GENERIC_READ | FILE_GENERIC_EXECUTE | GENERIC_READ | GENERIC_EXECUTE | GENERIC_ALL | MAXIMUM_ALLOWED))
+        )
+    {
+        flags |= ICE_FS_FLAG_READ;
+    }
+
+    if (
+        (DesiredAccess & (FILE_WRITE_DATA | FILE_WRITE_ATTRIBUTES | FILE_WRITE_EA | FILE_APPEND_DATA |
+                            WRITE_DAC | WRITE_OWNER | FILE_GENERIC_WRITE | GENERIC_WRITE | GENERIC_ALL | MAXIMUM_ALLOWED))
+        )
+    {
+        flags |= ICE_FS_FLAG_WRITE;
+    }
+
+    if (
+        (DesiredAccess & (DELETE | MAXIMUM_ALLOWED)) ||
+        (CreateDisposition == FILE_SUPERSEDE || CreateDisposition == FILE_OVERWRITE || CreateDisposition == FILE_OVERWRITE_IF) ||
+        (CreateOptions & (FILE_DELETE_ON_CLOSE))
+        )
+    {
+        flags |= ICE_FS_FLAG_DELETE;
+    }
+
+    if (
+        CreateDisposition == FILE_SUPERSEDE || 
+        CreateDisposition == FILE_CREATE || 
+        CreateDisposition == FILE_OPEN_IF || 
+        CreateDisposition == FILE_OVERWRITE ||
+        CreateDisposition == FILE_OVERWRITE_IF
+        )
+    {
+        flags |= ICE_FS_FLAG_CREATE;
+    }
+
+    if (
+        CreateDisposition == FILE_OPEN || 
+        CreateDisposition == FILE_OPEN_IF || 
+        CreateDisposition == FILE_OVERWRITE_IF
+        )
+    {
+        flags |= ICE_FS_FLAG_OPEN;
+    }
+
+    *PFsScanFlags = flags;
+}
 
 _Use_decl_anno_impl_
 FLT_PREOP_CALLBACK_STATUS
@@ -26,19 +121,105 @@ IcePreCreate(
     PVOID                      *PPCompletionContext
 )
 {
-    FLT_PREOP_CALLBACK_STATUS retStatus = FLT_PREOP_SUCCESS_NO_CALLBACK;
-    
-    PData, PFltObjects, PPCompletionContext;
+    NTSTATUS                    ntStatus                = STATUS_SUCCESS;
+    ULONG_PTR                   stackLow                = { 0 };
+    ULONG_PTR                   stackHigh               = { 0 };
+    PFILE_OBJECT                pFileObject             = PData->Iopb->TargetFileObject;
+    PUNICODE_STRING             pUSFilePath             = &pFileObject->FileName;
+    PEPROCESS                   pECurrentProcess        = NULL;
+    HANDLE                      hProcessPid             = 0;
+    PUNICODE_STRING             pUSProcessPath          = NULL;
+    ULONG                       ulPreOpFlags            = 0;
+    ULONG                       ulCreateOptions         = 0;
+    ULONG                       ulCreateDisposition     = 0;
+    ULONG                       ulDesiredAccess         = 0;
 
     PAGED_CODE();
 
-    if (InterlockedCompareExchange(&gPData->LnInit, 1, 1) == 0)
+    UNREFERENCED_PARAMETER(PPCompletionContext);
+
+    ulCreateDisposition = PData->Iopb->Parameters.Create.Options >> 24;
+    ulDesiredAccess = PData->Iopb->Parameters.Create.SecurityContext->DesiredAccess;
+    ulCreateOptions = PData->Iopb->Parameters.Create.Options;
+
+    if (InterlockedCompareExchange(&gPData->LnInit, 1, 1) == 0 || gPData->BUnloading)
     {
-        return retStatus;
+        return FLT_PREOP_SUCCESS_NO_CALLBACK;
     }
 
-    //LogInfo(">> IcePreCreate: %wZ", &Data->Iopb->TargetFileObject->FileName);
-    return FLT_PREOP_SUCCESS_NO_CALLBACK;
+    IoGetStackLimits(&stackLow, &stackHigh);
+    if (((ULONG_PTR) pFileObject > stackLow) && ((ULONG_PTR) pFileObject < stackHigh))
+    {
+        return FLT_PREOP_SUCCESS_NO_CALLBACK;
+    }
+
+    //if (gPData->PEServiceProcess == NULL || gPData->DwServiceProcessId == 0)
+    //{
+    //    return FLT_PREOP_SUCCESS_NO_CALLBACK;
+    //}
+
+    pECurrentProcess = PsGetCurrentProcess();
+    if (pECurrentProcess == gPData->PEServiceProcess)
+    {
+        return FLT_PREOP_SUCCESS_NO_CALLBACK;
+    }
+
+    if (
+        (pFileObject == NULL) ||
+        FlagOn(PData->Iopb->Parameters.Create.Options, FILE_DIRECTORY_FILE) ||
+        FlagOn(PData->Iopb->OperationFlags, SL_OPEN_PAGING_FILE) ||
+        FlagOn(PFltObjects->FileObject->Flags, FO_VOLUME_OPEN) ||
+        IceIsCsvDlEcpPresent(PData) ||
+        (pUSFilePath == NULL || pUSFilePath->Length == 0 || pUSFilePath->Buffer == NULL)
+        )
+    {
+        return FLT_PREOP_SUCCESS_NO_CALLBACK;
+    }
+
+    if (IceIsPrefetchEcpPresent(PData))
+    {
+        //SetFlag(pStreamHandleContext.Flags, ICE_FLAG_PREFETCH);
+    }
+
+    __try
+    {
+        hProcessPid = PsGetProcessId(pECurrentProcess);
+
+        ntStatus = IceGetProcessPathByPid(hProcessPid, &pUSProcessPath);
+        if (!NT_SUCCESS(ntStatus))
+        {
+            LogErrorNt(ntStatus, "IceGetProcessPathByPid: %d", (ULONG) (ULONG_PTR) hProcessPid);
+            __leave;
+        }
+
+        IceGetFsScanFlags(ulCreateDisposition, ulDesiredAccess, ulCreateOptions, &ulPreOpFlags);
+
+        UNICODE_STRING pus2 = { 0 };
+        pus2.Buffer = L"\\test.txt";
+        pus2.Length = 18;
+        pus2.MaximumLength = 18;
+        if (RtlEqualUnicodeString(pUSFilePath, &pus2, TRUE))
+        {
+            __debugbreak();
+            PCHAR s = GET_FLAGS_STR(ulPreOpFlags);
+            LogInfo(">>> File: %wZ, Proc: %wZ, pid: %d, flags: %s", pUSFilePath, pUSProcessPath, hProcessPid, s);
+            ExFreePoolWithTag(s, 'aaaa');
+        }
+        
+
+
+        //IcePreCreateCsvfs(PData, PFltObjects);
+    }
+    __finally
+    {
+        if (pUSProcessPath != NULL)
+        {
+            ExFreePoolWithTag(pUSProcessPath, TAG_ICPP);
+            pUSProcessPath = NULL;
+        }
+    }
+    
+    return FLT_PREOP_SYNCHRONIZE;
 }
 
 FLT_POSTOP_CALLBACK_STATUS
@@ -49,20 +230,15 @@ IcePostCreate(
     FLT_POST_OPERATION_FLAGS    Flags
 )
 {
-    FLT_POSTOP_CALLBACK_STATUS retStatus = FLT_POSTOP_FINISHED_PROCESSING;
 
-    PData, PFltObjects, PCompletionContext, Flags;
+    UNREFERENCED_PARAMETER(PCompletionContext);
+    UNREFERENCED_PARAMETER(Flags);
+    UNREFERENCED_PARAMETER(PData);
+    UNREFERENCED_PARAMETER(PFltObjects);
 
-    PAGED_CODE();
-
-    if (InterlockedCompareExchange(&gPData->LnInit, 1, 1) == 0)
-    {
-        return retStatus;
-    }
-
-    //LogInfo(">> IcePostCreate: %wZ", &Data->Iopb->TargetFileObject->FileName);
- 
-    return retStatus;
+    //LogInfo(">> IcePostCreate: %wZ", pUSFileName);
+    
+    return FLT_POSTOP_FINISHED_PROCESSING;
 }
 
 FLT_PREOP_CALLBACK_STATUS

@@ -9,5 +9,6 @@
 #define TAG_ICPL            'lpCI' // Process List (cache)
 #define TAG_ICPH            'hpCI' // Process Head (cache)
 #define TAG_ICPP            'ppCI' // Process Path
+#define TAG_ICSC            'csCI' // SCAN CTX TAG
 
 #endif // !__TAGS_H__

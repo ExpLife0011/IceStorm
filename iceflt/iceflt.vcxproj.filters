@@ -73,9 +73,6 @@
     <ClCompile Include="ice_resources.c">
       <Filter>Source Files\utils</Filter>
     </ClCompile>
-    <ClCompile Include="process_list.c">
-      <Filter>Source Files\process</Filter>
-    </ClCompile>
     <ClCompile Include="ice_appctrl_scan.c">
       <Filter>Source Files\communctaion</Filter>
     </ClCompile>
@@ -84,6 +81,15 @@
     </ClCompile>
     <ClCompile Include="acquireforsection.c">
       <Filter>Source Files\loadimage</Filter>
+    </ClCompile>
+    <ClCompile Include="fs_helpers.c">
+      <Filter>Source Files\filesystem</Filter>
+    </ClCompile>
+    <ClCompile Include="process_op.c">
+      <Filter>Source Files\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="ice_fs_scan.c">
+      <Filter>Source Files\communctaion</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -114,9 +120,6 @@
     <ClInclude Include="ice_resources.h">
       <Filter>Header Files\utils</Filter>
     </ClInclude>
-    <ClInclude Include="process_list.h">
-      <Filter>Header Files\process</Filter>
-    </ClInclude>
     <ClInclude Include="os_version.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -131,6 +134,18 @@
     </ClInclude>
     <ClInclude Include="acquireforsection.h">
       <Filter>Header Files\loadimage</Filter>
+    </ClInclude>
+    <ClInclude Include="fs_helpers.h">
+      <Filter>Header Files\filesystem</Filter>
+    </ClInclude>
+    <ClInclude Include="utility.h">
+      <Filter>Header Files\filesystem</Filter>
+    </ClInclude>
+    <ClInclude Include="process_op.h">
+      <Filter>Header Files\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="ice_fs_scan.h">
+      <Filter>Header Files\communication</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

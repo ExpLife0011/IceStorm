@@ -1,7 +1,6 @@
 #include "process_routines.h"
 #include "debug.h"
 #include "global_data.h"
-#include "process_list.h"
 #include "ice_app_ctrl_scan.h"
 #include "ice_user_common.h"
 
@@ -106,14 +105,6 @@ IceRegisterProcessCallback(
 {
     NTSTATUS ntStatus = STATUS_SUCCESS;
 
-    ntStatus = IceProLstInitialize((WORD) gPData->IceSettings.UlMaximumProcessCache);
-    if (!NT_SUCCESS(ntStatus))
-    {
-        IceProLstUninitialize();
-        LogErrorNt(ntStatus, "IceProLstInitialize");
-        return ntStatus;
-    }
-
     ntStatus = PsSetCreateProcessNotifyRoutineEx(IceCreateProcessCallback, FALSE);
     if (!NT_SUCCESS(ntStatus))
     {
@@ -143,6 +134,4 @@ IceCleanupProcessCalback(
             gPData->BProcessCallbackSet = FALSE;
         }
     }
-
-    IceProLstUninitialize();
 }

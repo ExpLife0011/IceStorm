@@ -2,7 +2,6 @@
 #include "global_data.h"
 #include "ice_user_common.h"
 #include "ice_resources.h"
-#include "process_list.h"
 
 PICE_COMMUNCATION_PORTS gPIceComPorts = NULL;
 
@@ -328,18 +327,10 @@ IceMessageCallback(
                 break;
             }
 
-            case ICE_FILTER_CLEAR_APPCTRL_CACHE:
-            {
-                IceProLstClearAll();
-                LogInfo("Process List Cache for Application Control was cleared.");
-                break;
-            }
-
             case ICE_FILTER_ENABLE_APPCTRL_SCAN:
             {
                 qwValue = *((UINT64 *) (pInputBuffer + 1));
                 gPData->IceSettings.BtEnableAppCtrlScan = (BYTE) qwValue;
-                LogInfo("Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
                 LogInfo("EnableAppCtrlScan is now set on: %d, %I64d", gPData->IceSettings.BtEnableAppCtrlScan, qwValue);
                 break;
             }
@@ -404,9 +395,6 @@ IceSetOptionMinSize(
 
     PShFunctionMinimumInputBufferLength[ICE_FILTER_ALLOW_UNLOAD] = usPacketSize + sizeof(UINT64);
     PShFunctionMinimumOutputBufferLength[ICE_FILTER_ALLOW_UNLOAD] = usPacketSize;
-
-    PShFunctionMinimumInputBufferLength[ICE_FILTER_CLEAR_APPCTRL_CACHE] = usPacketSize;
-    PShFunctionMinimumOutputBufferLength[ICE_FILTER_CLEAR_APPCTRL_CACHE] = usPacketSize;
 
     PShFunctionMinimumInputBufferLength[ICE_FILTER_ENABLE_APPCTRL_SCAN] = usPacketSize;
     PShFunctionMinimumOutputBufferLength[ICE_FILTER_ENABLE_APPCTRL_SCAN] = usPacketSize;
