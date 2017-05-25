@@ -5,7 +5,7 @@
 #include "global_data.h"
 
 IC_COMMUNICATION_PORTS                      gIcComPort      = { 0 };
-HANDLE                                      gHEventStop     = NULL;
+
 
 _Use_decl_anno_impl_
 DWORD
@@ -30,6 +30,13 @@ InitConnectionToIceFlt(
         if (S_OK != hrResult)
         {
             LogError(L"FilterConnectCommunicationPort(%s) failed with hresult: 0x08X", ICE_APPCTRL_PORT, hrResult);
+            __leave;
+        }
+
+        hrResult = FilterConnectCommunicationPort(ICE_SCAN_FS_PORT, 0, NULL, 0, NULL, &gIcComPort.HFSScanPort);
+        if (S_OK != hrResult)
+        {
+            LogError(L"FilterConnectCommunicationPort(%s) failed with hresult: 0x08X", ICE_SCAN_FS_PORT, hrResult);
             __leave;
         }
     }
@@ -78,6 +85,20 @@ UninitConnectionToIceFlt(
         else
         {
             gIcComPort.HAppCtrlPort = NULL;
+        }
+    }
+
+    if (NULL != gIcComPort.HFSScanPort)
+    {
+        hr = FilterClose(gIcComPort.HFSScanPort);
+        if (S_OK != hr)
+        {
+            hrToRet = hr;
+            LogWarning(L"FilterClose(HFSScanPort) failed, hresult: 0x%X", hr);
+        }
+        else
+        {
+            gIcComPort.HFSScanPort = NULL;
         }
     }
 
@@ -160,6 +181,39 @@ ReplyScanMessage(
 
     RtlCopyMemory(pReplyResult, PResultPack, sizeof(ICE_APP_CTRL_SCAN_RESULT_PACKET));
     LogInfo(L"dwReplySize: %d", dwReplySize);
+    hrResult = FilterReplyMessage(HPort, pReplyHeader, dwReplySize);
+    if (S_OK != hrResult)
+    {
+        LogErrorWin(HRESULT_TO_WIN32ERROR(hrResult), L"FilterReplyMessage");
+    }
+
+    return HRESULT_TO_WIN32ERROR(hrResult);
+}
+
+_Use_decl_anno_impl_
+DWORD
+ReplyFSScanMessage(
+    HANDLE                                  HPort,
+    PBYTE                                   PReadBuffer,
+    PICE_FS_SCAN_RESULT_PACKET              PResultPack
+)
+{
+    PFILTER_MESSAGE_HEADER  pMsgHeader = (PFILTER_MESSAGE_HEADER) PReadBuffer;
+    BYTE                    pResultBuffer[sizeof(FILTER_REPLY_HEADER) + sizeof(ICE_GENERIC_PACKET) + sizeof(ICE_FS_SCAN_RESULT_PACKET)] = { 0 };
+    DWORD                   dwReplySize = sizeof(pResultBuffer);
+    PFILTER_REPLY_HEADER    pReplyHeader = (PFILTER_REPLY_HEADER) pResultBuffer;
+    PICE_GENERIC_PACKET     pReplyPacket = (PICE_GENERIC_PACKET) (pReplyHeader + 1);
+    PICE_FS_SCAN_RESULT_PACKET    pReplyResult = (PICE_FS_SCAN_RESULT_PACKET) (pReplyPacket + 1);
+    HRESULT                 hrResult = S_OK;
+
+    pReplyHeader->MessageId = pMsgHeader->MessageId;
+    pReplyHeader->Status = STATUS_SUCCESS;
+
+    pReplyPacket->DwPacketLength = dwReplySize - sizeof(FILTER_REPLY_HEADER);
+    pReplyPacket->DwRequestType = ICE_FILTER_REPLY_SCAN_REQUEST_FS;
+
+    RtlCopyMemory(pReplyResult, PResultPack, sizeof(ICE_FS_SCAN_RESULT_PACKET));
+
     hrResult = FilterReplyMessage(HPort, pReplyHeader, dwReplySize);
     if (S_OK != hrResult)
     {

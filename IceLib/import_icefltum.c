@@ -12,6 +12,8 @@ PFUNC_IcDeleteAppCtrlRule                   IcDeleteAppCtrlRule         = NULL;
 PFUNC_IcUpdateAppCtrlRule                   IcUpdateAppCtrlRule         = NULL;
 PFUNC_IcGetAppCtrlRules                     IcGetAppCtrlRules           = NULL;
 PFUNC_IcFreeAppCtrlRulesList                IcFreeAppCtrlRulesList      = NULL;
+PFUNC_IcStartFSScan                         IcStartFSScan               = NULL;
+PFUNC_IcStopFSScan                          IcStopFSScan                = NULL;
 
 HMODULE                                     gHIcefltUM                  = NULL;
 
@@ -122,6 +124,24 @@ IcImportIcefltUmAPI(
             LogErrorWin(GetLastError(), L"GetProcAddress(\"IcFreeAppCtrlRulesList\") failed");
             __leave;
         }
+
+        IcStartFSScan = (PFUNC_IcStartFSScan) GetProcAddress(gHIcefltUM, "IcStartFSScan");
+        if (NULL == IcStartFSScan)
+        {
+            ntStatus = NTSTATUS_FROM_WIN32(GetLastError());
+            LogErrorNt(ntStatus, L"GetProcAddress(\"IcStartFSScan\") failed");
+            LogErrorWin(GetLastError(), L"GetProcAddress(\"IcStartFSScan\") failed");
+            __leave;
+        }
+
+        IcStopFSScan = (PFUNC_IcStopFSScan) GetProcAddress(gHIcefltUM, "IcStopFSScan");
+        if (NULL == IcStopFSScan)
+        {
+            ntStatus = NTSTATUS_FROM_WIN32(GetLastError());
+            LogErrorNt(ntStatus, L"GetProcAddress(\"IcStopFSScan\") failed");
+            LogErrorWin(GetLastError(), L"GetProcAddress(\"IcStopFSScan\") failed");
+            __leave;
+        }
     }
     __finally
     {
@@ -150,6 +170,8 @@ IcFreeIcefltUmAPI(
     IcUpdateAppCtrlRule = NULL;
     IcGetAppCtrlRules = NULL;
     IcFreeAppCtrlRulesList = NULL;
+    IcStartFSScan = NULL;
+    IcStopFSScan = NULL;
 
     if (NULL != gHIcefltUM)
     {

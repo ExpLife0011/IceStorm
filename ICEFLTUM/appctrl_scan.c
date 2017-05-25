@@ -9,6 +9,7 @@ HANDLE              gHThreadAppCtrlListener     = NULL;
 PHANDLE             gPHThreadAppCtrlScanners    = NULL;
 PLIST_ENTRY         gPLEAppCtrlScanRequests     = NULL;
 HANDLE              gHEventAppCtrlScanReqAdded  = NULL;
+HANDLE              gHEventStop                 = NULL;
 CRITICAL_SECTION    gCSAppCtrlList              = { 0 };
 BOOLEAN             gBAppCtrlStarted            = FALSE;
 
@@ -179,7 +180,6 @@ ThreadAppCtrlScanner(
     PICE_APP_CTRL_SCAN_REQUEST_PACKET   pScanRequest    = NULL;
 
     UNREFERENCED_PARAMETER(PParams);
-    UNREFERENCED_PARAMETER(dwThreadId);
     
     pEvents[0] = gHEventStop;
     pEvents[1] = gHEventAppCtrlScanReqAdded;

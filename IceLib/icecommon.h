@@ -29,4 +29,21 @@ typedef struct _IC_APPCTRL_RULE
 
 } IC_APPCTRL_RULE, *PIC_APPCTRL_RULE;
 
+typedef struct _IC_FS_RULE
+{
+    DWORD               DwRuleId;
+    ULONG               UlDeniedOperations;
+
+    IC_STRING_MATCHER   MatcherProcessPath;
+    PWCHAR              PProcessPath;
+    DWORD               DwPid;
+
+    IC_STRING_MATCHER   MatcherFilePath;
+    PWCHAR              PFilePath;
+    
+    DWORD               DwAddTime;
+
+} IC_FS_RULE, *PIC_FS_RULE;
+
+
 #endif // !__ICECOMMON_H__

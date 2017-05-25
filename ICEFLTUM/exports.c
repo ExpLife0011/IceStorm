@@ -2,7 +2,7 @@
 #include "appctrl_scan.h"
 #include "driver_io.h"
 #include "appctrl_rules.h"
-
+#include "fs_scan.h"
 _Use_decl_anno_impl_
 DWORD
 IcInitConnectionToIceFlt(
@@ -134,4 +134,23 @@ IcFreeAppCtrlRulesList(
     }
 
     FreeAppCtrlRulesList(PRules, DwLength);
+}
+
+
+_Use_decl_anno_impl_
+DWORD
+IcStartFSScan(
+    VOID
+)
+{
+    return StartFSScan();
+}
+
+_Use_decl_anno_impl_
+DWORD
+IcStopFSScan(
+    VOID
+)
+{
+    return StopFSScan();
 }

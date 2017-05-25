@@ -66,8 +66,15 @@ DbGetAppCtrlRules(
 _Success_(ERROR_SUCCESS == return)
 VOID
 DbFreeAppCtrlRulesList(
-    _Inout_     PIC_APPCTRL_RULE           PRules,
-    _In_        DWORD                      DwLength
+    _Inout_     PIC_APPCTRL_RULE            PRules,
+    _In_        DWORD                       DwLength
+);
+
+_Success_(ERROR_SUCCESS == return)
+DWORD
+DbGetFSScanDeniedFlags(
+    _In_        IC_FS_RULE                 *PRule,
+    _Inout_     ULONG                      *PUlDeniedFlags
 );
 
 #ifdef __cplusplus

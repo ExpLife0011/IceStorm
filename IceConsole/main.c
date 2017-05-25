@@ -13,6 +13,7 @@
 #define CMD_DELETE_APPCTRL_RULE             L"delete appctrl"
 #define CMD_UPDATE_APPCTRL_RULE             L"update appctrl"
 #define CMD_GET_APPCTRL_RULES               L"get appctrl"
+#define CMD_ENABLE_FS_SCAN                  L"enable fs scan"
 #define CMD_EXIT                            L"exit"
 
 VOID
@@ -28,6 +29,7 @@ PrintHelp(
     printf(" - %S <rule_id>: deletes an appctrl rule\n", CMD_DELETE_APPCTRL_RULE);
     printf(" - %S : updates an appctrl rule\n", CMD_UPDATE_APPCTRL_RULE);
     printf(" - %S : get all aptctrl rules\n", CMD_GET_APPCTRL_RULES);
+    printf(" - %S <value>: enable / disable (1 / 0) fs scan\n", CMD_ENABLE_FS_SCAN);
     printf(" - %S : exit console\n", CMD_EXIT);
 }
 
@@ -333,6 +335,59 @@ GetAllAppCtrl(
     IcFreeAppCtrlRulesList(pRules, dwLen);
 }
 
+VOID
+EnableFSScan(
+    _In_z_      PWCHAR                      PCmd
+)
+{
+    DWORD       dwValue     = 0;
+    DWORD       dwIndex     = 0;
+    DWORD       dwResult    = 0;
+
+    if (L'\0' == PCmd[0] || L'\n' == PCmd[0])
+    {
+        printf("Invalid command format!\n");
+        PrintHelp();
+        return;
+    }
+
+    if (L' ' != PCmd[0])
+    {
+        printf("Invalid command!\n");
+        PrintHelp();
+        return;
+    }
+
+    for (dwIndex = 1; (L' ' == PCmd[dwIndex]) && (L'\0' != PCmd[dwIndex]); dwIndex++);
+    dwValue = _wtoi(PCmd + dwIndex);
+    if (
+        (0 == dwValue && PCmd[dwIndex] != L'0') || 
+        (0 != dwValue && 1 != dwValue)
+        )
+    {
+        printf("Invalid VALUE!\n");
+        PrintHelp();
+        return;
+    }
+
+    if (1 == dwValue)
+    {
+        dwResult = IcStartFSScan();
+        if (ERROR_SUCCESS != dwResult)
+        {
+            LogErrorWin(dwResult, L"IcStartFSScan");
+        }
+    }
+    else
+    {
+        dwResult = IcStopFSScan();
+        if (ERROR_SUCCESS != dwResult)
+        {
+            LogErrorWin(dwResult, L"IcStopFSScan");
+        }
+    }
+}
+
 DWORD
 wmain(
     _In_        DWORD                       DwArgc,
@@ -409,6 +464,10 @@ wmain(
             {
                 GetAllAppCtrl(pCmd + wcslen(CMD_GET_APPCTRL_RULES));
             }
+            else if (0 == _wcsnicmp(pCmd, CMD_ENABLE_FS_SCAN, wcslen(CMD_ENABLE_FS_SCAN)))
+            {
+                EnableFSScan(pCmd + wcslen(CMD_ENABLE_FS_SCAN));
+            }
             else if (0 == _wcsnicmp(pCmd, CMD_EXIT, wcslen(CMD_EXIT)))
             {        
                 printf("gata, ies\n");
@@ -425,6 +484,8 @@ wmain(
     {
         IcStopAppCtrlScan();
         
+        IcStopFSScan();
+
         IcUninitConnectionToIceFlt();
 
         IcFreeIcefltUmAPI();

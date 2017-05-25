@@ -7,6 +7,7 @@
 
 #define DATABASE_NAME   "ice.db"
 
+BOOLEAN gBDBInit = FALSE;
 
 _Success_(return == SQLITE_OK)
 DWORD
@@ -132,7 +133,7 @@ DBInit(
 {
     DWORD dwStatus = SQLITE_OK;
     
-    DBUninit();
+    if (gBDBInit) return ERROR_SUCCESS;
 
     __try
     {
@@ -154,12 +155,15 @@ DBInit(
 
         if (SQLITE_OK != (dwStatus = CreateTables())) __leave;
         
+        gBDBInit = TRUE;
     }
     __finally
     {
         if (dwStatus != ERROR_SUCCESS)
         {
+            gBDBInit = TRUE;
             DBUninit();
+            gBDBInit = FALSE;
         }
     }
 
@@ -174,6 +178,8 @@ DBUninit(
 {
     DWORD dwResult = ERROR_SUCCESS;
 
+    if (!gBDBInit) return ERROR_SUCCESS;
+
     if (NULL != gPDB)
     {
         dwResult = sqlite3_close_v2(gPDB);
@@ -186,6 +192,7 @@ DBUninit(
 
     sqlite3_shutdown();
 
+    gBDBInit = FALSE;
     return SQLITE_OK;
 }
 
@@ -498,4 +505,36 @@ DbFreeAppCtrlRulesList(
     
     free(PRules);
     PRules = NULL;
+}
+
+
+/************************************************************************/
+/* FS SCAN                                                              */
+/************************************************************************/
+
+_Use_decl_anno_impl_
+DWORD
+DbGetFSScanDeniedFlags(
+    IC_FS_RULE                         *PRule,
+    ULONG                              *PUlDeniedFlags
+)
+{
+    ULONG flags = 0;
+
+    if (wcswcs(PRule->PFilePath, L"test.txt") && wcswcs(PRule->PProcessPath, L"FileTest.exe"))
+    {
+        flags = ICE_FS_FLAG_DELETE | ICE_FS_FLAG_WRITE;
+    }
+    else if (wcswcs(PRule->PFilePath, L"test.txt") && wcswcs(PRule->PProcessPath, L"TOTALCMD.EXE"))
+    {
+        flags = (ULONG) -1;
+    }
+
+    if (flags)
+    {
+        LogInfo(L"denied flags: %d", flags);
+    }
+    *PUlDeniedFlags = flags;
+
+    return 0;
 }

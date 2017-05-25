@@ -83,6 +83,17 @@ VOID (*PFUNC_IcFreeAppCtrlRulesList) (
     _In_        DWORD                      DwLength
 );
 
+typedef
+_Success_(ERROR_SUCCESS == return)
+DWORD(*PFUNC_IcStartFSScan) (
+    VOID
+    );
+
+typedef
+_Success_(ERROR_SUCCESS == return)
+DWORD(*PFUNC_IcStopFSScan) (
+    VOID
+    );
 
 extern PFUNC_IcInitConnectionToIceFlt       IcInitConnectionToIceFlt;
 extern PFUNC_IcUninitConnectionToIceFlt     IcUninitConnectionToIceFlt;
@@ -94,7 +105,8 @@ extern PFUNC_IcDeleteAppCtrlRule            IcDeleteAppCtrlRule;
 extern PFUNC_IcUpdateAppCtrlRule            IcUpdateAppCtrlRule;
 extern PFUNC_IcGetAppCtrlRules              IcGetAppCtrlRules;
 extern PFUNC_IcFreeAppCtrlRulesList         IcFreeAppCtrlRulesList;
-
+extern PFUNC_IcStartFSScan                  IcStartFSScan;
+extern PFUNC_IcStopFSScan                   IcStopFSScan;
 
 _Success_(NT_SUCCESS(return))
 NTSTATUS

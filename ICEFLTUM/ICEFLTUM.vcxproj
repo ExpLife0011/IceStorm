@@ -177,6 +177,8 @@
     <ClCompile Include="DLLMain.c" />
     <ClCompile Include="driver_io.c" />
     <ClCompile Include="exports.c" />
+    <ClCompile Include="fs_rules.c" />
+    <ClCompile Include="fs_scan.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="appctrl_rules.h" />
@@ -186,6 +188,8 @@
     <ClInclude Include="db_statements_sql.h" />
     <ClInclude Include="driver_io.h" />
     <ClInclude Include="exports.h" />
+    <ClInclude Include="fs_rules.h" />
+    <ClInclude Include="fs_scan.h" />
     <ClInclude Include="global_data.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -32,6 +32,14 @@ ReplyScanMessage(
 
 _Success_(STATUS_SUCCESS == return)
 DWORD
+ReplyFSScanMessage(
+    _In_    HANDLE                          HPort,
+    _In_    PBYTE                           PReadBuffer,
+    _In_    PICE_FS_SCAN_RESULT_PACKET      PResultPack
+);
+
+_Success_(STATUS_SUCCESS == return)
+DWORD
 ReadScanMessage(
     _In_    PBYTE                           PBuffer,
     _Inout_ DWORD                          *PDwWritten,

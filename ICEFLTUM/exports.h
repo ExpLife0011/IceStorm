@@ -106,6 +106,21 @@ IcFreeAppCtrlRulesList(
     _In_        DWORD                      DwLength
 );
 
+
+ICEFLTUM_API
+_Success_(ERROR_SUCCESS == return)
+DWORD
+IcStartFSScan(
+    VOID
+);
+
+ICEFLTUM_API
+_Success_(ERROR_SUCCESS == return)
+DWORD
+IcStopFSScan(
+    VOID
+);
+
 #ifdef __cplusplus
 } // extern "C"
 #endif // __cplusplus

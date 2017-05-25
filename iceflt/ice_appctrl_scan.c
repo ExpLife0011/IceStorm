@@ -4,8 +4,7 @@
 #include "defines.h"
 #include "process_op.h"
 
-PICE_GENERIC_PACKET IceAllocRequest(_In_ ULONG UlSize, _In_ ULONG Tag);
-ULONG IceGetScanRequestSize(_In_ PEPROCESS PProcess, _In_ HANDLE HProcessId, _In_ PUNICODE_STRING PUSProcPath, _In_ PUNICODE_STRING PUSParentPath);
+ULONG IceGetScanRequestSize(_In_ PUNICODE_STRING PUSProcPath, _In_ PUNICODE_STRING PUSParentPath);
 NTSTATUS IceBuildScanRequest(_In_ PEPROCESS PProcess, _In_ HANDLE HProcessId, _In_ PPS_CREATE_NOTIFY_INFO PCreateInfo, 
     _In_ PUNICODE_STRING PUSProcPath, _In_opt_ PUNICODE_STRING PUSParentPath, _Inout_ PICE_APP_CTRL_SCAN_REQUEST_PACKET PScanRequest);
 
@@ -13,27 +12,11 @@ NTSTATUS IceBuildScanRequest(_In_ PEPROCESS PProcess, _In_ HANDLE HProcessId, _I
     #pragma alloc_text(PAGE, IceAppCtrlScanProcess)
     #pragma alloc_text(PAGE, IceBuildScanRequest)
     #pragma alloc_text(PAGE, IceGetScanRequestSize)
-    #pragma alloc_text(PAGE, IceAllocRequest)
 #endif
-
-PICE_GENERIC_PACKET
-IceAllocRequest(
-    _In_    ULONG                           UlSize,
-    _In_    ULONG                           Tag
-)
-{
-    PICE_GENERIC_PACKET pPack = NULL;
-
-    pPack = (PICE_GENERIC_PACKET) ExAllocatePoolWithTag(PagedPool, UlSize, Tag);
-
-    return pPack;
-}
 
 FORCEINLINE
 ULONG
 IceGetScanRequestSize(
-    _In_    PEPROCESS                           PProcess,
-    _In_    HANDLE                              HProcessId,
     _In_    PUNICODE_STRING                     PUSProcPath,
     _In_    PUNICODE_STRING                     PUSParentPath
 )
@@ -41,8 +24,6 @@ IceGetScanRequestSize(
     ULONG ulSize = 0;
 
     PAGED_CODE();
-
-    PProcess, HProcessId;
 
     ulSize += sizeof(ICE_GENERIC_PACKET);
     ulSize += sizeof(ICE_APP_CTRL_SCAN_REQUEST_PACKET);
@@ -129,7 +110,6 @@ IceAppCtrlScanProcess(
             __leave;
         }
 
-        // iau info suplimentare
         if (PCreateInfo->FileOpenNameAvailable)
         {
             pProcPath = (PUNICODE_STRING) PCreateInfo->ImageFileName;
@@ -147,8 +127,8 @@ IceAppCtrlScanProcess(
         IceGetProcessPathByPid(PCreateInfo->ParentProcessId, &pParentPath);
 
         // construiesc pachetul pentru scanare
-        ulPacketLength = IceGetScanRequestSize(PProcess, HProcessId, pProcPath, pParentPath);
-        pPacket = IceAllocRequest(ulPacketLength, TAG_ICSP);
+        ulPacketLength = IceGetScanRequestSize(pProcPath, pParentPath);
+        pPacket = (PICE_GENERIC_PACKET) ExAllocatePoolWithTag(PagedPool, ulPacketLength, TAG_ICSP);
         if (NULL == pPacket)
         {
             ntScanResult = STATUS_INSUFFICIENT_RESOURCES;

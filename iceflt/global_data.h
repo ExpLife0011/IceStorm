@@ -30,8 +30,8 @@ typedef enum _ICE_OS_Version
 typedef struct _ICE_SETTINGS
 {
     BYTE                                    BtEnableAppCtrlScan;
+    BYTE                                    BtEnableFSScan;
     ULONG                                   UlAllowUnload;
-    ULONG                                   UlMaximumProcessCache;
 } ICE_SETTINGS, *PICE_SETTINGS;
 
 

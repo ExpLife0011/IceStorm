@@ -10,5 +10,6 @@
 #define TAG_ICPH            'hpCI' // Process Head (cache)
 #define TAG_ICPP            'ppCI' // Process Path
 #define TAG_ICSC            'csCI' // SCAN CTX TAG
+#define TAG_ICFS            'sfCI' // File System Scan (for user request)
 
 #endif // !__TAGS_H__

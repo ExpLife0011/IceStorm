@@ -154,8 +154,9 @@ IceLoadSettings(
         PVOID Pointer;
         ULONG DefaultValue;
     } pSettings[] = {
-        { L"AllowManualUnload",     &(gPData->IceSettings.UlAllowUnload),                   0 },
-        { L"MaxProcCache",          &(gPData->IceSettings.UlMaximumProcessCache),           0 }
+        { L"AllowManualUnload",     &(gPData->IceSettings.UlAllowUnload),           0 },
+        { L"AppCtrlScan",           &(gPData->IceSettings.BtEnableAppCtrlScan),     0 },
+        { L"FSScan",                &(gPData->IceSettings.BtEnableAppCtrlScan),     0 }
     };
     RTL_QUERY_REGISTRY_TABLE pQueryTable[sizeof(pSettings) / sizeof(pSettings[0]) + 1] = { 0 };
 #pragma warning(pop)    

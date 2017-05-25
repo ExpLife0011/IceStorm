@@ -11,15 +11,13 @@ typedef struct _ICE_COMMUNCATION_PORTS
     PFLT_PORT                               PProtectionControlPort;
     PFLT_PORT                               PClientPCPort;
 
-    //PFLT_PORT ProtectionPort;
-    //PFLT_PORT ClientProtectionPort;
-
-    //PFLT_PORT AsyncNotifyPort;
-    //PFLT_PORT ClientAsyncNotifyPort;
-
     // scan process for AppCtrl
     PFLT_PORT                               PAppCtrlPort;
     PFLT_PORT                               PClientAppCtrlPort;
+
+    // scan FSScan
+    PFLT_PORT                               PFSScanPort;
+    PFLT_PORT                               PClientFSScanPort;
 
     volatile LONG                           LNrOfConnections;
 

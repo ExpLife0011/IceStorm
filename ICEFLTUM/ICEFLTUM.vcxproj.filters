@@ -13,17 +13,23 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Header Files\Internal">
-      <UniqueIdentifier>{7f39da00-e4a0-4503-ae72-26de25fc021c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Internal">
-      <UniqueIdentifier>{9ade5d76-5f49-43f3-bf2f-0131440fe7a6}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\DB">
       <UniqueIdentifier>{d0d98472-aa81-4cf5-9973-47ef6fbc922b}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\DB">
       <UniqueIdentifier>{a57cc631-7cc6-48e2-b0c0-c49f6f05a67a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\AppCtrl">
+      <UniqueIdentifier>{9ade5d76-5f49-43f3-bf2f-0131440fe7a6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\AppCtrl">
+      <UniqueIdentifier>{7f39da00-e4a0-4503-ae72-26de25fc021c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\FSScan">
+      <UniqueIdentifier>{c0a9bd7c-0ceb-4e59-b6cf-dc89d2d0d1a3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\FSScan">
+      <UniqueIdentifier>{bca937d4-0ac1-43f5-a799-f4ec94ed87f0}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -34,13 +40,13 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="appctrl_scan.c">
-      <Filter>Source Files\Internal</Filter>
+      <Filter>Source Files\AppCtrl</Filter>
     </ClCompile>
     <ClCompile Include="driver_io.c">
-      <Filter>Source Files\Internal</Filter>
+      <Filter>Source Files\AppCtrl</Filter>
     </ClCompile>
     <ClCompile Include="appctrl_rules.c">
-      <Filter>Source Files\Internal</Filter>
+      <Filter>Source Files\AppCtrl</Filter>
     </ClCompile>
     <ClCompile Include="db_sqlite.c">
       <Filter>Source Files\DB</Filter>
@@ -48,22 +54,22 @@
     <ClCompile Include="db_statements.c">
       <Filter>Source Files\DB</Filter>
     </ClCompile>
+    <ClCompile Include="fs_scan.c">
+      <Filter>Source Files\FSScan</Filter>
+    </ClCompile>
+    <ClCompile Include="fs_rules.c">
+      <Filter>Source Files\FSScan</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="exports.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="driver_io.h">
-      <Filter>Header Files\Internal</Filter>
-    </ClInclude>
     <ClInclude Include="appctrl_scan.h">
-      <Filter>Header Files\Internal</Filter>
-    </ClInclude>
-    <ClInclude Include="global_data.h">
-      <Filter>Header Files\Internal</Filter>
+      <Filter>Header Files\AppCtrl</Filter>
     </ClInclude>
     <ClInclude Include="appctrl_rules.h">
-      <Filter>Header Files\Internal</Filter>
+      <Filter>Header Files\AppCtrl</Filter>
     </ClInclude>
     <ClInclude Include="db_sqlite.h">
       <Filter>Header Files\DB</Filter>
@@ -73,6 +79,18 @@
     </ClInclude>
     <ClInclude Include="db_statements.h">
       <Filter>Header Files\DB</Filter>
+    </ClInclude>
+    <ClInclude Include="global_data.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="driver_io.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fs_scan.h">
+      <Filter>Header Files\FSScan</Filter>
+    </ClInclude>
+    <ClInclude Include="fs_rules.h">
+      <Filter>Header Files\FSScan</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

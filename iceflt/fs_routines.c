@@ -4,8 +4,8 @@
 #include "fs_helpers.h"
 #include "utility.h"
 #include "process_op.h"
-#include "ice_fs_scan.h"
 #include "ice_user_common.h"
+#include "ice_fs_scan.h"
 
 PCHAR GET_FLAGS_STR(ULONG f)
 {
@@ -15,6 +15,8 @@ PCHAR GET_FLAGS_STR(ULONG f)
 
     if (!f)
     {
+        LogInfo("WTF???");
+        __debugbreak();
         sprintf_s(s, dwLen, "NONE???");
         return s;
     }
@@ -122,6 +124,7 @@ IcePreCreate(
 )
 {
     NTSTATUS                    ntStatus                = STATUS_SUCCESS;
+    NTSTATUS                    ntRetVal                = FLT_PREOP_SUCCESS_NO_CALLBACK;
     ULONG_PTR                   stackLow                = { 0 };
     ULONG_PTR                   stackHigh               = { 0 };
     PFILE_OBJECT                pFileObject             = PData->Iopb->TargetFileObject;
@@ -133,6 +136,7 @@ IcePreCreate(
     ULONG                       ulCreateOptions         = 0;
     ULONG                       ulCreateDisposition     = 0;
     ULONG                       ulDesiredAccess         = 0;
+    ULONG                       ulNewOpFlags            = 0;
 
     PAGED_CODE();
 
@@ -153,10 +157,10 @@ IcePreCreate(
         return FLT_PREOP_SUCCESS_NO_CALLBACK;
     }
 
-    //if (gPData->PEServiceProcess == NULL || gPData->DwServiceProcessId == 0)
-    //{
-    //    return FLT_PREOP_SUCCESS_NO_CALLBACK;
-    //}
+    if (gPData->PEServiceProcess == NULL || gPData->DwServiceProcessId == 0  || gPData->IceSettings.BtEnableFSScan == 0)
+    {
+        return FLT_PREOP_SUCCESS_NO_CALLBACK;
+    }
 
     pECurrentProcess = PsGetCurrentProcess();
     if (pECurrentProcess == gPData->PEServiceProcess)
@@ -200,15 +204,30 @@ IcePreCreate(
         pus2.MaximumLength = 18;
         if (RtlEqualUnicodeString(pUSFilePath, &pus2, TRUE))
         {
-            __debugbreak();
             PCHAR s = GET_FLAGS_STR(ulPreOpFlags);
             LogInfo(">>> File: %wZ, Proc: %wZ, pid: %d, flags: %s", pUSFilePath, pUSProcessPath, hProcessPid, s);
             ExFreePoolWithTag(s, 'aaaa');
         }
         
+        ntStatus = IceScanFSPreCreate(
+            hProcessPid,
+            pUSProcessPath,
+            pUSFilePath,
+            ulPreOpFlags,
+            &ulNewOpFlags
+        );
+        if (!NT_SUCCESS(ntStatus))
+        {
+            LogErrorNt(ntStatus, "IceScanFSPreCreate, file: %wZ, proc: %wZ", pUSFilePath, pUSFilePath);
+            __leave;
+        }
 
+        if (ulPreOpFlags == ulNewOpFlags) __leave;
+        
+        LogInfo("**** File: %wZ, Pr: %wZ, orig: %d, new: %d", pUSFilePath, pUSProcessPath, ulPreOpFlags, ulNewOpFlags);
 
         //IcePreCreateCsvfs(PData, PFltObjects);
+        ntRetVal = FLT_PREOP_SYNCHRONIZE;
     }
     __finally
     {
@@ -219,7 +238,7 @@ IcePreCreate(
         }
     }
     
-    return FLT_PREOP_SYNCHRONIZE;
+    return ntRetVal;
 }
 
 FLT_POSTOP_CALLBACK_STATUS

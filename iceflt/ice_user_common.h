@@ -41,14 +41,10 @@ typedef struct _ICE_GENERIC_PACKET
 // appctrl
 typedef struct _ICE_APP_CTRL_SCAN_REQUEST_PACKET
 {
-    DWORD                                   DwIceFsFlags;
-
     DWORD                                   DwPid;
     DWORD                                   DwParentPid;
-
     DWORD                                   DwProcessPathSize;
     DWORD                                   DwParentPathSize;
-
     WCHAR                                   PStrings[1];
 
 } ICE_APP_CTRL_SCAN_REQUEST_PACKET, *PICE_APP_CTRL_SCAN_REQUEST_PACKET;
@@ -56,21 +52,25 @@ typedef struct _ICE_APP_CTRL_SCAN_REQUEST_PACKET
 typedef struct _ICE_APP_CTRL_SCAN_RESULT_PACKET
 {
     NTSTATUS                                NtScanResult;
-    DWORD                                   DwIceFsNewFlags;
 } ICE_APP_CTRL_SCAN_RESULT_PACKET, *PICE_APP_CTRL_SCAN_RESULT_PACKET;
 
 // fs scan
 typedef struct _ICE_FS_SCAN_REQUEST_PACKET
 {
+    DWORD                                   DwIceFsFlags;
+    
     DWORD                                   DwPid;
+
     DWORD                                   DwProcessPathSize;
     DWORD                                   DwFilePathSize;
+
     WCHAR                                   PStrings[1];
+
 } ICE_FS_SCAN_REQUEST_PACKET, *PICE_FS_SCAN_REQUEST_PACKET;
 
 typedef struct _ICE_FS_SCAN_RESULT_PACKET
 {
-    NTSTATUS                                NtScanResult;
+    DWORD                                   DwIceFsNewFlags;
 } ICE_FS_SCAN_RESULT_PACKET, *PICE_FS_SCAN_RESULT_PACKET;
 
 #pragma pack(pop)
@@ -89,6 +89,8 @@ typedef enum _ICE_FILTER_COMMAND
     ICE_FILTER_ALLOW_UNLOAD,
 
     ICE_FILTER_ENABLE_APPCTRL_SCAN,
+    ICE_FILTER_ENABLE_FS_SCAN,
+
     __ICE_FILTER_MAXIMUM_COMMAND__
 } ICE_FILTER_COMMAND;
 
@@ -96,8 +98,10 @@ typedef enum _ICE_FILTER_COMMAND
 typedef enum _ICE_FILTER_REQUEST_TYPE
 {
     ICE_FILTER_REQUEST_SCAN_PROCESS = 1,
+    ICE_FILTER_REQUEST_SCAN_FS,
 
-    ICE_FILTER_REPLY_SCAN_REQUEST_PROCESS = 10
+    ICE_FILTER_REPLY_SCAN_REQUEST_PROCESS = 10,
+    ICE_FILTER_REPLY_SCAN_REQUEST_FS
     //__ICE_FILTER_MAXIMUM_COMMAND__
 } ICE_FILTER_REQUEST_TYPE;
 

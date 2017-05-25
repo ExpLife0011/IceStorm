@@ -140,6 +140,11 @@ IceConnectCallback(
             gPIceComPorts->PClientAppCtrlPort = PClientPort;
             *PPConnectionPortCookie = &gPIceComPorts->PClientAppCtrlPort;
         }
+        else if (PServerPortCookie == &gPIceComPorts->PClientFSScanPort)
+        {
+            gPIceComPorts->PClientFSScanPort = PClientPort;
+            *PPConnectionPortCookie = &gPIceComPorts->PClientFSScanPort;
+        }
         else
         {
             ntStatus = STATUS_UNSUCCESSFUL;
@@ -185,6 +190,11 @@ IceDisconnectCallback(
     {
         gPIceComPorts->PClientAppCtrlPort = NULL;
         gPData->IceSettings.BtEnableAppCtrlScan = 0;
+    }
+    else if (PConnectionCookie == &gPIceComPorts->PClientFSScanPort)
+    {
+        gPIceComPorts->PClientFSScanPort = NULL;
+        gPData->IceSettings.BtEnableFSScan = 0;
     }
 
     if (0 == InterlockedDecrement(&gPIceComPorts->LNrOfConnections))
@@ -332,6 +342,16 @@ IceMessageCallback(
                 qwValue = *((UINT64 *) (pInputBuffer + 1));
                 gPData->IceSettings.BtEnableAppCtrlScan = (BYTE) qwValue;
                 LogInfo("EnableAppCtrlScan is now set on: %d, %I64d", gPData->IceSettings.BtEnableAppCtrlScan, qwValue);
+                LogInfo("EnableFSScan is set on: %d, %I64d", gPData->IceSettings.BtEnableFSScan, qwValue);
+                break;
+            }
+
+            case ICE_FILTER_ENABLE_FS_SCAN:
+            {
+                qwValue = *((UINT64 *) (pInputBuffer + 1));
+                gPData->IceSettings.BtEnableFSScan = (BYTE) qwValue;
+                LogInfo("EnableFSScan is now set on: %d, %I64d", gPData->IceSettings.BtEnableFSScan, qwValue);
+                LogInfo("EnableAppCtrlScan is set on: %d, %I64d", gPData->IceSettings.BtEnableAppCtrlScan, qwValue);
                 break;
             }
 
@@ -390,6 +410,8 @@ IceSetOptionMinSize(
 {
     USHORT usPacketSize = sizeof(ICE_GENERIC_PACKET);
 
+    PAGED_CODE();
+
     PShFunctionMinimumInputBufferLength[ICE_FILTER_GET_VERSION] = usPacketSize;
     PShFunctionMinimumOutputBufferLength[ICE_FILTER_GET_VERSION] = usPacketSize + sizeof(ICEFLT_VERSION);
 
@@ -398,6 +420,9 @@ IceSetOptionMinSize(
 
     PShFunctionMinimumInputBufferLength[ICE_FILTER_ENABLE_APPCTRL_SCAN] = usPacketSize;
     PShFunctionMinimumOutputBufferLength[ICE_FILTER_ENABLE_APPCTRL_SCAN] = usPacketSize;
+
+    PShFunctionMinimumInputBufferLength[ICE_FILTER_ENABLE_FS_SCAN] = usPacketSize;
+    PShFunctionMinimumOutputBufferLength[ICE_FILTER_ENABLE_FS_SCAN] = usPacketSize;
 }
 
 _Success_(NT_SUCCESS(return))
@@ -459,6 +484,12 @@ IceCleanupCommPorts(
         gPIceComPorts->PClientPCPort = NULL;
     }
 
+    if (NULL != gPIceComPorts->PClientFSScanPort)
+    {
+        FltCloseClientPort(gPData->PFilter, &gPIceComPorts->PClientFSScanPort);
+        gPIceComPorts->PClientFSScanPort = NULL;
+    }
+
 
     if (NULL != gPIceComPorts->PProtectionControlPort)
     {
@@ -470,6 +501,12 @@ IceCleanupCommPorts(
     {
         FltCloseCommunicationPort(gPIceComPorts->PAppCtrlPort);
         gPIceComPorts->PAppCtrlPort = NULL;
+    }
+
+    if (NULL != gPIceComPorts->PFSScanPort)
+    {
+        FltCloseCommunicationPort(gPIceComPorts->PFSScanPort);
+        gPIceComPorts->PFSScanPort = NULL;
     }
 
     ExFreePoolWithTag(gPIceComPorts, TAG_ICCM);
@@ -543,21 +580,37 @@ IceInitCommPorts(
             __leave;
         }
         LogInfo("IceCreateCommPort for %S created with success", ICE_APPCTRL_PORT);
+
+
+        ntStatus = IceCreateCommPort(
+            &gPIceComPorts->PFSScanPort,
+            ICE_SCAN_FS_PORT,
+            pSecurityDescriptor,
+            &gPIceComPorts->PClientFSScanPort,
+            IceConnectCallback,
+            IceDisconnectCallback,
+            NULL,
+            1
+        );
+        if (!NT_SUCCESS(ntStatus))
+        {
+            LogErrorNt(ntStatus, "IceCreateCommPort for %S failed", ICE_SCAN_FS_PORT);
+            __leave;
+        }
+        LogInfo("IceCreateCommPort for %S created with success", ICE_SCAN_FS_PORT);
     }
     __finally
     {
+        if (NULL != pSecurityDescriptor)
+        {
+            FltFreeSecurityDescriptor(pSecurityDescriptor);
+            pSecurityDescriptor = NULL;
+        }
 
-    }
-    
-    if (NULL != pSecurityDescriptor)
-    {
-        FltFreeSecurityDescriptor(pSecurityDescriptor);
-        pSecurityDescriptor = NULL;
-    }
-        
-    if(!NT_SUCCESS(ntStatus))
-    {
-        IceCleanupCommPorts();
+        if (!NT_SUCCESS(ntStatus))
+        {
+            IceCleanupCommPorts();
+        }
     }
     
     return ntStatus;
