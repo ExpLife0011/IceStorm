@@ -523,9 +523,17 @@ DbGetFSScanDeniedFlags(
 
     if (wcswcs(PRule->PFilePath, L"test.txt") && wcswcs(PRule->PProcessPath, L"FileTest.exe"))
     {
-        flags = ICE_FS_FLAG_DELETE | ICE_FS_FLAG_WRITE;
+        flags = ICE_FS_FLAG_READ | ICE_FS_FLAG_WRITE;
     }
     else if (wcswcs(PRule->PFilePath, L"test.txt") && wcswcs(PRule->PProcessPath, L"TOTALCMD.EXE"))
+    {
+        flags = (ULONG) -1;
+    }
+    else if (wcswcs(PRule->PFilePath, L"test2.txt") && wcswcs(PRule->PProcessPath, L"FileTest.exe"))
+    {
+        flags = ICE_FS_FLAG_DELETE;
+    }
+    else if (wcswcs(PRule->PFilePath, L"test2.txt") && wcswcs(PRule->PProcessPath, L"TOTALCMD.EXE"))
     {
         flags = (ULONG) -1;
     }

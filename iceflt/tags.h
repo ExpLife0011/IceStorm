@@ -11,5 +11,6 @@
 #define TAG_ICPP            'ppCI' // Process Path
 #define TAG_ICSC            'csCI' // SCAN CTX TAG
 #define TAG_ICFS            'sfCI' // File System Scan (for user request)
+#define TAG_IC2P            'p2CI' // Pre2Post
 
 #endif // !__TAGS_H__
