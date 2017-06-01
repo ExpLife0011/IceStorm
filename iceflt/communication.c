@@ -65,22 +65,13 @@ IceSetOptionMinSize(
 );
 
 #ifdef ALLOC_PRAGMA
-#pragma alloc_text(PAGE, IceCleanupCommPorts)
-#pragma alloc_text(PAGE, IceConnectCallback)
-#pragma alloc_text(PAGE, IceDisconnectCallback)
-#pragma alloc_text(PAGE, IceMessageCallback)
-#pragma alloc_text(PAGE, IceSetOptionMinSize)
-//#pragma alloc_text(PAGE, HbIsThisProcessExcluded)
-//#pragma alloc_text(PAGE, HbQueryDosName)
-//#pragma alloc_text(PAGE, HbGetInstanceFromFileHandle)
-//#pragma alloc_text(PAGE, HbQueryName)
-//#pragma alloc_text(PAGE, HbGetContextFromFileHandle)
-//#pragma alloc_text(PAGE, HbQueryFileScanVerdict)
-//#pragma alloc_text(PAGE, HbInvalidateScanVerdictForFile)
-//#pragma alloc_text(INIT, HbSetIOMinSize)
-//#pragma alloc_text(INIT, HbCreateSD)
-#pragma alloc_text(INIT, IceCreateCommPort)
-#pragma alloc_text(INIT, IceInitCommPorts)
+    #pragma alloc_text(PAGE, IceCleanupCommPorts)
+    #pragma alloc_text(PAGE, IceConnectCallback)
+    #pragma alloc_text(PAGE, IceDisconnectCallback)
+    #pragma alloc_text(PAGE, IceMessageCallback)
+    #pragma alloc_text(PAGE, IceSetOptionMinSize)
+    #pragma alloc_text(INIT, IceCreateCommPort)
+    #pragma alloc_text(INIT, IceInitCommPorts)
 #endif
 
 

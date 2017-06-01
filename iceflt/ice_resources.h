@@ -15,7 +15,7 @@ IceAcquireResourceExclusive(
 
 FORCEINLINE
 VOID
-HbAcquireResourceShared(
+IceAcquireResourceShared(
     _In_        PERESOURCE                  Resource
 )
 {

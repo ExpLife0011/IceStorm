@@ -32,7 +32,7 @@ IceGetProcessPathByHandle(
         ntStatus = ZwQueryInformationProcess(HProcess, ProcessImageFileName, 0, 0, &ulBufferLength);
         if (ntStatus != STATUS_INFO_LENGTH_MISMATCH)
         {
-            LogErrorNt(ntStatus, "ZwQueryInformationProcess(%d, ProcessImageFileName) instead of STATUS_INFO_LENGTH_MISMATCH", (DWORD) HProcess);
+            LogErrorNt(ntStatus, "ZwQueryInformationProcess(%d, ProcessImageFileName) instead of STATUS_INFO_LENGTH_MISMATCH", (ULONG) (ULONG_PTR) HProcess);
             if (NT_SUCCESS(ntStatus)) ntStatus = STATUS_UNSUCCESSFUL;
         }
 
@@ -40,7 +40,7 @@ IceGetProcessPathByHandle(
         if (pUSPath == NULL)
         {
             ntStatus = STATUS_INSUFFICIENT_RESOURCES;
-            LogErrorNt(ntStatus, "ExAllocatePoolWithTag(%d, TAG_ICPP) for %d", ulBufferLength, (DWORD) HProcess);
+            LogErrorNt(ntStatus, "ExAllocatePoolWithTag(%d, TAG_ICPP) for %d", ulBufferLength, (ULONG) (ULONG_PTR) HProcess);
             __leave;
         }
         RtlZeroMemory(pUSPath, ulBufferLength);
@@ -48,7 +48,7 @@ IceGetProcessPathByHandle(
         ntStatus = ZwQueryInformationProcess(HProcess, ProcessImageFileName, pUSPath, ulBufferLength, &ulBufferLength);
         if (!NT_SUCCESS(ntStatus))
         {
-            LogErrorNt(ntStatus, "ZwQueryInformationProcess(%d)", (DWORD) HProcess);
+            LogErrorNt(ntStatus, "ZwQueryInformationProcess(%d)", (ULONG) (ULONG_PTR) HProcess);
             __leave;
         }
         *PPPath = pUSPath;
@@ -88,7 +88,7 @@ IceGetProcessPathByPid(
         ntStatus = ZwOpenProcess(&hProcess, STANDARD_RIGHTS_READ | SYNCHRONIZE, &attr, &cid);
         if (!NT_SUCCESS(ntStatus))
         {
-            LogErrorNt(ntStatus, "ZwOpenProcess(%d)", (DWORD) HProcessId);
+            LogErrorNt(ntStatus, "ZwOpenProcess(%d)", (ULONG) (ULONG_PTR) HProcessId);
             __leave;
         }
 

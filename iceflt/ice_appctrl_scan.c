@@ -119,7 +119,7 @@ IceAppCtrlScanProcess(
             ntStatus = IceGetProcessPathByPid(HProcessId, &pProcPath);
             if (!NT_SUCCESS(ntStatus))
             {
-                LogErrorNt(ntStatus, "IceGetProcessPathByPid(%d)", (DWORD) HProcessId);
+                LogErrorNt(ntStatus, "IceGetProcessPathByPid(%d)", (ULONG) (ULONG_PTR) HProcessId);
                 __leave;
             }
         }

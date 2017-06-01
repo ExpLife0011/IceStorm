@@ -271,11 +271,11 @@ StartFSScan(
             __leave;
         }
 
-        gHEventFSScanReqAdded = CreateEvent(NULL, FALSE, FALSE, NULL);
+        gHEventFSScanReqAdded = CreateEventW(NULL, FALSE, FALSE, NULL);
         if (NULL == gHEventFSScanReqAdded)
         {
             dwResult = GetLastError();
-            LogErrorWin(dwResult, L"CreateEvent");
+            LogErrorWin(dwResult, L"CreateEventW");
             __leave;
         }
 

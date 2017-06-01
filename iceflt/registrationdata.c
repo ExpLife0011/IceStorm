@@ -3,26 +3,17 @@
 #include "acquireforsection.h"
 
 #ifdef ALLOC_DATA_PRAGMA
-#pragma data_seg("INIT")
-#pragma const_seg("INIT")
+    #pragma data_seg("INIT")
+    #pragma const_seg("INIT")
 #endif
 
 // Windows 7
 CONST FLT_CONTEXT_REGISTRATION ContextRegistration_Win7[] = {
-    //{FLT_INSTANCE_CONTEXT,       0, HbDeleteInstanceContext, sizeof(HB_INSTANCE_CONTEXT), 'icBH', NULL, NULL, NULL},
-    //{FLT_STREAM_CONTEXT,         0, HbDeleteStreamContext,   sizeof(HB_STREAM_CONTEXT),   'csBH', NULL, NULL, NULL},
-    //{FLT_STREAMHANDLE_CONTEXT,   0, HbDeleteHandleContext,   sizeof(HB_HANDLE_CONTEXT),   'chBH', NULL, NULL, NULL},
-    //{FLT_TRANSACTION_CONTEXT,    0, HbTxfDeleteContext,      sizeof(HB_TXF_CONTEXT),      'ctBH', NULL, NULL, NULL},
     {FLT_CONTEXT_END}
 };
 
 // Windows8 or later
 CONST FLT_CONTEXT_REGISTRATION ContextRegistration_Win8[] = {
-    //{FLT_INSTANCE_CONTEXT,       0, HbDeleteInstanceContext, sizeof(HB_INSTANCE_CONTEXT), 'icBH', NULL, NULL, NULL},
-    //{FLT_STREAM_CONTEXT,         0, HbDeleteStreamContext,   sizeof(HB_STREAM_CONTEXT),   'csBH', NULL, NULL, NULL},
-    //{FLT_STREAMHANDLE_CONTEXT,   0, HbDeleteHandleContext,   sizeof(HB_HANDLE_CONTEXT),   'chBH', NULL, NULL, NULL},
-    //{FLT_TRANSACTION_CONTEXT,    0, HbTxfDeleteContext,      sizeof(HB_TXF_CONTEXT),      'ctBH', NULL, NULL, NULL},
-    //{FLT_SECTION_CONTEXT,		 0, HbDeleteSectionContext,  sizeof(HB_SECTION_CONTEXT),  'scBH', NULL, NULL, NULL},
     {FLT_CONTEXT_END}
 };
 

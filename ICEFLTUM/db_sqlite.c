@@ -88,8 +88,8 @@ CreateAppCtrlRuleRow(
     PRule->MatcherParentPath = (DWORD) sqlite3_column_int64(PStatement, 4);
     PRule->PParentPath = CreateCopyOfWString(sqlite3_column_type(PStatement, 5) == SQLITE_NULL ? NULL : (PWCHAR) sqlite3_column_text16(PStatement, 5));
     PRule->DwParentPid = (DWORD) sqlite3_column_int64(PStatement, 6);
-    PRule->Verdict = (DWORD) sqlite3_column_int64(PStatement, 6);
-    PRule->DwAddTime = (DWORD) sqlite3_column_int64(PStatement, 7);
+    PRule->Verdict = (DWORD) sqlite3_column_int64(PStatement, 7);
+    PRule->DwAddTime = (DWORD) sqlite3_column_int64(PStatement, 8);
 }
 
 DWORD

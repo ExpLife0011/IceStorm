@@ -64,6 +64,31 @@ GetAppCtrlScanResult(
     return ERROR_SUCCESS;
 }
 
+VOID
+CreateStringToAddInDB(
+    _In_z_      PWCHAR                      PPath,
+    _Inout_z_   PWCHAR                      PResultPath,
+    _In_        DWORD                       DwLen,
+    _In_        IC_STRING_MATCHER           MatcherPath
+)
+{
+    DWORD dwIdx = 0;
+
+    if (MatcherPath == IcStringMatcher_Wildmat)
+    {
+        for (dwIdx = 0; dwIdx < DwLen; dwIdx++)
+        {
+            if (PPath[dwIdx] == L'*') PResultPath[dwIdx] = L'%';
+            else if (PPath[dwIdx] == L'?') PResultPath[dwIdx] = L'_';
+            else PResultPath[dwIdx] = PPath[dwIdx];
+        }
+    }
+    else
+    {
+        memcpy(PResultPath, PPath, DwLen * sizeof(WCHAR));
+    }
+}
+
 _Use_decl_anno_impl_
 DWORD
 AddAppCtrlRule(
@@ -79,7 +104,6 @@ AddAppCtrlRule(
 {
     DWORD               dwStatus    = ERROR_SUCCESS;
     DWORD               dwLen       = 0;
-    DWORD               dwIdx       = 0;
     PWCHAR              pAuxPath    = NULL;
     PWCHAR              pAuxPPath   = NULL;
     IC_APPCTRL_RULE     rule        = { 0 };
@@ -95,20 +119,8 @@ AddAppCtrlRule(
                 dwStatus = ERROR_NOT_ENOUGH_MEMORY;
                 __leave;
             }
-
-            if (MatcherProcessPath == IcStringMatcher_Wildmat)
-            {
-                for (dwIdx = 0; dwIdx < dwLen; dwIdx++)
-                {
-                    if (PProcessPath[dwIdx] == L'*') pAuxPath[dwIdx] = L'%';
-                    else if (PProcessPath[dwIdx] == L'?') pAuxPath[dwIdx] = L'_';
-                    else pAuxPath[dwIdx] = PProcessPath[dwIdx];
-                }
-            }
-            else
-            {
-                memcpy(pAuxPath, PProcessPath, dwLen * sizeof(WCHAR));
-            }
+            
+            CreateStringToAddInDB(PProcessPath, pAuxPath, dwLen, MatcherProcessPath);
         }
 
         if (NULL != PParentPath)
@@ -121,19 +133,7 @@ AddAppCtrlRule(
                 __leave;
             }
 
-            if (MatcherParentPath == IcStringMatcher_Wildmat)
-            {
-                for (dwIdx = 0; dwIdx < dwLen; dwIdx++)
-                {
-                    if (PParentPath[dwIdx] == L'*') pAuxPPath[dwIdx] = L'%';
-                    else if (PParentPath[dwIdx] == L'?') pAuxPPath[dwIdx] = L'_';
-                    else pAuxPPath[dwIdx] = PParentPath[dwIdx];
-                }
-            }
-            else
-            {
-                memcpy(pAuxPPath, PParentPath, dwLen * sizeof(WCHAR));
-            }
+            CreateStringToAddInDB(PParentPath, pAuxPPath, dwLen, MatcherParentPath);
         }
 
         rule.MatcherProcessPath = MatcherProcessPath;
@@ -200,7 +200,6 @@ UpdateAppCtrlRule(
 {
     DWORD               dwStatus    = ERROR_SUCCESS;
     DWORD               dwLen       = 0;
-    DWORD               dwIdx       = 0;
     PWCHAR              pAuxPath    = NULL;
     PWCHAR              pAuxPPath   = NULL;
     IC_APPCTRL_RULE     rule        = { 0 };
@@ -217,19 +216,7 @@ UpdateAppCtrlRule(
                 __leave;
             }
 
-            if (MatcherProcessPath == IcStringMatcher_Wildmat)
-            {
-                for (dwIdx = 0; dwIdx < dwLen; dwIdx++)
-                {
-                    if (PProcessPath[dwIdx] == L'*') pAuxPath[dwIdx] = L'%';
-                    else if (PProcessPath[dwIdx] == L'?') pAuxPath[dwIdx] = L'_';
-                    else pAuxPath[dwIdx] = PProcessPath[dwIdx];
-                }
-            }
-            else
-            {
-                memcpy(pAuxPath, PProcessPath, dwLen * sizeof(WCHAR));
-            }
+            CreateStringToAddInDB(PProcessPath, pAuxPath, dwLen, MatcherProcessPath);
         }
 
         if (NULL != PParentPath)
@@ -242,19 +229,7 @@ UpdateAppCtrlRule(
                 __leave;
             }
 
-            if (MatcherParentPath == IcStringMatcher_Wildmat)
-            {
-                for (dwIdx = 0; dwIdx < dwLen; dwIdx++)
-                {
-                    if (PParentPath[dwIdx] == L'*') pAuxPPath[dwIdx] = L'%';
-                    else if (PParentPath[dwIdx] == L'?') pAuxPPath[dwIdx] = L'_';
-                    else pAuxPPath[dwIdx] = PParentPath[dwIdx];
-                }
-            }
-            else
-            {
-                memcpy(pAuxPPath, PParentPath, dwLen * sizeof(WCHAR));
-            }
+            CreateStringToAddInDB(PParentPath, pAuxPPath, dwLen, MatcherParentPath);
         }
 
         rule.MatcherProcessPath = MatcherProcessPath;

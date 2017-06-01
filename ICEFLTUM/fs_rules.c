@@ -69,3 +69,43 @@ GetFSScanResult(
 
     return ERROR_SUCCESS;
 }
+
+VOID
+CreateFSStringToAddInDB(
+    _In_z_      PWCHAR                      PPath,
+    _Inout_z_   PWCHAR                      PResultPath,
+    _In_        DWORD                       DwLen,
+    _In_        IC_STRING_MATCHER           MatcherPath
+)
+{
+    DWORD dwIdx = 0;
+
+    if (MatcherPath == IcStringMatcher_Wildmat)
+    {
+        for (dwIdx = 0; dwIdx < DwLen; dwIdx++)
+        {
+            if (PPath[dwIdx] == L'*') PResultPath[dwIdx] = L'%';
+            else if (PPath[dwIdx] == L'?') PResultPath[dwIdx] = L'_';
+            else PResultPath[dwIdx] = PPath[dwIdx];
+        }
+    }
+    else
+    {
+        memcpy(PResultPath, PPath, DwLen * sizeof(WCHAR));
+    }
+}
+
+//_Use_decl_anno_impl_
+//DWORD
+//AddFSScanRule(
+//    IC_STRING_MATCHER               MatcherProcessPath,
+//    PWCHAR                          PProcessPath,
+//    DWORD                           DwPid,
+//    IC_STRING_MATCHER               MatcherFilePath,
+//    PWCHAR                          PFilePath,
+//    DWORD                           DwDeniedFlags,
+//    DWORD                          *PDwRuleId
+//)
+//{
+//
+//}
