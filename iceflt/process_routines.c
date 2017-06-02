@@ -46,9 +46,6 @@ IceStartProcessCallback(
             ntScanResult = STATUS_SUCCESS;
             __leave;
         }
-
-        // add to cache
-
     }
     __finally
     {

@@ -27,9 +27,7 @@ PCHAR GET_FLAGS_STR(ULONG f)
 
     if (!f)
     {
-        LogInfo("WTF???");
-        //__debugbreak();
-        sprintf_s(s, dwLen, "NONE???");
+        sprintf_s(s, dwLen, "NONE");
         return s;
     }
     
@@ -274,6 +272,8 @@ IcePreCreate(
     PEPROCESS                       pECurrentProcess        = NULL;
     HANDLE                          hProcessPid             = 0;
     PUNICODE_STRING                 pUSProcessPath          = NULL;
+    PUNICODE_STRING                 pUMFilePath             = NULL;
+    PUNICODE_STRING                 pUMProcPath             = NULL;
     ULONG                           ulPreOpFlags            = 0;
     ULONG                           ulNewOpFlags            = 0;
     ULONG                           ulCreateOptions         = 0;
@@ -332,6 +332,7 @@ IcePreCreate(
 
     __try
     {
+        
         hProcessPid = PsGetProcessId(pECurrentProcess);
 
         ntStatus = IceGetProcessPathByPid(hProcessPid, &pUSProcessPath);
@@ -341,23 +342,42 @@ IcePreCreate(
             __leave;
         }
 
+        //ntStatus = IceGetUMProcessPath(pUSProcessPath, &pUMProcPath);
+        //if (!NT_SUCCESS(ntStatus))
+        //{
+        //    LogErrorNt(ntStatus, "IceGetUMProcessPath(%wZ)", pUSProcessPath);
+        //    __leave;
+        //}
+        
+        ntStatus = IceGetUMFilePath(PData, &pUMFilePath);
+        if (!NT_SUCCESS(ntStatus))
+        {
+            LogErrorNt(ntStatus, "GetUMFilePath(%wZ)", pUSFilePath);
+            __leave;
+        }
+
         IceGetFsScanFlags(ulCreateDisposition, ulDesiredAccess, ulCreateOptions, &ulPreOpFlags);
 
-        UNICODE_STRING pus2 = { 0 };
-        pus2.Buffer = L"\\test.txt";
-        pus2.Length = 18;
-        pus2.MaximumLength = 18;
-        if (RtlEqualUnicodeString(pUSFilePath, &pus2, TRUE))
+        // debug
         {
-            PCHAR s = GET_FLAGS_STR(ulPreOpFlags);
-            LogInfo(">>> File: %wZ, Proc: %wZ, pid: %d, flags: %s", pUSFilePath, pUSProcessPath, hProcessPid, s);
-            ExFreePoolWithTag(s, 'aaaa');
+            UNICODE_STRING pus2 = { 0 };
+            pus2.Buffer = L"\\test.txt";
+            pus2.Length = 18;
+            pus2.MaximumLength = 18;
+            if (RtlEqualUnicodeString(pUSFilePath, &pus2, TRUE))
+            {
+                PCHAR s = GET_FLAGS_STR(ulPreOpFlags);
+                LogInfo(">>> File: %wZ, Proc: %wZ, pid: %d, flags: %s", pUSFilePath, pUSProcessPath, hProcessPid, s);
+                ExFreePoolWithTag(s, 'aaaa');
+
+                LogInfo("%wZ --> %wZ", pUSFilePath, pUMFilePath);
+            }
         }
-        
+
         ntStatus = IceScanFSPreCreate(
             hProcessPid,
             pUSProcessPath,
-            pUSFilePath,
+            pUMFilePath,
             ulPreOpFlags,
             &ulNewOpFlags
         );
@@ -368,8 +388,8 @@ IcePreCreate(
         }
 
         if (ulPreOpFlags == ulNewOpFlags) __leave;
-        
-        
+
+
         if (ulNewOpFlags == 0)
         {
             bDenyOperation = TRUE;
@@ -382,16 +402,17 @@ IcePreCreate(
             );
         }
         
+        // debug
+        {
+            PCHAR s1 = GET_FLAGS_STR(ulPreOpFlags);
+            PCHAR s2 = GET_FLAGS_STR(ulNewOpFlags);
 
-        PCHAR s1 = GET_FLAGS_STR(ulPreOpFlags);
-        PCHAR s2 = GET_FLAGS_STR(ulNewOpFlags);
+            LogInfo("**** File: %wZ, Pr: %wZ, orig: %d, new: %d", pUSFilePath, pUSProcessPath, ulPreOpFlags, ulNewOpFlags);
+            LogInfo("**** Orig: %s, new: %s, Deny: %d, CDisp: %d, COpt: %d, DA: %d", s1, s2, bDenyOperation, ulNewCreateDisposition, ulNewCreateOptions, ulNewDesiredAccess);
 
-        LogInfo("**** File: %wZ, Pr: %wZ, orig: %d, new: %d", pUSFilePath, pUSProcessPath, ulPreOpFlags, ulNewOpFlags);
-        LogInfo("**** Orig: %s, new: %s, Deny: %d, CDisp: %d, COpt: %d, DA: %d", s1, s2, bDenyOperation, ulNewCreateDisposition, ulNewCreateOptions, ulNewDesiredAccess);
-
-        ExFreePoolWithTag(s1, 'aaaa');
-        ExFreePoolWithTag(s2, 'aaaa');
-
+            ExFreePoolWithTag(s1, 'aaaa');
+            ExFreePoolWithTag(s2, 'aaaa');
+        }
 
         if (bDenyOperation)
         {
@@ -400,7 +421,7 @@ IcePreCreate(
             __leave;
         }
         
-        ulNewCreateOptions = ulNewCreateOptions | (ulNewCreateDisposition << 24); /// cred???
+        ulNewCreateOptions = ulNewCreateOptions | (ulNewCreateDisposition << 24);
         PData->Iopb->Parameters.Create.Options = ulNewCreateOptions;
         PData->Iopb->Parameters.Create.SecurityContext->DesiredAccess = ulNewDesiredAccess;
         PData->Iopb->Parameters.Create.SecurityContext->AccessState->RemainingDesiredAccess = ulNewDesiredAccess;
@@ -430,12 +451,26 @@ IcePreCreate(
             ExFreePoolWithTag(pUSProcessPath, TAG_ICPP);
             pUSProcessPath = NULL;
         }
+
+        if (NULL != pUMFilePath)
+        {
+            ExFreePoolWithTag(pUMFilePath, TAG_ICUP);
+            pUMFilePath = NULL;
+        }
+
+        if (NULL != pUMProcPath)
+        {
+            ExFreePoolWithTag(pUMProcPath, TAG_ICUP);
+            pUMProcPath = NULL;
+        }
     }
     
     *PPCompletionContext = pPre2Post;
+
     return ntRetVal;
 }
 
+_Use_decl_anno_impl_
 FLT_POSTOP_CALLBACK_STATUS
 IcePostCreate(
     PFLT_CALLBACK_DATA          PData,

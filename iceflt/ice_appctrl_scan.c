@@ -86,8 +86,8 @@ IceAppCtrlScanProcess(
     ULONG                                   ulResponseLength    = 0;
     PICE_GENERIC_PACKET                     pPacket             = NULL;
     LARGE_INTEGER                           liTimeout           = { 0 };
-    PUNICODE_STRING                         pParentPath         = NULL;
-    PUNICODE_STRING                         pProcPath           = NULL;
+    PUNICODE_STRING                         pKMParentPath       = NULL;
+    PUNICODE_STRING                         pKMProcPath         = NULL;
     BYTE                                    pResponseBuffer[sizeof(FILTER_REPLY_HEADER) + sizeof(ICE_GENERIC_PACKET) + sizeof(ICE_APP_CTRL_SCAN_RESULT_PACKET)] = { 0 };
     PFILTER_REPLY_HEADER                    pReplyHeader        = NULL;
     PICE_GENERIC_PACKET                     pResponsePacket     = NULL;
@@ -112,11 +112,11 @@ IceAppCtrlScanProcess(
 
         if (PCreateInfo->FileOpenNameAvailable)
         {
-            pProcPath = (PUNICODE_STRING) PCreateInfo->ImageFileName;
+            pKMProcPath = (PUNICODE_STRING) PCreateInfo->ImageFileName;
         }
         else
         {
-            ntStatus = IceGetProcessPathByPid(HProcessId, &pProcPath);
+            ntStatus = IceGetProcessPathByPid(HProcessId, &pKMProcPath);
             if (!NT_SUCCESS(ntStatus))
             {
                 LogErrorNt(ntStatus, "IceGetProcessPathByPid(%d)", (ULONG) (ULONG_PTR) HProcessId);
@@ -124,10 +124,10 @@ IceAppCtrlScanProcess(
             }
         }
 
-        IceGetProcessPathByPid(PCreateInfo->ParentProcessId, &pParentPath);
+        IceGetProcessPathByPid(PCreateInfo->ParentProcessId, &pKMParentPath);
 
         // construiesc pachetul pentru scanare
-        ulPacketLength = IceGetScanRequestSize(pProcPath, pParentPath);
+        ulPacketLength = IceGetScanRequestSize(pKMProcPath, pKMParentPath);
         pPacket = (PICE_GENERIC_PACKET) ExAllocatePoolWithTag(PagedPool, ulPacketLength, TAG_ICSP);
         if (NULL == pPacket)
         {
@@ -140,7 +140,7 @@ IceAppCtrlScanProcess(
         pPacket->DwRequestType = ICE_FILTER_REQUEST_SCAN_PROCESS;
         pScanRequest = (PICE_APP_CTRL_SCAN_REQUEST_PACKET) (pPacket + 1);
 
-        ntStatus = IceBuildScanRequest(PProcess, HProcessId, PCreateInfo, pProcPath, pParentPath, pScanRequest);
+        ntStatus = IceBuildScanRequest(PProcess, HProcessId, PCreateInfo, pKMProcPath, pKMParentPath, pScanRequest);
         if (!NT_SUCCESS(ntStatus))
         {
             LogErrorNt(ntStatus, "IceBuildScanRequest");
@@ -184,16 +184,16 @@ IceAppCtrlScanProcess(
             pPacket = NULL;
         }
 
-        if (NULL != pParentPath)
+        if (NULL != pKMParentPath)
         {
-            ExFreePoolWithTag(pParentPath, TAG_ICPP);
-            pParentPath = NULL;
+            ExFreePoolWithTag(pKMParentPath, TAG_ICPP);
+            pKMParentPath = NULL;
         }
 
-        if (NULL != pProcPath && pProcPath != PCreateInfo->ImageFileName)
+        if (NULL != pKMProcPath && pKMProcPath != PCreateInfo->ImageFileName)
         {
-            ExFreePoolWithTag(pProcPath, TAG_ICPP);
-            pProcPath = NULL;
+            ExFreePoolWithTag(pKMProcPath, TAG_ICPP);
+            pKMProcPath = NULL;
         }
     }
 

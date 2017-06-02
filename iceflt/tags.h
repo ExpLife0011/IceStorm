@@ -12,5 +12,8 @@
 #define TAG_ICSC            'csCI' // SCAN CTX TAG
 #define TAG_ICFS            'sfCI' // File System Scan (for user request)
 #define TAG_IC2P            'p2CI' // Pre2Post
+#define TAG_ICUP            'puCI' // UserMode Path
+#define TAG_ICVN            'nvCI' // Volume Name
+
 
 #endif // !__TAGS_H__
