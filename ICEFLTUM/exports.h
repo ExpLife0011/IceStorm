@@ -121,6 +121,56 @@ IcStopFSScan(
     VOID
 );
 
+ICEFLTUM_API
+_Success_(ERROR_SUCCESS == return)
+DWORD
+IcAddFSScanRule(
+    _In_        IC_STRING_MATCHER           MatcherProcessPath,
+    _In_z_      PWCHAR                      PProcessPath,
+    _In_        DWORD                       DwPid,
+    _In_        IC_STRING_MATCHER           MatcherFilePath,
+    _In_z_      PWCHAR                      PFilePath,
+    _In_        ULONG                       UlDeniedOperations,
+    _Inout_     DWORD                      *PDwRuleId
+);
+
+ICEFLTUM_API
+_Success_(ERROR_SUCCESS == return)
+DWORD
+IcDeleteFSScanRule(
+    _In_        DWORD                       DwRuleId
+);
+
+ICEFLTUM_API
+_Success_(ERROR_SUCCESS == return)
+DWORD
+IcUpdateFSScanRule(
+    _In_        DWORD                       DwRuleId,
+    _In_        IC_STRING_MATCHER           MatcherProcessPath,
+    _In_z_      PWCHAR                      PProcessPath,
+    _In_        DWORD                       DwPid,
+    _In_        IC_STRING_MATCHER           MatcherFilePath,
+    _In_z_      PWCHAR                      PFilePath,
+    _In_        ULONG                       UlDeniedOperations
+);
+
+ICEFLTUM_API
+_Success_(ERROR_SUCCESS == return)
+DWORD
+IcGetFSScanRules(
+    _Inout_     PIC_FS_RULE                *PPRules,
+    _Inout_     DWORD                      *PDwLength
+);
+
+ICEFLTUM_API
+_Success_(ERROR_SUCCESS == return)
+VOID
+IcFreeAppFSScanList(
+    _Inout_     PIC_FS_RULE                 PRules,
+    _In_        DWORD                       DwLength
+);
+
+
 #ifdef __cplusplus
 } // extern "C"
 #endif // __cplusplus

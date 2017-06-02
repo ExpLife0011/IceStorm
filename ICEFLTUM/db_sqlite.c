@@ -92,6 +92,22 @@ CreateAppCtrlRuleRow(
     PRule->DwAddTime = (DWORD) sqlite3_column_int64(PStatement, 8);
 }
 
+VOID
+CreateFSScanRuleRow(
+    _Inout_     sqlite3_stmt                   *PStatement,
+    _Inout_     IC_FS_RULE                     *PRule
+)
+{
+    PRule->DwRuleId = (DWORD) sqlite3_column_int64(PStatement, 0);
+    PRule->MatcherProcessPath = (DWORD) sqlite3_column_int64(PStatement, 1);
+    PRule->PProcessPath = CreateCopyOfWString(sqlite3_column_type(PStatement, 2) == SQLITE_NULL ? NULL : (PWCHAR) sqlite3_column_text16(PStatement, 2));
+    PRule->DwPid = (DWORD) sqlite3_column_int64(PStatement, 3);
+    PRule->MatcherFilePath = (DWORD) sqlite3_column_int64(PStatement, 4);
+    PRule->PFilePath = CreateCopyOfWString(sqlite3_column_type(PStatement, 5) == SQLITE_NULL ? NULL : (PWCHAR) sqlite3_column_text16(PStatement, 5));
+    PRule->UlDeniedOperations = (DWORD) sqlite3_column_int64(PStatement, 6);
+    PRule->DwAddTime = (DWORD) sqlite3_column_int64(PStatement, 7);
+}
+
 DWORD
 GetNumberOfRows(
     _In_z_      PCHAR                           PStmtSql
@@ -195,6 +211,10 @@ DBUninit(
     gBDBInit = FALSE;
     return SQLITE_OK;
 }
+
+/************************************************************************/
+/* AppCtrl                                                              */
+/************************************************************************/
 
 _Use_decl_anno_impl_
 DWORD
@@ -496,10 +516,10 @@ DbFreeAppCtrlRulesList(
             PRules[dwIdx].PParentPath = NULL;
         }
 
-        if (NULL != PRules[dwIdx].PParentPath)
+        if (NULL != PRules[dwIdx].PProcessPath)
         {
-            free(PRules[dwIdx].PParentPath);
-            PRules[dwIdx].PParentPath = NULL;
+            free(PRules[dwIdx].PProcessPath);
+            PRules[dwIdx].PProcessPath = NULL;
         }
     }
     
@@ -519,30 +539,303 @@ DbGetFSScanDeniedFlags(
     ULONG                              *PUlDeniedFlags
 )
 {
-    ULONG flags = 0;
+    DWORD           dwStatus        = SQLITE_OK;
+    DWORD           dwStepResult    = 0;
+    DWORD           dwIndex         = 1;
+    DWORD           dwRuleId        = 0;
+    DWORD           dwDeniedFlags   = 0;
+    sqlite3_stmt   *pStatement      = NULL;
 
-    if (wcswcs(PRule->PFilePath, L"test.txt") && wcswcs(PRule->PProcessPath, L"FileTest.exe"))
+    __try
     {
-        flags = ICE_FS_FLAG_READ | ICE_FS_FLAG_WRITE;
+        if (SQLITE_OK != (dwStatus = PrepareStmt(SQL_STM_SEARCH_FSSCAN_RULE(), &pStatement))) __leave;
+
+        if (SQLITE_OK != (dwStatus = BindWTextOrNULL(pStatement, dwIndex++, PRule->PProcessPath))) __leave;
+        if (SQLITE_OK != (dwStatus = BindWTextOrNULL(pStatement, dwIndex++, PRule->PProcessPath))) __leave;
+        if (SQLITE_OK != (dwStatus = BindIntOrNULLIfVal(pStatement, dwIndex++, PRule->DwPid, 0))) __leave;
+        if (SQLITE_OK != (dwStatus = BindWTextOrNULL(pStatement, dwIndex++, PRule->PFilePath))) __leave;
+        if (SQLITE_OK != (dwStatus = BindWTextOrNULL(pStatement, dwIndex++, PRule->PFilePath))) __leave;
+        dwStepResult = Step(pStatement);
+        
+        if (dwStepResult != SQLITE_DONE && dwStepResult != SQLITE_ROW)
+        {
+            dwStatus = dwStepResult;
+            __leave;
+        }
+
+        if (dwStepResult == SQLITE_DONE)
+        {
+            *PUlDeniedFlags = 0;
+            __leave;
+        }
+
+        dwRuleId = (DWORD) sqlite3_column_int64(pStatement, 0);
+        dwDeniedFlags = (DWORD) sqlite3_column_int64(pStatement, 1);
+        LogInfo(L"Found with id: %d, flags: %d.", dwRuleId, dwDeniedFlags);
+        
+        *PUlDeniedFlags = dwDeniedFlags;
     }
-    else if (wcswcs(PRule->PFilePath, L"test.txt") && wcswcs(PRule->PProcessPath, L"TOTALCMD.EXE"))
+    __finally
     {
-        flags = (ULONG) -1;
-    }
-    else if (wcswcs(PRule->PFilePath, L"test2.txt") && wcswcs(PRule->PProcessPath, L"FileTest.exe"))
-    {
-        flags = ICE_FS_FLAG_DELETE;
-    }
-    else if (wcswcs(PRule->PFilePath, L"test2.txt") && wcswcs(PRule->PProcessPath, L"TOTALCMD.EXE"))
-    {
-        flags = (ULONG) -1;
+        if (NULL != pStatement)
+        {
+            Reset(pStatement);
+            FinalizeStmt(pStatement);
+            pStatement = NULL;
+        }
     }
 
-    if (flags)
-    {
-        LogInfo(L"denied flags: %d", flags);
-    }
-    *PUlDeniedFlags = flags;
+    return dwStatus;
+}
 
-    return 0;
+
+_Use_decl_anno_impl_
+DWORD
+DbAddFSScanRule(
+    IC_FS_RULE                         *PRule,
+    DWORD                              *PDwRuleId
+)
+{
+    DWORD           dwStatus        = SQLITE_OK;
+    DWORD           dwStepResult    = 0;
+    DWORD           dwIndex         = 1;
+    DWORD           dwRuleId        = 0;
+    sqlite3_stmt   *pStatement      = NULL;
+
+    __try
+    {
+        if (SQLITE_OK != (dwStatus = PrepareStmt(SQL_STM_INSERT_FSSCAN_RULE(), &pStatement))) __leave;
+
+        if (SQLITE_OK != (dwStatus = BindNULL(pStatement, dwIndex++))) __leave;
+        if (SQLITE_OK != (dwStatus = BindInt(pStatement, dwIndex++, PRule->MatcherProcessPath))) __leave;
+        if (SQLITE_OK != (dwStatus = BindWTextOrNULL(pStatement, dwIndex++, PRule->PProcessPath))) __leave;
+        if (SQLITE_OK != (dwStatus = BindIntOrNULLIfVal(pStatement, dwIndex++, PRule->DwPid, 0))) __leave;
+        if (SQLITE_OK != (dwStatus = BindInt(pStatement, dwIndex++, PRule->MatcherFilePath))) __leave;
+        if (SQLITE_OK != (dwStatus = BindWTextOrNULL(pStatement, dwIndex++, PRule->PFilePath))) __leave;
+        if (SQLITE_OK != (dwStatus = BindInt(pStatement, dwIndex++, PRule->UlDeniedOperations))) __leave;
+        if (SQLITE_OK != (dwStatus = BindInt(pStatement, dwIndex++, _time64(NULL)))) __leave;
+
+        dwStepResult = Step(pStatement);
+        if (dwStepResult != SQLITE_DONE)
+        {
+            dwStatus = dwStepResult;
+            __leave;
+        }
+
+        dwRuleId = GetLastRowId();
+        if (NULL != PDwRuleId)
+        {
+            *PDwRuleId = dwRuleId;
+        }
+
+        LogInfo(L"FS Rule: %d with id: %d was inserted with success", PRule->UlDeniedOperations, dwRuleId);
+    }
+    __finally
+    {
+        if (NULL != pStatement)
+        {
+            Reset(pStatement);
+            FinalizeStmt(pStatement);
+            pStatement = NULL;
+        }
+    }
+
+    return dwStatus;
+}
+
+_Use_decl_anno_impl_
+DWORD
+DbDeleteFSScanRule(
+    DWORD                               DwRuleId
+)
+{
+    DWORD           dwStatus        = SQLITE_OK;
+    DWORD           dwStepResult    = 0;
+    sqlite3_stmt   *pStatement      = NULL;
+
+    __try
+    {
+        if (SQLITE_OK != (dwStatus = PrepareStmt(SQL_STM_DELETE_FSSCAN_RULE(), &pStatement))) __leave;
+        if (SQLITE_OK != (dwStatus = BindInt(pStatement, 1, DwRuleId))) __leave;
+        dwStepResult = Step(pStatement);
+        if (dwStepResult != SQLITE_DONE)
+        {
+            dwStatus = dwStepResult;
+            __leave;
+        }
+
+        if (Changes() == 0)
+        {
+            dwStatus = ERROR_NOT_FOUND;
+            LogErrorWin(dwStatus, L"No rows were affected by the delete (RowID: %d)", DwRuleId);
+            __leave;
+        }
+
+        LogInfo(L"Rule with id %d was deleted with success", DwRuleId);
+    }
+    __finally
+    {
+        if (NULL != pStatement)
+        {
+            Reset(pStatement);
+            FinalizeStmt(pStatement);
+            pStatement = NULL;
+        }
+    }
+
+    return dwStatus;
+}
+
+_Use_decl_anno_impl_
+DWORD
+DbUpdateFSScanRule(
+    DWORD                               DwRuleId,
+    IC_FS_RULE                         *PRule
+)
+{
+    DWORD           dwStatus        = SQLITE_OK;
+    DWORD           dwStepResult    = 0;
+    DWORD           dwIndex         = 1;
+    sqlite3_stmt   *pStatement      = NULL;
+
+    __try
+    {
+        if (SQLITE_OK != (dwStatus = PrepareStmt(SQL_STM_UPDATE_FSSCAN_RULE(), &pStatement))) __leave;
+
+        if (SQLITE_OK != (dwStatus = BindInt(pStatement, dwIndex++, PRule->MatcherProcessPath))) __leave;
+        if (SQLITE_OK != (dwStatus = BindWTextOrNULL(pStatement, dwIndex++, PRule->PProcessPath))) __leave;
+        if (SQLITE_OK != (dwStatus = BindIntOrNULLIfVal(pStatement, dwIndex++, PRule->DwPid, 0))) __leave;
+        if (SQLITE_OK != (dwStatus = BindInt(pStatement, dwIndex++, PRule->MatcherFilePath))) __leave;
+        if (SQLITE_OK != (dwStatus = BindWTextOrNULL(pStatement, dwIndex++, PRule->PFilePath))) __leave;
+        if (SQLITE_OK != (dwStatus = BindInt(pStatement, dwIndex++, PRule->UlDeniedOperations))) __leave;
+        if (SQLITE_OK != (dwStatus = BindInt(pStatement, dwIndex++, DwRuleId))) __leave;
+
+        dwStepResult = Step(pStatement);
+        if (dwStepResult != SQLITE_DONE)
+        {
+            dwStatus = dwStepResult;
+            __leave;
+        }
+
+        if (Changes() == 0)
+        {
+            dwStatus = ERROR_NOT_FOUND;
+            LogErrorWin(dwStatus, L"No rows were affected by the update (RowID: %d)", DwRuleId);
+            __leave;
+        }
+
+        LogInfo(L"Rule with id: %d was Updated with success", DwRuleId);
+    }
+    __finally
+    {
+        if (NULL != pStatement)
+        {
+            Reset(pStatement);
+            FinalizeStmt(pStatement);
+            pStatement = NULL;
+        }
+    }
+
+    return dwStatus;
+}
+
+_Use_decl_anno_impl_
+DWORD
+DbGetFSScanRules(
+    PIC_FS_RULE                            *PPRules,
+    DWORD                                  *PDwLength
+)
+{
+    DWORD               dwStatus            = SQLITE_OK;
+    DWORD               dwStepResult        = 0;
+    DWORD               dwIndex             = 0;
+    DWORD               dwNrOfRules         = 0;
+    PIC_FS_RULE         pRules              = NULL;
+    sqlite3_stmt       *pStatement          = NULL;
+
+    __try
+    {
+        dwNrOfRules = GetNumberOfRows(SQL_STM_GET_FSSCAN_RULES_COUNT());
+        if (dwNrOfRules == 0)
+        {
+            dwStatus = ERROR_NOT_FOUND;
+            LogWarningWin(dwStatus, L"No rules were found in database");
+            __leave;
+        }
+
+        pRules = (PIC_FS_RULE) malloc(dwNrOfRules * sizeof(IC_FS_RULE));
+        if (NULL == pRules)
+        {
+            dwStatus = ERROR_NOT_ENOUGH_MEMORY;
+            LogErrorWin(dwStatus, L"malloc(%d)", dwNrOfRules * sizeof(IC_FS_RULE));
+            __leave;
+        }
+        RtlSecureZeroMemory(pRules, dwNrOfRules * sizeof(IC_FS_RULE));
+
+        if (SQLITE_OK != (dwStatus = PrepareStmt(SQL_STM_GET_FSSCAN_RULES(), &pStatement))) __leave;
+
+        dwStepResult = Step(pStatement);
+        if (SQLITE_ROW != dwStepResult && SQLITE_DONE != dwStepResult)
+        {
+            dwStatus = dwStepResult;
+            __leave;
+        }
+
+        while (SQLITE_ROW == dwStepResult && dwIndex < dwNrOfRules)
+        {
+            CreateFSScanRuleRow(pStatement, pRules + dwIndex);
+            dwStepResult = Step(pStatement);
+            dwIndex++;
+        }
+
+        *PPRules = pRules;
+        *PDwLength = dwNrOfRules;
+        LogInfo(L"Retrived %d rows", dwNrOfRules);
+    }
+    __finally
+    {
+        if (NULL != pStatement)
+        {
+            Reset(pStatement);
+            FinalizeStmt(pStatement);
+            pStatement = NULL;
+        }
+
+        if (ERROR_SUCCESS != dwStatus)
+        {
+            DbFreeFSScanRulesList(pRules, dwNrOfRules);
+        }
+    }
+
+    return dwStatus;
+}
+
+_Use_decl_anno_impl_
+VOID
+DbFreeFSScanRulesList(
+    PIC_FS_RULE                             PRules,
+    DWORD                                   DwLength
+)
+{
+    DWORD dwIdx = 0;
+
+    if (NULL == PRules) return;
+
+    for (dwIdx = 0; dwIdx < DwLength; dwIdx++)
+    {
+        if (NULL != PRules[dwIdx].PFilePath)
+        {
+            free(PRules[dwIdx].PFilePath);
+            PRules[dwIdx].PFilePath = NULL;
+        }
+
+        if (NULL != PRules[dwIdx].PProcessPath)
+        {
+            free(PRules[dwIdx].PProcessPath);
+            PRules[dwIdx].PProcessPath = NULL;
+        }
+    }
+
+    free(PRules);
+    PRules = NULL;
 }

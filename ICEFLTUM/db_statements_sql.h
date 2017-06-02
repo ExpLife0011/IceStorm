@@ -22,7 +22,20 @@ SQL_STM_CREATE_TABLES(
         "  [parent_pid] INT, "
         "  [verdict] INT, "
         "  [add_time] INTEGER "
-        ");"
+        "); "
+        ""
+        ""
+        // FsScan Rules
+        "CREATE TABLE IF NOT EXISTS [fsscan_rules] ("
+        "  [id] INTEGER PRIMARY KEY AUTOINCREMENT, "
+        "  [matcher_process_path] INT NOT NULL DEFAULT 0, "
+        "  [process_path] TEXT, "
+        "  [pid] INT, "
+        "  [matcher_file_path] INT NOT NULL DEFAULT 0, "
+        "  [file_path] TEXT, "
+        "  [denied_operations] INT, "
+        "  [add_time] INTEGER "
+        "); "
         "";
 }
 
@@ -117,4 +130,96 @@ SQL_STM_GET_APPCTRL_RULES_COUNT(
 )
 {
     return "SELECT COUNT(*) FROM [appctrl_rules];";
+}
+
+__inline
+PCHAR
+SQL_STM_SEARCH_FSSCAN_RULE(
+    VOID
+)
+{
+    return
+        "SELECT "
+        "  [id], [denied_operations] "
+        "FROM "
+        "  [fsscan_rules] "
+        "WHERE "
+        "  (([process_path] IS NULL) OR "
+        "     ((([matcher_process_path] = 0) AND ([process_path] = ? COLLATE NOCASE)) OR "
+        "     (([matcher_process_path] = 1) AND (? LIKE [process_path] COLLATE NOCASE)))) AND "
+        "  (([pid] IS NULL) OR ([pid] = ?)) AND "
+        "  (([file_path] IS NULL) OR "
+        "     ((([matcher_file_path] = 0) AND ([file_path] = ? COLLATE NOCASE)) OR "
+        "     (([matcher_file_path] = 1) AND (? LIKE [file_path] COLLATE NOCASE)))) "//AND "
+        //"  (([parent_pid] IS NULL) OR ([parent_pid] = ?)) "
+        "ORDER BY "
+        "  [add_time] DESC "
+        "LIMIT 1;"
+        "";
+}
+
+__inline
+PCHAR
+SQL_STM_INSERT_FSSCAN_RULE(
+    VOID
+)
+{
+    return
+        "INSERT INTO [fsscan_rules] "
+        "   ([id], [matcher_process_path], [process_path], [pid], [matcher_file_path], [file_path], [denied_operations], [add_time]) "
+        "VALUES "
+        "   (?, ?, ?, ?, ?, ?, ?, ?);"
+        "";
+}
+
+__inline
+PCHAR
+SQL_STM_DELETE_FSSCAN_RULE(
+    VOID
+)
+{
+    return
+        "DELETE FROM "
+        "  [fsscan_rules] "
+        "WHERE "
+        "  [id] = ?"
+        "";
+}
+
+__inline
+PCHAR
+SQL_STM_UPDATE_FSSCAN_RULE(
+    VOID
+)
+{
+    return
+        "UPDATE [fsscan_rules] "
+        "SET "
+        "  [matcher_process_path] = ?, "
+        "  [process_path] = ?, "
+        "  [pid] = ?, "
+        "  [matcher_file_path] = ?, "
+        "  [file_path] = ?, "
+        "  [denied_operations] = ? "
+        "WHERE "
+        "  [id] = ?"
+        "";
+}
+
+__inline
+PCHAR
+SQL_STM_GET_FSSCAN_RULES(
+    VOID
+)
+{
+    return "SELECT * FROM [fsscan_rules];";
+}
+
+__inline
+PCHAR
+SQL_STM_GET_FSSCAN_RULES_COUNT(
+    VOID
+)
+{
+    return "SELECT COUNT(*) FROM [fsscan_rules];";
 }

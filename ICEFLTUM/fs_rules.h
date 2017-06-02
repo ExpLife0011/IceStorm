@@ -22,3 +22,47 @@ GetFSScanResult(
     _In_    IC_FS_RULE                     *PRule,
     _Inout_ ICE_FS_SCAN_RESULT_PACKET      *PResultPack
 );
+
+_Success_(ERROR_SUCCESS == return)
+DWORD
+AddFSScanRule(
+    _In_        IC_STRING_MATCHER           MatcherProcessPath,
+    _In_z_      PWCHAR                      PProcessPath,
+    _In_        DWORD                       DwPid,
+    _In_        IC_STRING_MATCHER           MatcherFilePath,
+    _In_z_      PWCHAR                      PFilePath,
+    _In_        ULONG                       UlDeniedOperations,
+    _Inout_     DWORD                      *PDwRuleId
+);
+
+_Success_(ERROR_SUCCESS == return)
+DWORD
+DeleteFSScanRule(
+    _In_        DWORD                       DwRuleId
+);
+
+_Success_(ERROR_SUCCESS == return)
+DWORD
+UpdateFSScanRule(
+    _In_        DWORD                       DwRuleId,
+    _In_        IC_STRING_MATCHER           MatcherProcessPath,
+    _In_z_      PWCHAR                      PProcessPath,
+    _In_        DWORD                       DwPid,
+    _In_        IC_STRING_MATCHER           MatcherFilePath,
+    _In_z_      PWCHAR                      PFilePath,
+    _In_        ULONG                       UlDeniedOperations
+);
+
+_Success_(ERROR_SUCCESS == return)
+DWORD
+GetFSScanRules(
+    _Inout_     PIC_FS_RULE                *PPRules,
+    _Inout_     DWORD                      *PDwLength
+);
+
+_Success_(ERROR_SUCCESS == return)
+VOID
+FreeAppFSScanList(
+    _Inout_     PIC_FS_RULE                 PRules,
+    _In_        DWORD                       DwLength
+);

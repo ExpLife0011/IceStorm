@@ -95,17 +95,193 @@ CreateFSStringToAddInDB(
     }
 }
 
-//_Use_decl_anno_impl_
-//DWORD
-//AddFSScanRule(
-//    IC_STRING_MATCHER               MatcherProcessPath,
-//    PWCHAR                          PProcessPath,
-//    DWORD                           DwPid,
-//    IC_STRING_MATCHER               MatcherFilePath,
-//    PWCHAR                          PFilePath,
-//    DWORD                           DwDeniedFlags,
-//    DWORD                          *PDwRuleId
-//)
-//{
-//
-//}
+_Use_decl_anno_impl_
+DWORD
+AddFSScanRule(
+    IC_STRING_MATCHER               MatcherProcessPath,
+    PWCHAR                          PProcessPath,
+    DWORD                           DwPid,
+    IC_STRING_MATCHER               MatcherFilePath,
+    PWCHAR                          PFilePath,
+    ULONG                           UlDeniedOperations,
+    DWORD                          *PDwRuleId
+)
+{
+    DWORD               dwStatus        = ERROR_SUCCESS;
+    DWORD               dwLen           = 0;
+    PWCHAR              pAuxFilePath    = NULL;
+    PWCHAR              pAuxProcPath    = NULL;
+    IC_FS_RULE          rule            = { 0 };
+
+    __try
+    {
+        if (PProcessPath != NULL)
+        {
+            dwLen = (DWORD) (wcslen(PProcessPath) + 1);
+            pAuxProcPath = (PWCHAR) malloc(dwLen * sizeof(WCHAR));
+            if (NULL == pAuxProcPath)
+            {
+                dwStatus = ERROR_NOT_ENOUGH_MEMORY;
+                __leave;
+            }
+
+            CreateFSStringToAddInDB(PProcessPath, pAuxProcPath, dwLen, MatcherProcessPath);
+        }
+
+        if (PFilePath != NULL)
+        {
+            dwLen = (DWORD) (wcslen(PFilePath) + 1);
+            pAuxFilePath = (PWCHAR) malloc(dwLen * sizeof(WCHAR));
+            if (NULL == pAuxFilePath)
+            {
+                dwStatus = ERROR_NOT_ENOUGH_MEMORY;
+                __leave;
+            }
+
+            CreateFSStringToAddInDB(PFilePath, pAuxFilePath, dwLen, MatcherFilePath);
+        }
+
+        rule.MatcherProcessPath = MatcherProcessPath;
+        rule.PProcessPath = pAuxProcPath;
+        rule.DwPid = DwPid;
+        rule.MatcherFilePath = MatcherFilePath;
+        rule.PFilePath = pAuxFilePath;
+        rule.UlDeniedOperations = UlDeniedOperations;
+
+        dwStatus = DbAddFSScanRule(&rule, PDwRuleId);
+        if (ERROR_SUCCESS != dwStatus)
+        {
+            LogErrorWin(dwStatus, L"DbAddFSScanRule(%s, %d)", PProcessPath, DwPid);
+        }
+    }
+    __finally
+    {
+        if (NULL != pAuxFilePath)
+        {
+            free(pAuxFilePath);
+            pAuxFilePath = NULL;
+        }
+
+        if (NULL != pAuxProcPath)
+        {
+            free(pAuxProcPath);
+            pAuxProcPath = NULL;
+        }
+    }
+
+    return dwStatus;
+}
+
+_Use_decl_anno_impl_
+DWORD
+DeleteFSScanRule(
+    DWORD                                   DwRuleId
+)
+{
+    DWORD dwStatus = ERROR_SUCCESS;
+
+    dwStatus = DbDeleteFSScanRule(DwRuleId);
+    if (ERROR_SUCCESS != dwStatus)
+    {
+        LogErrorWin(dwStatus, L"DbDeleteFSScanRule(%d)", DwRuleId);
+    }
+
+    return dwStatus;
+}
+
+_Use_decl_anno_impl_
+DWORD
+UpdateFSScanRule(
+    DWORD                           DwRuleId,
+    IC_STRING_MATCHER               MatcherProcessPath,
+    PWCHAR                          PProcessPath,
+    DWORD                           DwPid,
+    IC_STRING_MATCHER               MatcherFilePath,
+    PWCHAR                          PFilePath,
+    ULONG                           UlDeniedOperations
+)
+{
+    DWORD               dwStatus = ERROR_SUCCESS;
+    DWORD               dwLen = 0;
+    PWCHAR              pAuxFilePath = NULL;
+    PWCHAR              pAuxProcPath = NULL;
+    IC_FS_RULE          rule = { 0 };
+
+    __try
+    {
+        if (PProcessPath != NULL)
+        {
+            dwLen = (DWORD) (wcslen(PProcessPath) + 1);
+            pAuxProcPath = (PWCHAR) malloc(dwLen * sizeof(WCHAR));
+            if (NULL == pAuxProcPath)
+            {
+                dwStatus = ERROR_NOT_ENOUGH_MEMORY;
+                __leave;
+            }
+
+            CreateFSStringToAddInDB(PProcessPath, pAuxProcPath, dwLen, MatcherProcessPath);
+        }
+
+        if (PFilePath != NULL)
+        {
+            dwLen = (DWORD) (wcslen(PFilePath) + 1);
+            pAuxFilePath = (PWCHAR) malloc(dwLen * sizeof(WCHAR));
+            if (NULL == pAuxFilePath)
+            {
+                dwStatus = ERROR_NOT_ENOUGH_MEMORY;
+                __leave;
+            }
+
+            CreateFSStringToAddInDB(PFilePath, pAuxFilePath, dwLen, MatcherFilePath);
+        }
+
+        rule.MatcherProcessPath = MatcherProcessPath;
+        rule.PProcessPath = pAuxProcPath;
+        rule.DwPid = DwPid;
+        rule.MatcherFilePath = MatcherFilePath;
+        rule.PFilePath = pAuxFilePath;
+        rule.UlDeniedOperations = UlDeniedOperations;
+
+        dwStatus = DbUpdateFSScanRule(DwRuleId, &rule);
+        if (ERROR_SUCCESS != dwStatus)
+        {
+            LogErrorWin(dwStatus, L"DbUpdateFSScanRule(%d)", DwRuleId);
+        }
+    }
+    __finally
+    {
+        if (NULL != pAuxFilePath)
+        {
+            free(pAuxFilePath);
+            pAuxFilePath = NULL;
+        }
+
+        if (NULL != pAuxProcPath)
+        {
+            free(pAuxProcPath);
+            pAuxProcPath = NULL;
+        }
+    }
+
+    return dwStatus;
+}
+
+_Use_decl_anno_impl_
+DWORD
+GetFSScanRules(
+    PIC_FS_RULE                            *PPRules,
+    DWORD                                  *PDwLength
+)
+{
+    return DbGetFSScanRules(PPRules, PDwLength);
+}
+
+_Use_decl_anno_impl_
+VOID
+FreeAppFSScanList(
+    PIC_FS_RULE                             PRules,
+    DWORD                                   DwLength
+)
+{
+    DbFreeFSScanRulesList(PRules, DwLength);
+}

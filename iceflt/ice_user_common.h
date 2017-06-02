@@ -14,8 +14,8 @@
 
 #define ICE_APPCTRL_PORT                    L"\\IceAppCtrlPort"
 #define ICE_SCAN_CONTROL_PORT               L"\\IceScanControlPort"
-#define ICE_SCAN_FS_PORT                    L"\\IceScanFSPort"
 
+#define ICE_SCAN_FS_PORT                    L"\\IceScanFSPort"
 typedef enum _ICE_FS_CREATE_FLAGS
 {
     ICE_FS_FLAG_CREATE  = 0x1,

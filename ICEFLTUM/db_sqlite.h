@@ -77,6 +77,40 @@ DbGetFSScanDeniedFlags(
     _Inout_     ULONG                      *PUlDeniedFlags
 );
 
+_Success_(ERROR_SUCCESS == return)
+DWORD
+DbAddFSScanRule(
+    _In_        IC_FS_RULE                 *PRule,
+    _Inout_opt_ DWORD                      *PDwRuleId
+);
+
+_Success_(ERROR_SUCCESS == return)
+DWORD
+DbDeleteFSScanRule(
+    _In_        DWORD                       DwRuleId
+);
+
+_Success_(ERROR_SUCCESS == return)
+DWORD
+DbUpdateFSScanRule(
+    _In_        DWORD                       DwRuleId,
+    _In_        IC_FS_RULE                 *PRule
+);
+
+_Success_(ERROR_SUCCESS == return)
+DWORD
+DbGetFSScanRules(
+    _Inout_     PIC_FS_RULE                *PPRules,
+    _Inout_     DWORD                      *PDwLength
+);
+
+_Success_(ERROR_SUCCESS == return)
+VOID
+DbFreeFSScanRulesList(
+    _Inout_     PIC_FS_RULE                 PRules,
+    _In_        DWORD                       DwLength
+);
+
 #ifdef __cplusplus
 } // extern "C"
 #endif // __cplusplus

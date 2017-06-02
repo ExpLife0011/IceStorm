@@ -1,3 +1,17 @@
-AppCtrl:
-- cache km ?
-
+Vineri:
+* implementare full FS Scan in UM
+- schimbare nume din KM in nume de UM
+- adaugare AppEvents (full / deny)
+- adaugare FSEvents (deny)
+- performance update pe statement-uri (sa se faca Prepare o singura data ?)
+- testat bine logica din KM de scoatere de flaguri
+- testat pe release
+----------------------------------------------------
+- creeare serviciu care sa se porneasca / opreasca (GASIT NUME)
+- adaugare icefltum.dll in serviciu
+- creeare proiect pentru interfata (GASIT NUME)
+- creeare conexiune serviciu -> interfata
+- implementat AppCtrl pe interfata
+- implementare FSScan pe interfata
+- implementare AppEvents pe interfata
+- implementare FSEvents pe interfata

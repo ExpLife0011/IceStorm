@@ -14,6 +14,10 @@
 #define CMD_UPDATE_APPCTRL_RULE             L"update appctrl"
 #define CMD_GET_APPCTRL_RULES               L"get appctrl"
 #define CMD_ENABLE_FS_SCAN                  L"enable fs scan"
+#define CMD_ADD_FSSCAN_RULE                 L"add fs"
+#define CMD_DELETE_FSSCAN_RULE              L"delete fs"
+#define CMD_UPDATE_FSSCAN_RULE              L"update fs"
+#define CMD_GET_FSSCAN_RULES                L"get fs"
 #define CMD_EXIT                            L"exit"
 
 VOID
@@ -388,6 +392,189 @@ EnableFSScan(
     }
 }
 
+VOID
+AddFSScanRule(
+    VOID
+)
+{
+    DWORD   dwResult            = ERROR_SUCCESS;
+    DWORD   dwRuleId            = 0;
+    DWORD   dwProcPathMatch     = 0;
+    WCHAR   pAuxCmd[MAX_PATH]   = { 0 };
+    WCHAR   pProcPath[MAX_PATH] = { 0 };
+    DWORD   dwPid               = 0;
+    DWORD   dwFilePathMatch     = 0;
+    WCHAR   pFilePath[MAX_PATH] = { 0 };
+    DWORD   dwDeniedFlags       = 0;
+
+    printf("    * Path Matcher: ");
+    fgetws(pAuxCmd, MAX_PATH, stdin);
+    dwProcPathMatch = _wtoi(pAuxCmd);
+
+    printf("    * Path: ");
+    fgetws(pProcPath, MAX_PATH, stdin);
+    pProcPath[wcslen(pProcPath) - 1] = 0;
+
+    printf("    * PID: ");
+    fgetws(pAuxCmd, MAX_PATH, stdin);
+    dwPid = _wtoi(pAuxCmd);
+
+    printf("    * File Path Matcher: ");
+    fgetws(pAuxCmd, MAX_PATH, stdin);
+    dwFilePathMatch = _wtoi(pAuxCmd);
+
+    printf("    * File Path: ");
+    fgetws(pFilePath, MAX_PATH, stdin);
+    pFilePath[wcslen(pFilePath) - 1] = 0;
+
+    printf("    * Denied Flags: ");
+    fgetws(pAuxCmd, MAX_PATH, stdin);
+    dwDeniedFlags = _wtoi(pAuxCmd);
+
+
+    dwResult = IcAddFSScanRule(
+        dwProcPathMatch,
+        !_wcsicmp(pProcPath, L"NULL") ? NULL : pProcPath,
+        dwPid,
+        dwFilePathMatch,
+        !_wcsicmp(pFilePath, L"NULL") ? NULL : pFilePath,
+        dwDeniedFlags,
+        &dwRuleId
+    );
+
+    printf("Command returned: %d\n", dwResult);
+    printf(">> Rule ID: %d\n", dwRuleId);
+}
+
+VOID
+DeleteFSScanRule(
+    _In_z_      PWCHAR                      PCmd
+)
+{
+    DWORD       dwRuleId    = 0;
+    DWORD       dwIndex     = 0;
+    DWORD       dwResult    = 0;
+
+    if (L'\0' == PCmd[0] || L'\n' == PCmd[0])
+    {
+        printf("Invalid command format!\n");
+        PrintHelp();
+        return;
+    }
+
+    if (L' ' != PCmd[0])
+    {
+        printf("Invalid command!\n");
+        PrintHelp();
+        return;
+    }
+
+    for (dwIndex = 1; (L' ' == PCmd[dwIndex]) && (L'\0' != PCmd[dwIndex]); dwIndex++);
+    dwRuleId = _wtoi(PCmd + dwIndex);
+    if (
+        (0 == dwRuleId && PCmd[dwIndex] != L'0')
+        )
+    {
+        printf("Invalid RULE_ID!\n");
+        PrintHelp();
+        return;
+    }
+
+    dwResult = IcDeleteFSScanRule(dwRuleId);
+    printf("Command returned: %d", dwResult);
+}
+
+VOID
+UpdateFSScanRule(
+    VOID
+)
+{
+    DWORD   dwResult            = ERROR_SUCCESS;
+    DWORD   dwRuleId            = 0;
+    WCHAR   pAuxCmd[MAX_PATH]   = { 0 };
+    DWORD   dwProcPathMatch     = 0;
+    WCHAR   pProcPath[MAX_PATH] = { 0 };
+    DWORD   dwPid               = 0;
+    DWORD   dwFilePathMatch     = 0;
+    WCHAR   pFilePath[MAX_PATH] = { 0 };
+    DWORD   dwDeniedFlags       = 0;
+
+    printf("    * RuleID: ");
+    fgetws(pAuxCmd, MAX_PATH, stdin);
+    dwRuleId = _wtoi(pAuxCmd);
+
+    printf("    * Process Path Matcher: ");
+    fgetws(pAuxCmd, MAX_PATH, stdin);
+    dwProcPathMatch = _wtoi(pAuxCmd);
+
+    printf("    * Process Path: ");
+    fgetws(pProcPath, MAX_PATH, stdin);
+    pProcPath[wcslen(pProcPath) - 1] = 0;
+
+    printf("    * PID: ");
+    fgetws(pAuxCmd, MAX_PATH, stdin);
+    dwPid = _wtoi(pAuxCmd);
+
+    printf("    * File Path Matcher: ");
+    fgetws(pAuxCmd, MAX_PATH, stdin);
+    dwFilePathMatch = _wtoi(pAuxCmd);
+
+    printf("    * File Path: ");
+    fgetws(pFilePath, MAX_PATH, stdin);
+    pFilePath[wcslen(pFilePath) - 1] = 0;
+
+    printf("    * Denied operations: ");
+    fgetws(pAuxCmd, MAX_PATH, stdin);
+    dwDeniedFlags = _wtoi(pAuxCmd);
+
+
+    dwResult = IcUpdateFSScanRule(
+        dwRuleId,
+        dwProcPathMatch,
+        !_wcsicmp(pProcPath, L"NULL") ? NULL : pProcPath, 
+        dwPid, 
+        dwFilePathMatch,
+        !_wcsicmp(pFilePath, L"NULL") ? NULL : pFilePath, 
+        dwDeniedFlags
+    );
+
+    printf("Command returned: %d\n", dwResult);
+}
+
+VOID
+GetAllFSRules(
+    VOID
+)
+{
+    PIC_FS_RULE         pRules      = NULL;
+    DWORD               dwLen       = 0;
+    DWORD               dwResult    = ERROR_SUCCESS;
+
+    dwResult = IcGetFSScanRules(&pRules, &dwLen);
+    printf("Command returned: %d\n", dwResult);
+    if (0 == dwResult)
+    {
+        printf("\n\n-------- Rules --------:\n");
+        for (DWORD i = 0; i < dwLen; i++)
+        {
+            printf("Rule %02d, pM: %d, procPath: [%S], pid: %d, fM: %d, filePath: [%S], Dop: %d, add: %d\n", 
+                pRules[i].DwRuleId, 
+                pRules[i].MatcherProcessPath,
+                pRules[i].PProcessPath,
+                pRules[i].DwPid, 
+                pRules[i].MatcherFilePath,
+                pRules[i].PFilePath,
+                pRules[i].UlDeniedOperations,
+                pRules[i].DwAddTime
+            );
+        }
+    }
+
+    IcFreeAppFSScanList(pRules, dwLen);
+}
+
+
+
 DWORD
 wmain(
     _In_        DWORD                       DwArgc,
@@ -463,6 +650,23 @@ wmain(
             else if (0 == _wcsnicmp(pCmd, CMD_GET_APPCTRL_RULES, wcslen(CMD_GET_APPCTRL_RULES)))
             {
                 GetAllAppCtrl(pCmd + wcslen(CMD_GET_APPCTRL_RULES));
+            }
+
+            else if (0 == _wcsnicmp(pCmd, CMD_ADD_FSSCAN_RULE, wcslen(CMD_ADD_FSSCAN_RULE)))
+            {
+                AddFSScanRule();
+            }
+            else if (0 == _wcsnicmp(pCmd, CMD_DELETE_FSSCAN_RULE, wcslen(CMD_DELETE_FSSCAN_RULE)))
+            {
+                DeleteFSScanRule(pCmd + wcslen(CMD_DELETE_FSSCAN_RULE));
+            }
+            else if (0 == _wcsnicmp(pCmd, CMD_UPDATE_FSSCAN_RULE, wcslen(CMD_UPDATE_FSSCAN_RULE)))
+            {
+                UpdateFSScanRule();
+            }
+            else if (0 == _wcsnicmp(pCmd, CMD_GET_FSSCAN_RULES, wcslen(CMD_GET_FSSCAN_RULES)))
+            {
+                GetAllFSRules();
             }
             else if (0 == _wcsnicmp(pCmd, CMD_ENABLE_FS_SCAN, wcslen(CMD_ENABLE_FS_SCAN)))
             {

@@ -1,7 +1,6 @@
 #ifndef __IMPORT_ICELTUM_H__
 #define __IMPORT_ICELTUM_H__
 
-
 #include <windows.h>
 #include <ntstatus.h>
 #include "icecommon.h"
@@ -95,6 +94,55 @@ DWORD(*PFUNC_IcStopFSScan) (
     VOID
     );
 
+typedef
+_Success_(ERROR_SUCCESS == return)
+DWORD
+(*PFUNC_IcAddFSScanRule) (
+    _In_        IC_STRING_MATCHER           MatcherProcessPath,
+    _In_z_      PWCHAR                      PProcessPath,
+    _In_        DWORD                       DwPid,
+    _In_        IC_STRING_MATCHER           MatcherFilePath,
+    _In_z_      PWCHAR                      PFilePath,
+    _In_        ULONG                       UlDeniedOperations,
+    _Inout_     DWORD                      *PDwRuleId
+);
+
+typedef
+_Success_(ERROR_SUCCESS == return)
+DWORD
+(*PFUNC_IcDeleteFSScanRule) (
+    _In_        DWORD                       DwRuleId
+);
+
+typedef
+_Success_(ERROR_SUCCESS == return)
+DWORD
+(*PFUNC_IcUpdateFSScanRule) (
+    _In_        DWORD                       DwRuleId,
+    _In_        IC_STRING_MATCHER           MatcherProcessPath,
+    _In_z_      PWCHAR                      PProcessPath,
+    _In_        DWORD                       DwPid,
+    _In_        IC_STRING_MATCHER           MatcherFilePath,
+    _In_z_      PWCHAR                      PFilePath,
+    _In_        ULONG                       UlDeniedOperations
+);
+
+typedef
+_Success_(ERROR_SUCCESS == return)
+DWORD
+(*PFUNC_IcGetFSScanRules) (
+    _Inout_     PIC_FS_RULE                *PPRules,
+    _Inout_     DWORD                      *PDwLength
+);
+
+typedef
+_Success_(ERROR_SUCCESS == return)
+VOID
+(*PFUNC_IcFreeAppFSScanList) (
+    _Inout_     PIC_FS_RULE                 PRules,
+    _In_        DWORD                       DwLength
+);
+
 extern PFUNC_IcInitConnectionToIceFlt       IcInitConnectionToIceFlt;
 extern PFUNC_IcUninitConnectionToIceFlt     IcUninitConnectionToIceFlt;
 extern PFUNC_IcSendSetOption                IcSendSetOption;
@@ -107,6 +155,11 @@ extern PFUNC_IcGetAppCtrlRules              IcGetAppCtrlRules;
 extern PFUNC_IcFreeAppCtrlRulesList         IcFreeAppCtrlRulesList;
 extern PFUNC_IcStartFSScan                  IcStartFSScan;
 extern PFUNC_IcStopFSScan                   IcStopFSScan;
+extern PFUNC_IcAddFSScanRule                IcAddFSScanRule;
+extern PFUNC_IcDeleteFSScanRule             IcDeleteFSScanRule;
+extern PFUNC_IcUpdateFSScanRule             IcUpdateFSScanRule;
+extern PFUNC_IcGetFSScanRules               IcGetFSScanRules;
+extern PFUNC_IcFreeAppFSScanList            IcFreeAppFSScanList;
 
 _Success_(NT_SUCCESS(return))
 NTSTATUS
@@ -118,6 +171,5 @@ VOID
 IcFreeIcefltUmAPI(
     VOID
 );
-
 
 #endif // !__IMPORT_ICEFLTUM_H__

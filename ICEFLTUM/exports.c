@@ -3,6 +3,8 @@
 #include "driver_io.h"
 #include "appctrl_rules.h"
 #include "fs_scan.h"
+#include "fs_rules.h"
+
 _Use_decl_anno_impl_
 DWORD
 IcInitConnectionToIceFlt(
@@ -98,7 +100,6 @@ IcUpdateAppCtrlRule(
 )
 {
     if ((DwRuleId == 0) || (NULL == PProcessPath && 0 == DwPid && NULL == PParentPath && 0 == DwParentPid))
-
     {
         return ERROR_INVALID_PARAMETER;
     }
@@ -136,7 +137,6 @@ IcFreeAppCtrlRulesList(
     FreeAppCtrlRulesList(PRules, DwLength);
 }
 
-
 _Use_decl_anno_impl_
 DWORD
 IcStartFSScan(
@@ -153,4 +153,88 @@ IcStopFSScan(
 )
 {
     return StopFSScan();
+}
+
+_Use_decl_anno_impl_
+DWORD
+IcAddFSScanRule(
+    IC_STRING_MATCHER               MatcherProcessPath,
+    PWCHAR                          PProcessPath,
+    DWORD                           DwPid,
+    IC_STRING_MATCHER               MatcherFilePath,
+    PWCHAR                          PFilePath,
+    ULONG                           UlDeniedOperations,
+    DWORD                          *PDwRuleId
+)
+{
+    if (NULL == PProcessPath && 0 == DwPid && NULL == PFilePath)
+    {
+        return ERROR_INVALID_PARAMETER;
+    }
+
+    return AddFSScanRule(MatcherProcessPath, PProcessPath, DwPid, MatcherFilePath, PFilePath, UlDeniedOperations, PDwRuleId);
+}
+
+_Use_decl_anno_impl_
+DWORD
+IcDeleteFSScanRule(
+    DWORD                                   DwRuleId
+)
+{
+    if (DwRuleId == 0)
+    {
+        return ERROR_INVALID_PARAMETER;
+    }
+
+    return DeleteFSScanRule(DwRuleId);
+}
+
+_Use_decl_anno_impl_
+DWORD
+IcUpdateFSScanRule(
+    DWORD                           DwRuleId,
+    IC_STRING_MATCHER               MatcherProcessPath,
+    PWCHAR                          PProcessPath,
+    DWORD                           DwPid,
+    IC_STRING_MATCHER               MatcherFilePath,
+    PWCHAR                          PFilePath,
+    ULONG                           UlDeniedOperations
+)
+{
+    if ((DwRuleId == 0) || (NULL == PProcessPath && 0 == DwPid && NULL == PProcessPath))
+    {
+        return ERROR_INVALID_PARAMETER;
+    }
+
+    return UpdateFSScanRule(DwRuleId, MatcherProcessPath, PProcessPath, DwPid, MatcherFilePath, PFilePath, UlDeniedOperations);
+}
+
+_Use_decl_anno_impl_
+DWORD
+IcGetFSScanRules(
+    PIC_FS_RULE                            *PPRules,
+    DWORD                                  *PDwLength
+)
+{
+    if ((NULL == PPRules) || (NULL == PDwLength))
+    {
+        return ERROR_INVALID_PARAMETER;
+    }
+
+    return GetFSScanRules(PPRules, PDwLength);
+}
+
+_Use_decl_anno_impl_
+VOID
+IcFreeAppFSScanList(
+    PIC_FS_RULE                             PRules,
+    DWORD                                   DwLength
+)
+{
+    if (NULL == PRules || 0 == DwLength)
+    {
+        return;
+    }
+
+    FreeAppFSScanList(PRules, DwLength);
 }
