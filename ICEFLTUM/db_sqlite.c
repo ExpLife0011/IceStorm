@@ -929,9 +929,9 @@ DbAddFSEvent(
         if (SQLITE_OK != (dwStatus = PrepareStmt(SQL_STM_INSERT_FS_EVENT(), &pStatement))) __leave;
 
         if (SQLITE_OK != (dwStatus = BindNULL(pStatement, dwIndex++))) __leave;
-        if (SQLITE_OK != (dwStatus = BindWText(pStatement, dwIndex++, PEvent->PProcessPath, wcslen(PEvent->PProcessPath) * sizeof(WCHAR)))) __leave;
+        if (SQLITE_OK != (dwStatus = BindWText(pStatement, dwIndex++, PEvent->PProcessPath, (DWORD) (wcslen(PEvent->PProcessPath) * sizeof(WCHAR))))) __leave;
         if (SQLITE_OK != (dwStatus = BindInt(pStatement, dwIndex++, PEvent->DwPid))) __leave;
-        if (SQLITE_OK != (dwStatus = BindWText(pStatement, dwIndex++, PEvent->PFilePath, wcslen(PEvent->PFilePath) * sizeof(WCHAR)))) __leave;
+        if (SQLITE_OK != (dwStatus = BindWText(pStatement, dwIndex++, PEvent->PFilePath, (DWORD) (wcslen(PEvent->PFilePath) * sizeof(WCHAR))))) __leave;
         if (SQLITE_OK != (dwStatus = BindInt(pStatement, dwIndex++, PEvent->UlRequiredOperations))) __leave;
         if (SQLITE_OK != (dwStatus = BindInt(pStatement, dwIndex++, PEvent->UlDeniedOperations))) __leave;
         if (SQLITE_OK != (dwStatus = BindInt(pStatement, dwIndex++, PEvent->UlRemainingOperations))) __leave;
@@ -978,9 +978,9 @@ DbAddAppEvent(
         if (SQLITE_OK != (dwStatus = PrepareStmt(SQL_STM_INSERT_APPCTRL_EVENT(), &pStatement))) __leave;
 
         if (SQLITE_OK != (dwStatus = BindNULL(pStatement, dwIndex++))) __leave;
-        if (SQLITE_OK != (dwStatus = BindWText(pStatement, dwIndex++, PEvent->PProcessPath, wcslen(PEvent->PProcessPath) * sizeof(WCHAR)))) __leave;
+        if (SQLITE_OK != (dwStatus = BindWText(pStatement, dwIndex++, PEvent->PProcessPath, (DWORD) (wcslen(PEvent->PProcessPath) * sizeof(WCHAR))))) __leave;
         if (SQLITE_OK != (dwStatus = BindInt(pStatement, dwIndex++, PEvent->DwPid))) __leave;
-        if (SQLITE_OK != (dwStatus = BindWText(pStatement, dwIndex++, PEvent->PParentPath, wcslen(PEvent->PParentPath) * sizeof(WCHAR)))) __leave;
+        if (SQLITE_OK != (dwStatus = BindWText(pStatement, dwIndex++, PEvent->PParentPath, (DWORD) (wcslen(PEvent->PParentPath) * sizeof(WCHAR))))) __leave;
         if (SQLITE_OK != (dwStatus = BindInt(pStatement, dwIndex++, PEvent->DwParentPid))) __leave;
         if (SQLITE_OK != (dwStatus = BindInt(pStatement, dwIndex++, PEvent->Verdict))) __leave;
         if (SQLITE_OK != (dwStatus = BindInt(pStatement, dwIndex++, PEvent->DwMatchedRuleId))) __leave;
