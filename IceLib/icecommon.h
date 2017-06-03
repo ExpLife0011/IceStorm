@@ -45,5 +45,38 @@ typedef struct _IC_FS_RULE
 
 } IC_FS_RULE, *PIC_FS_RULE;
 
+typedef struct _IC_APPCTRL_EVENT
+{
+    DWORD               DwEventId;
+
+    PWCHAR              PProcessPath;
+    DWORD               DwPid;
+    PWCHAR              PParentPath;
+    DWORD               DwParentPid;
+
+    ICE_SCAN_VERDICT    Verdict;
+    DWORD               DwMatchedRuleId;
+
+    DWORD               DwEventTime;
+
+} IC_APPCTRL_EVENT, *PIC_APPCTRL_EVENT;
+
+typedef struct _IC_FS_EVENT
+{
+    DWORD               DwEventId;
+
+    PWCHAR              PProcessPath;
+    DWORD               DwPid;
+    PWCHAR              PFilePath;
+
+    ULONG               UlRequiredOperations;
+    ULONG               UlDeniedOperations;
+    ULONG               UlRemainingOperations;
+
+    DWORD               DwMatchedRuleId;
+    
+    DWORD               DwEventTime;
+
+} IC_FS_EVENT, *PIC_FS_EVENT;
 
 #endif // !__ICECOMMON_H__

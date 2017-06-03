@@ -1,11 +1,7 @@
 Vineri:
-* implementare full FS Scan in UM
-- schimbare nume din KM in nume de UM
-- adaugare AppEvents (full / deny)
-- adaugare FSEvents (deny)
+- schimbare nume din KM in nume de UM (pentru procese)
 - performance update pe statement-uri (sa se faca Prepare o singura data ?)
 - testat bine logica din KM de scoatere de flaguri
-- testat pe release
 ----------------------------------------------------
 - creeare serviciu care sa se porneasca / opreasca (GASIT NUME)
 - adaugare icefltum.dll in serviciu

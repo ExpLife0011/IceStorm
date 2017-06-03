@@ -180,7 +180,8 @@ ThreadAppCtrlScanner(
     PICE_APP_CTRL_SCAN_REQUEST_PACKET   pScanRequest    = NULL;
 
     UNREFERENCED_PARAMETER(PParams);
-    
+    UNREFERENCED_PARAMETER(dwThreadId);
+
     pEvents[0] = gHEventStop;
     pEvents[1] = gHEventAppCtrlScanReqAdded;
     

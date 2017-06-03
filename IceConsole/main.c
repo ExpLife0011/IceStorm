@@ -18,6 +18,8 @@
 #define CMD_DELETE_FSSCAN_RULE              L"delete fs"
 #define CMD_UPDATE_FSSCAN_RULE              L"update fs"
 #define CMD_GET_FSSCAN_RULES                L"get fs"
+#define CMD_GET_FSSCAN_EVENTS               L"get ev fs"
+#define CMD_GET_APPCTRL_EVENTS              L"get ev app"
 #define CMD_EXIT                            L"exit"
 
 VOID
@@ -570,10 +572,74 @@ GetAllFSRules(
         }
     }
 
-    IcFreeAppFSScanList(pRules, dwLen);
+    IcFreeFSScanList(pRules, dwLen);
 }
 
+VOID
+GetAllFSEvents(
+    VOID
+)
+{
+    PIC_FS_EVENT        pEvents     = NULL;
+    DWORD               dwLen       = 0;
+    DWORD               dwResult    = ERROR_SUCCESS;
 
+    dwResult = IcGetFSEvents(&pEvents, &dwLen, 0);
+    printf("Command returned: %d\n", dwResult);
+    if (0 == dwResult)
+    {
+        printf("\n\n-------- Events --------:\n");
+        for (DWORD i = 0; i < dwLen; i++)
+        {
+            printf("Event %02d, procPath: [%S], pid: %d, filePath: [%S], reqOp: %d, denOp: %d, remOp: %d, mri: %d, time: %d\n", 
+                pEvents[i].DwEventId, 
+                pEvents[i].PProcessPath,
+                pEvents[i].DwPid,
+                pEvents[i].PFilePath, 
+                pEvents[i].UlRequiredOperations,
+                pEvents[i].UlDeniedOperations,
+                pEvents[i].UlRemainingOperations,
+                pEvents[i].DwMatchedRuleId,
+                pEvents[i].DwEventTime
+            );
+        }
+    }
+
+    IcFreeFSEventsList(pEvents, dwLen);
+}
+
+VOID
+GetAllAppEvents(
+    VOID
+)
+{
+    PIC_APPCTRL_EVENT   pEvents     = NULL;
+    DWORD               dwLen       = 0;
+    DWORD               dwResult    = ERROR_SUCCESS;
+
+    dwResult = IcGetAppCtrlEvents(&pEvents, &dwLen, 0);
+    printf("Command returned: %d\n", dwResult);
+
+    if (0 == dwResult)
+    {
+        printf("\n\n-------- Events --------:\n");
+        for (DWORD i = 0; i < dwLen; i++)
+        {
+            printf("Event %02d, procPath: [%S], pid: %d, parPath: [%S], parPid: %d, verdict: %d, mri: %d, time: %d\n",
+                pEvents[i].DwEventId,
+                pEvents[i].PProcessPath,
+                pEvents[i].DwPid,
+                pEvents[i].PParentPath,
+                pEvents[i].DwParentPid,
+                pEvents[i].Verdict,
+                pEvents[i].DwMatchedRuleId,
+                pEvents[i].DwEventTime
+            );
+        }
+    }
+
+    IcFreeAppCtrlEventsList(pEvents, dwLen);
+}
 
 DWORD
 wmain(
@@ -671,6 +737,14 @@ wmain(
             else if (0 == _wcsnicmp(pCmd, CMD_ENABLE_FS_SCAN, wcslen(CMD_ENABLE_FS_SCAN)))
             {
                 EnableFSScan(pCmd + wcslen(CMD_ENABLE_FS_SCAN));
+            }
+            else if (0 == _wcsnicmp(pCmd, CMD_GET_FSSCAN_EVENTS, wcslen(CMD_GET_FSSCAN_EVENTS)))
+            {
+                GetAllFSEvents();
+            }
+            else if (0 == _wcsnicmp(pCmd, CMD_GET_APPCTRL_EVENTS, wcslen(CMD_GET_APPCTRL_EVENTS)))
+            {
+                GetAllAppEvents();
             }
             else if (0 == _wcsnicmp(pCmd, CMD_EXIT, wcslen(CMD_EXIT)))
             {        

@@ -67,3 +67,17 @@ FreeAppCtrlRulesList(
     _Inout_     PIC_APPCTRL_RULE           PRules,
     _In_        DWORD                      DwLength
 );
+
+_Success_(ERROR_SUCCESS == return)
+DWORD
+GetAppCtrlEvents(
+    _Out_       PIC_APPCTRL_EVENT          *PPEvents,
+    _In_        DWORD                      *PDwLength,
+    _In_        DWORD                       DwFirstId
+);
+
+VOID
+FreeAppCtrlEventsList(
+    _Inout_     PIC_APPCTRL_EVENT           PEvents,
+    _In_        DWORD                       DwLength
+);

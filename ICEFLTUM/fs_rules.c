@@ -67,6 +67,21 @@ GetFSScanResult(
     
     PResultPack->DwIceFsNewFlags = ulNewFlags;
 
+    if (ulNewFlags != UlOriginalFlags)
+    {
+        IC_FS_EVENT fsEvent = { 0 };
+
+        fsEvent.DwPid = PRule->DwPid;
+        fsEvent.DwMatchedRuleId = PRule->DwRuleId;
+        fsEvent.PFilePath = PRule->PFilePath;
+        fsEvent.PProcessPath = PRule->PProcessPath;
+        fsEvent.UlDeniedOperations = ulDeniedFlags;
+        fsEvent.UlRemainingOperations = ulNewFlags;
+        fsEvent.UlRequiredOperations = UlOriginalFlags;
+
+        DbAddFSEvent(&fsEvent);
+    }
+
     return ERROR_SUCCESS;
 }
 
@@ -278,10 +293,31 @@ GetFSScanRules(
 
 _Use_decl_anno_impl_
 VOID
-FreeAppFSScanList(
+FreeFSScanList(
     PIC_FS_RULE                             PRules,
     DWORD                                   DwLength
 )
 {
     DbFreeFSScanRulesList(PRules, DwLength);
+}
+
+_Use_decl_anno_impl_
+DWORD
+GetFSEvents(
+    PIC_FS_EVENT                           *PPEvents,
+    DWORD                                  *PDwLength,
+    DWORD                                   DwFirstId
+)
+{
+    return DbGetFSEvents(PPEvents, PDwLength, DwFirstId);
+}
+
+_Use_decl_anno_impl_
+VOID
+FreeFSEventsList(
+    PIC_FS_EVENT                            PEvents,
+    DWORD                                   DwLength
+)
+{
+    DbFreeFSEventsList(PEvents, DwLength);
 }

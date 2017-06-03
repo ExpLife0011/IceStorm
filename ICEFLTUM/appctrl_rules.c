@@ -54,6 +54,7 @@ GetAppCtrlScanResult(
 )
 {
     ICE_SCAN_VERDICT verdict = IceScanVerdict_Allow;
+    IC_APPCTRL_EVENT appEvent = { 0 };
 
     if (ERROR_SUCCESS != DbGetAppCtrlVerdict(PRule, &verdict))
     {
@@ -61,6 +62,14 @@ GetAppCtrlScanResult(
     }
     PResultPack->NtScanResult = verdict;
 
+    appEvent.DwPid = PRule->DwPid;
+    appEvent.DwParentPid = PRule->DwParentPid;
+    appEvent.Verdict = verdict;
+    appEvent.PParentPath = PRule->PParentPath;
+    appEvent.PProcessPath = PRule->PProcessPath;
+
+    DbAddAppEvent(&appEvent);
+    
     return ERROR_SUCCESS;
 }
 
@@ -282,4 +291,25 @@ FreeAppCtrlRulesList(
 )
 {
     DbFreeAppCtrlRulesList(PRules, DwLength);
+}
+
+_Use_decl_anno_impl_
+DWORD
+GetAppCtrlEvents(
+    PIC_APPCTRL_EVENT                      *PPEvents,
+    DWORD                                  *PDwLength,
+    DWORD                                   DwFirstId
+)
+{
+    return DbGetAppCtrlEvents(PPEvents, PDwLength, DwFirstId);
+}
+
+_Use_decl_anno_impl_
+VOID
+FreeAppCtrlEventsList(
+    PIC_APPCTRL_EVENT                       PEvents,
+    DWORD                                   DwLength
+)
+{
+    DbFreeAppCtrlEventsList(PEvents, DwLength);
 }

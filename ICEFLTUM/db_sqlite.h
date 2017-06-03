@@ -111,6 +111,46 @@ DbFreeFSScanRulesList(
     _In_        DWORD                       DwLength
 );
 
+_Success_(ERROR_SUCCESS == return)
+DWORD
+DbAddFSEvent(
+    _In_        PIC_FS_EVENT                PEvent
+);
+
+_Success_(ERROR_SUCCESS == return)
+DWORD
+DbAddAppEvent(
+    _In_        PIC_APPCTRL_EVENT           PEvent
+);
+
+_Success_(ERROR_SUCCESS == return)
+DWORD
+DbGetFSEvents(
+    _Out_       PIC_FS_EVENT               *PPEvents,
+    _In_        DWORD                      *PDwLength,
+    _In_        DWORD                       DwFirstId
+);
+
+VOID
+DbFreeFSEventsList(
+    _Inout_     PIC_FS_EVENT                PEvents,
+    _In_        DWORD                       DwLength
+);
+
+_Success_(ERROR_SUCCESS == return)
+DWORD
+DbGetAppCtrlEvents(
+    _Out_       PIC_APPCTRL_EVENT          *PPEvents,
+    _In_        DWORD                      *PDwLength,
+    _In_        DWORD                       DwFirstId
+);
+
+VOID
+DbFreeAppCtrlEventsList(
+    _Inout_     PIC_APPCTRL_EVENT           PEvents,
+    _In_        DWORD                       DwLength
+);
+
 #ifdef __cplusplus
 } // extern "C"
 #endif // __cplusplus

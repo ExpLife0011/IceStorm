@@ -165,11 +165,42 @@ IcGetFSScanRules(
 ICEFLTUM_API
 _Success_(ERROR_SUCCESS == return)
 VOID
-IcFreeAppFSScanList(
+IcFreeFSScanList(
     _Inout_     PIC_FS_RULE                 PRules,
     _In_        DWORD                       DwLength
 );
 
+ICEFLTUM_API
+_Success_(ERROR_SUCCESS == return)
+DWORD
+IcGetFSEvents(
+    _Out_       PIC_FS_EVENT               *PPEvents,
+    _In_        DWORD                      *PDwLength,
+    _In_        DWORD                       DwFirstId
+);
+
+ICEFLTUM_API
+VOID
+IcFreeFSEventsList(
+    _Inout_     PIC_FS_EVENT                PEvents,
+    _In_        DWORD                       DwLength
+);
+
+ICEFLTUM_API
+_Success_(ERROR_SUCCESS == return)
+DWORD
+IcGetAppCtrlEvents(
+    _Out_       PIC_APPCTRL_EVENT          *PPEvents,
+    _In_        DWORD                      *PDwLength,
+    _In_        DWORD                       DwFirstId
+);
+
+ICEFLTUM_API
+VOID
+IcFreeAppCtrlEventsList(
+    _Inout_     PIC_APPCTRL_EVENT           PEvents,
+    _In_        DWORD                       DwLength
+);
 
 #ifdef __cplusplus
 } // extern "C"

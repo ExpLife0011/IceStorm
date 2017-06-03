@@ -36,6 +36,34 @@ SQL_STM_CREATE_TABLES(
         "  [denied_operations] INT, "
         "  [add_time] INTEGER "
         "); "
+        ""
+        ""
+        // AppCtrl Events
+        "CREATE TABLE IF NOT EXISTS [appctrl_events] ("
+        "  [id] INTEGER PRIMARY KEY AUTOINCREMENT, "
+        "  [process_path] TEXT NOT NULL, "
+        "  [pid] INT NOT NULL, "
+        "  [parent_path] TEXT NOT NULL, "
+        "  [parent_pid] INT NOT NULL, "
+        "  [verdict] INT NOT NULL, "
+        "  [matched_rule_id] INT NOT NULL, "
+        "  [event_time] INTEGER NOT NULL"
+        "); "
+        ""
+        ""
+        // FS Event
+        "CREATE TABLE IF NOT EXISTS [fs_events] ("
+        "  [id] INTEGER PRIMARY KEY AUTOINCREMENT, "
+        "  [process_path] TEXT NOT NULL, "
+        "  [pid] INT NOT NULL, "
+        "  [file_path] TEXT NOT NULL, "
+        "  [required_operations] INT NOT NULL, "
+        "  [denied_operations] INT NOT NULL, "
+        "  [remaining_operations] INT NOT NULL, "
+        "  [matched_rule_id] INT NOT NULL, "
+        "  [event_time] INTEGER NOT NULL "
+        ""
+        "); "
         "";
 }
 
@@ -150,8 +178,7 @@ SQL_STM_SEARCH_FSSCAN_RULE(
         "  (([pid] IS NULL) OR ([pid] = ?)) AND "
         "  (([file_path] IS NULL) OR "
         "     ((([matcher_file_path] = 0) AND ([file_path] = ? COLLATE NOCASE)) OR "
-        "     (([matcher_file_path] = 1) AND (? LIKE [file_path] COLLATE NOCASE)))) "//AND "
-        //"  (([parent_pid] IS NULL) OR ([parent_pid] = ?)) "
+        "     (([matcher_file_path] = 1) AND (? LIKE [file_path] COLLATE NOCASE)))) "
         "ORDER BY "
         "  [add_time] DESC "
         "LIMIT 1;"
@@ -222,4 +249,69 @@ SQL_STM_GET_FSSCAN_RULES_COUNT(
 )
 {
     return "SELECT COUNT(*) FROM [fsscan_rules];";
+}
+
+__inline
+PCHAR
+SQL_STM_INSERT_APPCTRL_EVENT(
+    VOID
+)
+{
+    return
+        "INSERT INTO [appctrl_events] "
+        "   ([id], [process_path], [pid], [parent_path], [parent_pid], [verdict], [matched_rule_id], [event_time]) "
+        "VALUES "
+        "   (?, ?, ?, ?, ?, ?, ?, ?);"
+        "";
+}
+
+__inline
+PCHAR
+SQL_STM_INSERT_FS_EVENT(
+    VOID
+)
+{
+    return
+        "INSERT INTO [fs_events] "
+        "   ([id], [process_path], [pid], [file_path], [required_operations], [denied_operations], [remaining_operations], [matched_rule_id], [event_time]) "
+        "VALUES "
+        "   (?, ?, ?, ?, ?, ?, ?, ?, ?);"
+        "";
+}
+
+__inline
+PCHAR
+SQL_STM_GET_APPCTRL_EVENTS(
+    VOID
+)
+{
+    return "SELECT * FROM [appctrl_events] WHERE [id] > ? ORDER BY [id] ASC";
+
+}
+
+__inline
+PCHAR
+SQL_STM_GET_APPCTRL_EVENTS_COUNT(
+    VOID
+)
+{
+    return "SELECT COUNT(*) FROM [appctrl_events] WHERE [id] > ? ORDER BY [id] ASC";
+}
+
+__inline
+PCHAR
+SQL_STM_GET_FS_EVENTS(
+    VOID
+)
+{
+    return "SELECT * FROM [fs_events] WHERE [id] > ? ORDER BY [id] ASC";
+}
+
+__inline
+PCHAR
+SQL_STM_GET_FS_EVENTS_COUNT(
+    VOID
+)
+{
+    return "SELECT COUNT(*) FROM [fs_events] WHERE [id] > ? ORDER BY [id] ASC";
 }

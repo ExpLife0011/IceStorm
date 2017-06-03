@@ -226,7 +226,7 @@ IcGetFSScanRules(
 
 _Use_decl_anno_impl_
 VOID
-IcFreeAppFSScanList(
+IcFreeFSScanList(
     PIC_FS_RULE                             PRules,
     DWORD                                   DwLength
 )
@@ -236,5 +236,67 @@ IcFreeAppFSScanList(
         return;
     }
 
-    FreeAppFSScanList(PRules, DwLength);
+    FreeFSScanList(PRules, DwLength);
+}
+
+_Use_decl_anno_impl_
+DWORD
+IcGetFSEvents(
+    PIC_FS_EVENT                           *PPEvents,
+    DWORD                                  *PDwLength,
+    DWORD                                   DwFirstId
+)
+{
+    if ((NULL == PPEvents) || (NULL == PDwLength))
+    {
+        return ERROR_INVALID_PARAMETER;
+    }
+
+    return GetFSEvents(PPEvents, PDwLength, DwFirstId);
+}
+
+_Use_decl_anno_impl_
+VOID
+IcFreeFSEventsList(
+    PIC_FS_EVENT                            PEvents,
+    DWORD                                   DwLength
+)
+{
+    if (NULL == PEvents || 0 == DwLength)
+    {
+        return;
+    }
+
+    FreeFSEventsList(PEvents, DwLength);
+}
+
+_Use_decl_anno_impl_
+DWORD
+IcGetAppCtrlEvents(
+    PIC_APPCTRL_EVENT                      *PPEvents,
+    DWORD                                  *PDwLength,
+    DWORD                                   DwFirstId
+)
+{
+    if (NULL == PPEvents || NULL == PDwLength)
+    {
+        return ERROR_INVALID_PARAMETER;
+    }
+
+    return GetAppCtrlEvents(PPEvents, PDwLength, DwFirstId);
+}
+
+_Use_decl_anno_impl_
+VOID
+IcFreeAppCtrlEventsList(
+    PIC_APPCTRL_EVENT                       PEvents,
+    DWORD                                   DwLength
+)
+{
+    if (NULL == PEvents || 0 == DwLength)
+    {
+        return;
+    }
+
+    FreeAppCtrlEventsList(PEvents, DwLength);
 }

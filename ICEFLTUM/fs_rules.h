@@ -62,7 +62,21 @@ GetFSScanRules(
 
 _Success_(ERROR_SUCCESS == return)
 VOID
-FreeAppFSScanList(
+FreeFSScanList(
     _Inout_     PIC_FS_RULE                 PRules,
+    _In_        DWORD                       DwLength
+);
+
+_Success_(ERROR_SUCCESS == return)
+DWORD
+GetFSEvents(
+    _Out_       PIC_FS_EVENT               *PPEvents,
+    _In_        DWORD                      *PDwLength,
+    _In_        DWORD                       DwFirstId
+);
+
+VOID
+FreeFSEventsList(
+    _Inout_     PIC_FS_EVENT                PEvents,
     _In_        DWORD                       DwLength
 );

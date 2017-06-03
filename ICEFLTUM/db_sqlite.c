@@ -108,6 +108,39 @@ CreateFSScanRuleRow(
     PRule->DwAddTime = (DWORD) sqlite3_column_int64(PStatement, 7);
 }
 
+VOID
+CreateFSEventRow(
+    _Inout_     sqlite3_stmt                   *PStatement,
+    _Inout_     IC_FS_EVENT                    *PEvent
+)
+{
+    PEvent->DwEventId = (DWORD) sqlite3_column_int64(PStatement, 0);
+    PEvent->PProcessPath = CreateCopyOfWString(sqlite3_column_type(PStatement, 1) == SQLITE_NULL ? NULL : (PWCHAR) sqlite3_column_text16(PStatement, 1));
+    PEvent->DwPid = (DWORD) sqlite3_column_int64(PStatement, 2);
+    PEvent->PFilePath = CreateCopyOfWString(sqlite3_column_type(PStatement, 3) == SQLITE_NULL ? NULL : (PWCHAR) sqlite3_column_text16(PStatement, 3));
+    PEvent->UlRequiredOperations = (DWORD) sqlite3_column_int64(PStatement, 4);
+    PEvent->UlDeniedOperations = (DWORD) sqlite3_column_int64(PStatement, 5);
+    PEvent->UlRemainingOperations = (DWORD) sqlite3_column_int64(PStatement, 6);
+    PEvent->DwMatchedRuleId = (DWORD) sqlite3_column_int64(PStatement, 7);
+    PEvent->DwEventTime = (DWORD) sqlite3_column_int64(PStatement, 8);
+}
+
+VOID
+CreateAppCtrlEventRow(
+    _Inout_     sqlite3_stmt                   *PStatement,
+    _Inout_     IC_APPCTRL_EVENT               *PEvent
+)
+{
+    PEvent->DwEventId = (DWORD) sqlite3_column_int64(PStatement, 0);
+    PEvent->PProcessPath = CreateCopyOfWString(sqlite3_column_type(PStatement, 1) == SQLITE_NULL ? NULL : (PWCHAR) sqlite3_column_text16(PStatement, 1));
+    PEvent->DwPid = (DWORD) sqlite3_column_int64(PStatement, 2);
+    PEvent->PParentPath = CreateCopyOfWString(sqlite3_column_type(PStatement, 3) == SQLITE_NULL ? NULL : (PWCHAR) sqlite3_column_text16(PStatement, 3));
+    PEvent->DwParentPid = (DWORD) sqlite3_column_int64(PStatement, 4);
+    PEvent->Verdict = (DWORD) sqlite3_column_int64(PStatement, 5);
+    PEvent->DwMatchedRuleId = (DWORD) sqlite3_column_int64(PStatement, 6);
+    PEvent->DwEventTime = (DWORD) sqlite3_column_int64(PStatement, 7);
+}
+
 DWORD
 GetNumberOfRows(
     _In_z_      PCHAR                           PStmtSql
@@ -135,6 +168,39 @@ GetNumberOfRows(
         pStatement = NULL;
     }
     
+    return dwNrOfRows;
+}
+
+DWORD
+GetNumberOfRowsWithLimit(
+    _In_z_      PCHAR                           PStmtSql,
+    _In_        DWORD                           DwFirstId
+)
+{
+    DWORD           dwNrOfRows      = 0;
+    sqlite3_stmt   *pStatement      = NULL;
+
+    if (SQLITE_OK != PrepareStmt(PStmtSql, &pStatement)) return dwNrOfRows;
+
+    do 
+    {
+        if (SQLITE_OK != BindInt(pStatement, 1, DwFirstId)) break;
+
+        if (SQLITE_ROW != Step(pStatement)) break;
+
+        dwNrOfRows = (DWORD) sqlite3_column_int64(pStatement, 0);
+        PCHAR pTxt = sqlite3_expanded_sql(pStatement);
+        LogInfo(L"%S returned %d rows", pTxt, dwNrOfRows);
+        sqlite3_free(pTxt);
+    } while (0);
+
+    if (NULL != pStatement)
+    {
+        Reset(pStatement);
+        FinalizeStmt(pStatement);
+        pStatement = NULL;
+    }
+
     return dwNrOfRows;
 }
 
@@ -259,6 +325,7 @@ DbGetAppCtrlVerdict(
         dwVerdict = (DWORD) sqlite3_column_int64(pStatement, 1);
         LogInfo(L"Found %s rule, id: %d.", dwVerdict ? L"DENY" : L"ALLOW", dwRuleId);
 
+        PRule->DwRuleId = dwRuleId;
         *PVerdict = dwVerdict;
     }
     __finally
@@ -573,6 +640,7 @@ DbGetFSScanDeniedFlags(
         dwDeniedFlags = (DWORD) sqlite3_column_int64(pStatement, 1);
         LogInfo(L"Found with id: %d, flags: %d.", dwRuleId, dwDeniedFlags);
         
+        PRule->DwRuleId = dwRuleId;
         *PUlDeniedFlags = dwDeniedFlags;
     }
     __finally
@@ -838,4 +906,311 @@ DbFreeFSScanRulesList(
 
     free(PRules);
     PRules = NULL;
+}
+
+/************************************************************************/
+/* Events                                                               */
+/************************************************************************/
+
+_Use_decl_anno_impl_
+DWORD
+DbAddFSEvent(
+    PIC_FS_EVENT                    PEvent
+)
+{
+    DWORD           dwStatus        = SQLITE_OK;
+    DWORD           dwStepResult    = 0;
+    DWORD           dwIndex         = 1;
+    DWORD           dwEventId       = 0;
+    sqlite3_stmt   *pStatement      = NULL;
+
+    __try
+    {
+        if (SQLITE_OK != (dwStatus = PrepareStmt(SQL_STM_INSERT_FS_EVENT(), &pStatement))) __leave;
+
+        if (SQLITE_OK != (dwStatus = BindNULL(pStatement, dwIndex++))) __leave;
+        if (SQLITE_OK != (dwStatus = BindWText(pStatement, dwIndex++, PEvent->PProcessPath, wcslen(PEvent->PProcessPath) * sizeof(WCHAR)))) __leave;
+        if (SQLITE_OK != (dwStatus = BindInt(pStatement, dwIndex++, PEvent->DwPid))) __leave;
+        if (SQLITE_OK != (dwStatus = BindWText(pStatement, dwIndex++, PEvent->PFilePath, wcslen(PEvent->PFilePath) * sizeof(WCHAR)))) __leave;
+        if (SQLITE_OK != (dwStatus = BindInt(pStatement, dwIndex++, PEvent->UlRequiredOperations))) __leave;
+        if (SQLITE_OK != (dwStatus = BindInt(pStatement, dwIndex++, PEvent->UlDeniedOperations))) __leave;
+        if (SQLITE_OK != (dwStatus = BindInt(pStatement, dwIndex++, PEvent->UlRemainingOperations))) __leave;
+        if (SQLITE_OK != (dwStatus = BindInt(pStatement, dwIndex++, PEvent->DwMatchedRuleId))) __leave;
+        if (SQLITE_OK != (dwStatus = BindInt(pStatement, dwIndex++, _time64(NULL)))) __leave;
+
+        dwStepResult = Step(pStatement);
+        if (dwStepResult != SQLITE_DONE)
+        {
+            dwStatus = dwStepResult;
+            __leave;
+        }
+
+        dwEventId = GetLastRowId();
+        PEvent->DwEventId = dwEventId;
+    }
+    __finally
+    {
+        if (NULL != pStatement)
+        {
+            Reset(pStatement);
+            FinalizeStmt(pStatement);
+            pStatement = NULL;
+        }
+    }
+
+    return dwStatus;
+}
+
+_Use_decl_anno_impl_
+DWORD
+DbAddAppEvent(
+    PIC_APPCTRL_EVENT               PEvent
+)
+{
+    DWORD           dwStatus        = SQLITE_OK;
+    DWORD           dwStepResult    = 0;
+    DWORD           dwIndex         = 1;
+    DWORD           dwEventId       = 0;
+    sqlite3_stmt   *pStatement      = NULL;
+
+    __try
+    {
+        if (SQLITE_OK != (dwStatus = PrepareStmt(SQL_STM_INSERT_APPCTRL_EVENT(), &pStatement))) __leave;
+
+        if (SQLITE_OK != (dwStatus = BindNULL(pStatement, dwIndex++))) __leave;
+        if (SQLITE_OK != (dwStatus = BindWText(pStatement, dwIndex++, PEvent->PProcessPath, wcslen(PEvent->PProcessPath) * sizeof(WCHAR)))) __leave;
+        if (SQLITE_OK != (dwStatus = BindInt(pStatement, dwIndex++, PEvent->DwPid))) __leave;
+        if (SQLITE_OK != (dwStatus = BindWText(pStatement, dwIndex++, PEvent->PParentPath, wcslen(PEvent->PParentPath) * sizeof(WCHAR)))) __leave;
+        if (SQLITE_OK != (dwStatus = BindInt(pStatement, dwIndex++, PEvent->DwParentPid))) __leave;
+        if (SQLITE_OK != (dwStatus = BindInt(pStatement, dwIndex++, PEvent->Verdict))) __leave;
+        if (SQLITE_OK != (dwStatus = BindInt(pStatement, dwIndex++, PEvent->DwMatchedRuleId))) __leave;
+        if (SQLITE_OK != (dwStatus = BindInt(pStatement, dwIndex++, _time64(NULL)))) __leave;
+
+        dwStepResult = Step(pStatement);
+        if (dwStepResult != SQLITE_DONE)
+        {
+            dwStatus = dwStepResult;
+            __leave;
+        }
+
+        dwEventId = GetLastRowId();
+        PEvent->DwEventId = dwEventId;
+    }
+    __finally
+    {
+        if (NULL != pStatement)
+        {
+            Reset(pStatement);
+            FinalizeStmt(pStatement);
+            pStatement = NULL;
+        }
+    }
+
+    return dwStatus;
+}
+
+_Use_decl_anno_impl_
+DWORD
+DbGetFSEvents(
+    PIC_FS_EVENT                           *PPEvents,
+    DWORD                                  *PDwLength,
+    DWORD                                   DwFirstId
+)
+{
+    DWORD               dwStatus            = SQLITE_OK;
+    DWORD               dwStepResult        = 0;
+    DWORD               dwIndex             = 0;
+    DWORD               dwNrOfEvents        = 0;
+    PIC_FS_EVENT        pEvents             = NULL;
+    sqlite3_stmt       *pStatement          = NULL;
+
+    __try
+    {
+        dwNrOfEvents = GetNumberOfRowsWithLimit(SQL_STM_GET_FS_EVENTS_COUNT(), DwFirstId);
+        if (dwNrOfEvents == 0)
+        {
+            dwStatus = ERROR_NOT_FOUND;
+            LogWarningWin(dwStatus, L"No events were found in database");
+            __leave;
+        }
+
+        pEvents = (PIC_FS_EVENT) malloc(dwNrOfEvents * sizeof(IC_FS_EVENT));
+        if (NULL == pEvents)
+        {
+            dwStatus = ERROR_NOT_ENOUGH_MEMORY;
+            LogErrorWin(dwStatus, L"malloc(%d)", dwNrOfEvents * sizeof(IC_FS_EVENT));
+            __leave;
+        }
+        RtlSecureZeroMemory(pEvents, dwNrOfEvents * sizeof(IC_FS_EVENT));
+
+        if (SQLITE_OK != (dwStatus = PrepareStmt(SQL_STM_GET_FS_EVENTS(), &pStatement))) __leave;
+        if (SQLITE_OK != (dwStatus = BindInt(pStatement, 1, DwFirstId))) __leave;
+
+        dwStepResult = Step(pStatement);
+        if (SQLITE_ROW != dwStepResult && SQLITE_DONE != dwStepResult)
+        {
+            dwStatus = dwStepResult;
+            __leave;
+        }
+
+        while (SQLITE_ROW == dwStepResult && dwIndex < dwNrOfEvents)
+        {
+            CreateFSEventRow(pStatement, pEvents + dwIndex);
+            dwStepResult = Step(pStatement);
+            dwIndex++;
+        }
+
+        *PPEvents = pEvents;
+        *PDwLength = dwNrOfEvents;
+        LogInfo(L"Retrived %d rows", dwNrOfEvents);
+    }
+    __finally
+    {
+        if (NULL != pStatement)
+        {
+            Reset(pStatement);
+            FinalizeStmt(pStatement);
+            pStatement = NULL;
+        }
+
+        if (ERROR_SUCCESS != dwStatus)
+        {
+            DbFreeFSEventsList(pEvents, dwNrOfEvents);
+        }
+    }
+
+    return dwStatus;
+}
+
+_Use_decl_anno_impl_
+VOID
+DbFreeFSEventsList(
+    PIC_FS_EVENT                            PEvents,
+    DWORD                                   DwLength
+)
+{
+    DWORD dwIdx = 0;
+
+    if (NULL == PEvents) return;
+
+    for (dwIdx = 0; dwIdx < DwLength; dwIdx++)
+    {
+        if (NULL != PEvents[dwIdx].PFilePath)
+        {
+            free(PEvents[dwIdx].PFilePath);
+            PEvents[dwIdx].PFilePath = NULL;
+        }
+
+        if (NULL != PEvents[dwIdx].PProcessPath)
+        {
+            free(PEvents[dwIdx].PProcessPath);
+            PEvents[dwIdx].PProcessPath = NULL;
+        }
+    }
+
+    free(PEvents);
+    PEvents = NULL;
+}
+
+_Use_decl_anno_impl_
+DWORD
+DbGetAppCtrlEvents(
+    PIC_APPCTRL_EVENT                      *PPEvents,
+    DWORD                                  *PDwLength,
+    DWORD                                   DwFirstId
+)
+{
+    DWORD               dwStatus            = SQLITE_OK;
+    DWORD               dwStepResult        = 0;
+    DWORD               dwIndex             = 0;
+    DWORD               dwNrOfEvents        = 0;
+    PIC_APPCTRL_EVENT   pEvents             = NULL;
+    sqlite3_stmt       *pStatement          = NULL;
+
+    __try
+    {
+        dwNrOfEvents = GetNumberOfRowsWithLimit(SQL_STM_GET_APPCTRL_EVENTS_COUNT(), DwFirstId);
+        if (dwNrOfEvents == 0)
+        {
+            dwStatus = ERROR_NOT_FOUND;
+            LogWarningWin(dwStatus, L"No events were found in database");
+            __leave;
+        }
+
+        pEvents = (PIC_APPCTRL_EVENT) malloc(dwNrOfEvents * sizeof(IC_APPCTRL_EVENT));
+        if (NULL == pEvents)
+        {
+            dwStatus = ERROR_NOT_ENOUGH_MEMORY;
+            LogErrorWin(dwStatus, L"malloc(%d)", dwNrOfEvents * sizeof(IC_APPCTRL_EVENT));
+            __leave;
+        }
+        RtlSecureZeroMemory(pEvents, dwNrOfEvents * sizeof(IC_APPCTRL_EVENT));
+
+        if (SQLITE_OK != (dwStatus = PrepareStmt(SQL_STM_GET_APPCTRL_EVENTS(), &pStatement))) __leave;
+        if (SQLITE_OK != (dwStatus = BindInt(pStatement, 1, DwFirstId))) __leave;
+
+        dwStepResult = Step(pStatement);
+        if (SQLITE_ROW != dwStepResult && SQLITE_DONE != dwStepResult)
+        {
+            dwStatus = dwStepResult;
+            __leave;
+        }
+
+        while (SQLITE_ROW == dwStepResult && dwIndex < dwNrOfEvents)
+        {
+            CreateAppCtrlEventRow(pStatement, pEvents + dwIndex);
+            dwStepResult = Step(pStatement);
+            dwIndex++;
+        }
+
+        *PPEvents = pEvents;
+        *PDwLength = dwNrOfEvents;
+        LogInfo(L"Retrived %d rows", dwNrOfEvents);
+    }
+    __finally
+    {
+        if (NULL != pStatement)
+        {
+            Reset(pStatement);
+            FinalizeStmt(pStatement);
+            pStatement = NULL;
+        }
+
+        if (ERROR_SUCCESS != dwStatus)
+        {
+            DbFreeAppCtrlEventsList(pEvents, dwNrOfEvents);
+        }
+    }
+
+    return dwStatus;
+}
+
+_Use_decl_anno_impl_
+VOID
+DbFreeAppCtrlEventsList(
+    PIC_APPCTRL_EVENT                       PEvents,
+    DWORD                                   DwLength
+)
+{
+    DWORD dwIdx = 0;
+
+    if (NULL == PEvents) return;
+
+    for (dwIdx = 0; dwIdx < DwLength; dwIdx++)
+    {
+        if (NULL != PEvents[dwIdx].PParentPath)
+        {
+            free(PEvents[dwIdx].PParentPath);
+            PEvents[dwIdx].PParentPath = NULL;
+        }
+
+        if (NULL != PEvents[dwIdx].PProcessPath)
+        {
+            free(PEvents[dwIdx].PProcessPath);
+            PEvents[dwIdx].PProcessPath = NULL;
+        }
+    }
+
+    free(PEvents);
+    PEvents = NULL;
 }

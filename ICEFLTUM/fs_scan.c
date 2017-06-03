@@ -98,6 +98,7 @@ ThreadFSScanner(
     PICE_FS_SCAN_REQUEST_PACKET         pScanRequest    = NULL;
 
     UNREFERENCED_PARAMETER(PParams);
+    UNREFERENCED_PARAMETER(dwThreadId);
 
     pEvents[0] = gHEventFSStop;
     pEvents[1] = gHEventFSScanReqAdded;

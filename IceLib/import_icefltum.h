@@ -138,10 +138,43 @@ DWORD
 typedef
 _Success_(ERROR_SUCCESS == return)
 VOID
-(*PFUNC_IcFreeAppFSScanList) (
+(*PFUNC_IcFreeFSScanList) (
     _Inout_     PIC_FS_RULE                 PRules,
     _In_        DWORD                       DwLength
 );
+
+typedef
+_Success_(ERROR_SUCCESS == return)
+DWORD
+(*PFUNC_IcGetFSEvents) (
+    _Out_       PIC_FS_EVENT               *PPEvents,
+    _In_        DWORD                      *PDwLength,
+    _In_        DWORD                       DwFirstId
+);
+
+typedef
+VOID
+(*PFUNC_IcFreeFSEventsList) (
+    _Inout_     PIC_FS_EVENT                PEvents,
+    _In_        DWORD                       DwLength
+);
+
+typedef
+_Success_(ERROR_SUCCESS == return)
+DWORD
+(*PFUNC_IcGetAppCtrlEvents) (
+    _Out_       PIC_APPCTRL_EVENT          *PPEvents,
+    _In_        DWORD                      *PDwLength,
+    _In_        DWORD                       DwFirstId
+);
+
+typedef
+VOID
+(*PFUNC_IcFreeAppCtrlEventsList) (
+    _Inout_     PIC_APPCTRL_EVENT           PEvents,
+    _In_        DWORD                       DwLength
+);
+
 
 extern PFUNC_IcInitConnectionToIceFlt       IcInitConnectionToIceFlt;
 extern PFUNC_IcUninitConnectionToIceFlt     IcUninitConnectionToIceFlt;
@@ -159,7 +192,11 @@ extern PFUNC_IcAddFSScanRule                IcAddFSScanRule;
 extern PFUNC_IcDeleteFSScanRule             IcDeleteFSScanRule;
 extern PFUNC_IcUpdateFSScanRule             IcUpdateFSScanRule;
 extern PFUNC_IcGetFSScanRules               IcGetFSScanRules;
-extern PFUNC_IcFreeAppFSScanList            IcFreeAppFSScanList;
+extern PFUNC_IcFreeFSScanList               IcFreeFSScanList;
+extern PFUNC_IcGetFSEvents                  IcGetFSEvents;
+extern PFUNC_IcFreeFSEventsList             IcFreeFSEventsList;
+extern PFUNC_IcGetAppCtrlEvents             IcGetAppCtrlEvents;
+extern PFUNC_IcFreeAppCtrlEventsList        IcFreeAppCtrlEventsList;
 
 _Success_(NT_SUCCESS(return))
 NTSTATUS
