@@ -14,6 +14,12 @@
 #endif // !NOTHING
 
 
+#ifndef _NTDEF_
+typedef _Return_type_success_(return >= 0) LONG NTSTATUS;
+typedef NTSTATUS *PNTSTATUS;
+#endif
+
+
 DWORD
 HRESULT_TO_WIN32ERROR(
     HRESULT                                 HRes

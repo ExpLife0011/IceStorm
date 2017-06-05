@@ -21,9 +21,21 @@
     <ClCompile Include="service.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="manager.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="service.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="manager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="client.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

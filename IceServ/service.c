@@ -1,5 +1,9 @@
 ﻿#include "service.h"
 #include "debug2.h"
+#include "import_icefltum.h"
+#include "manager.h"
+
+#define MANAGER_THREAD_WAIT     (30 * 1000)
 
 typedef struct _SERVICE_DATA
 {
@@ -13,56 +17,71 @@ PWCHAR  gServiceName    = L"IceServ";
 
 HANDLE  gHStopEvent     = NULL;
 BOOLEAN gBInitCalled    = FALSE;
+HANDLE  gHManagerThread = NULL;
 
-DWORD 
+DWORD
 SrvInit(
     VOID
 )
 {
-    DWORD dwRetVal = ERROR_SUCCESS;
+    DWORD           dwRetVal    = ERROR_SUCCESS;
+    PMANAGER_PARAM  pParam      = NULL;
 
-    do
+    __try
     {
         gHStopEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
         if (NULL == gHStopEvent)
         {
             dwRetVal = GetLastError();
             LogErrorWin(dwRetVal, L"CreateEvent");
-            break;
+            __leave;
         }
 
-        LogInfo(L"Init threaduri...");
+        dwRetVal = IcImportIcefltUmAPI();
+        if (ERROR_SUCCESS != dwRetVal)
+        {
+            LogErrorNt(dwRetVal, L"IcImportIcefltUmAPI");
+            __leave;
+        }
+        LogInfo(L"Functions imported");
 
-        LogInfo(L"Init is OK");    
+        dwRetVal = IcInitConnectionToIceFlt();
+        if (ERROR_SUCCESS != dwRetVal)
+        {
+            LogErrorWin(dwRetVal, L"IcInitConnectionToIceFlt");
+            __leave;
+        }
+        LogInfo(L"Connection to iceflt was initialized");
+
+        pParam = malloc(sizeof(MANAGER_PARAM));
+        if (NULL == pParam)
+        {
+            dwRetVal = ERROR_NOT_ENOUGH_MEMORY;
+            LogErrorWin(dwRetVal, L"malloc");
+            __leave;
+        }
+
+        pParam->PHStopEvent = &gHStopEvent;
+
+        gHManagerThread = CreateThread(NULL, 0, ManagerThread, pParam, 0, NULL);
+        if (NULL == gHManagerThread)
+        {
+            dwRetVal = GetLastError();
+            LogErrorWin(dwRetVal, L"CreateThread");
+            free(pParam);
+            __leave;
+        }
+        LogInfo(L"Manager Thread created");
+
+        LogInfo(L"Init is OK");
         gBInitCalled = TRUE;
-    } while (0);
+    } 
+    __finally
+    {
+
+    }
 
     return dwRetVal;
-}
-
-DWORD 
-SrvRun(
-    VOID
-)
-{
-    WaitForSingleObject(gHStopEvent, INFINITE);
-    Sleep(100);
-    return ERROR_SUCCESS;
-}
-
-DWORD 
-SrvStop(
-    VOID
-)
-{
-    if (!SetEvent(gHStopEvent))
-    {
-        LogErrorWin(GetLastError(), L"SetEvent(gHStopEvent)");
-        return GetLastError();
-    }
-    LogInfo(L"Stop event signaled.");
-
-    return ERROR_SUCCESS;
 }
 
 DWORD 
@@ -78,8 +97,28 @@ SrvDone(
     {
         SrvStop();
 
-        // uninit threaduri
-        LogInfo(L"Uninit threaduri...");
+        if (NULL != gHManagerThread)
+        {
+            WaitForSingleObject(gHManagerThread, MANAGER_THREAD_WAIT);
+
+            CloseHandle(gHManagerThread);
+            gHManagerThread = NULL;
+        }
+
+        if (NULL != gHStopEvent)
+        {
+            CloseHandle(gHStopEvent);
+            gHStopEvent = NULL;
+        }
+
+        dwRetVal = IcUninitConnectionToIceFlt();
+        if (ERROR_SUCCESS != dwRetVal)
+        {
+            LogErrorWin(dwRetVal, L"IcUninitConnectionToIceFlt");
+            __leave;
+        }
+
+        IcFreeIcefltUmAPI();
     } 
     __finally
     {
@@ -88,6 +127,34 @@ SrvDone(
 
     gBInitCalled = FALSE;
     return dwRetVal;
+}
+
+DWORD
+SrvStop(
+    VOID
+)
+{
+    if (NULL == gHStopEvent) return ERROR_INVALID_PARAMETER;
+    
+    if (!SetEvent(gHStopEvent))
+    {
+        LogErrorWin(GetLastError(), L"SetEvent(gHStopEvent)");
+        return GetLastError();
+    }
+    Sleep(200);
+    LogInfo(L"Stop event signaled.");
+
+    return ERROR_SUCCESS;
+}
+
+DWORD
+SrvRun(
+    VOID
+)
+{
+    WaitForSingleObject(gHStopEvent, INFINITE);
+    Sleep(100);
+    return ERROR_SUCCESS;
 }
 
 _Use_decl_anno_impl_
@@ -321,9 +388,10 @@ SrvMain(
         ReportSvcStatus(&sd, SERVICE_RUNNING, NO_ERROR, 0);
 
         SrvRun();
-        SrvDone();
 
     } while (0);
+    
+    SrvDone();
 
     LogInfo(L"Bye Bye");
     ReportSvcStatus(&sd, SERVICE_STOPPED, NO_ERROR, 0);
