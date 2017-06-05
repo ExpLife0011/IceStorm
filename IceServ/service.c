@@ -2,6 +2,7 @@
 #include "debug2.h"
 #include "import_icefltum.h"
 #include "manager.h"
+#include "global_data.h"
 
 #define MANAGER_THREAD_WAIT     (30 * 1000)
 
@@ -25,7 +26,6 @@ SrvInit(
 )
 {
     DWORD           dwRetVal    = ERROR_SUCCESS;
-    PMANAGER_PARAM  pParam      = NULL;
 
     __try
     {
@@ -53,22 +53,11 @@ SrvInit(
         }
         LogInfo(L"Connection to iceflt was initialized");
 
-        pParam = malloc(sizeof(MANAGER_PARAM));
-        if (NULL == pParam)
-        {
-            dwRetVal = ERROR_NOT_ENOUGH_MEMORY;
-            LogErrorWin(dwRetVal, L"malloc");
-            __leave;
-        }
-
-        pParam->PHStopEvent = &gHStopEvent;
-
-        gHManagerThread = CreateThread(NULL, 0, ManagerThread, pParam, 0, NULL);
+        gHManagerThread = CreateThread(NULL, 0, ManagerThread, NULL, 0, NULL);
         if (NULL == gHManagerThread)
         {
             dwRetVal = GetLastError();
             LogErrorWin(dwRetVal, L"CreateThread");
-            free(pParam);
             __leave;
         }
         LogInfo(L"Manager Thread created");
@@ -84,7 +73,7 @@ SrvInit(
     return dwRetVal;
 }
 
-DWORD 
+DWORD
 SrvDone(
     VOID
 )

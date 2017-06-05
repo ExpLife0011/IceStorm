@@ -1,8 +1,7 @@
 #include "debug2.h"
 #include "manager.h"
 #include "client.h"
-
-HANDLE gHStop = NULL;
+#include "global_data.h"
 
 BOOLEAN
 SleepOrExit(
@@ -11,7 +10,7 @@ SleepOrExit(
 {
     LogInfo(L"Will wait for %d milliseconds", DwMilliseconds);
 
-    if (WAIT_OBJECT_0 == WaitForSingleObject(gHStop, DwMilliseconds))
+    if (WAIT_OBJECT_0 == WaitForSingleObject(gHStopEvent, DwMilliseconds))
     {
         LogInfo(L"Stop event was signaled.");
         return TRUE;
@@ -38,11 +37,12 @@ ManagerThread(
     PVOID                       PParam
 )
 {
-    PMANAGER_PARAM  pParam                  = (PMANAGER_PARAM) PParam;
     CHAR            pIpAddr[MAX_PATH]       = { 0 };
     CHAR            pPort[MAX_PATH]         = { 0 };
 
-    gHStop = *pParam->PHStopEvent;
+    UNREFERENCED_PARAMETER(PParam);
+
+    
 
     __try
     {
@@ -51,17 +51,17 @@ ManagerThread(
 
         while (!StartClient(pIpAddr, pPort))
         {
-            if (SleepOrExit(5000)) __leave;
+            if (SleepOrExit(5 * 1000)) __leave;
         }
+
+
+
 
         LogInfo(L"We are now connected to the server...");
     }
     __finally
     {
         StopClient();
-
-        free(PParam);
-        PParam = NULL;
     }
 
     return ERROR_SUCCESS;
