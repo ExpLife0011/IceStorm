@@ -13,6 +13,12 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Source Files\client">
+      <UniqueIdentifier>{55277c69-22bc-47f5-91f2-a8510e461b8c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\client">
+      <UniqueIdentifier>{c524e926-3077-43a3-8460-a3c315d26b6b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.c">
@@ -25,7 +31,10 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="client.c">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\client</Filter>
+    </ClCompile>
+    <ClCompile Include="client_helpers.c">
+      <Filter>Source Files\client</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -36,6 +45,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="client.h">
+      <Filter>Header Files\client</Filter>
+    </ClInclude>
+    <ClInclude Include="client_helpers.h">
+      <Filter>Header Files\client</Filter>
+    </ClInclude>
+    <ClInclude Include="global_data.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

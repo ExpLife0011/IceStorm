@@ -45,8 +45,15 @@ namespace Manager.ui
                 {
                     Console.WriteLine("Waiting for a connection...");
                     Socket handler = listener.Accept();
-
                     Console.WriteLine("Client connected");
+
+                    byte[] buffer = new byte[40];
+
+                    handler.Receive(buffer, 4, SocketFlags.None);
+                    int x = BitConverter.ToInt32(buffer, 0);
+
+                    handler.Receive(buffer, x, SocketFlags.None);
+                    string handshake  = Encoding.ASCII.GetString(buffer);
 
                     handler.Shutdown(SocketShutdown.Both);
                     handler.Close();
