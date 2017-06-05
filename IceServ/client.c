@@ -24,7 +24,7 @@ SendHandshakePackage(
 {
     BOOLEAN     bResult             = FALSE;
     DWORD       dwResult            = ERROR_SUCCESS;
-    //DWORD       dwHandShakeResult   = 0;
+    DWORD       dwHandShakeResult   = 0;
 
     __try
     {
@@ -34,8 +34,29 @@ SendHandshakePackage(
             LogErrorWin(dwResult, L"Failed to send HANDSHAKE packege");
             __leave;
         }
-        //dwResult = ClGetNextMessageSize(gS)
-        //dwResult = ClRecvMessage(gServerSocket, )
+
+        dwResult = ClRecvDWORD(&dwHandShakeResult);
+        if (ERROR_SUCCESS != dwResult)
+        {
+            LogErrorWin(dwResult, L"ClRecvMessageWithoutSize");
+            __leave;
+        }
+
+        if (dwHandShakeResult == 0)
+        {
+            LogError(L"Handshake failed");
+        }
+
+        LogInfo(L"Handshake had success");
+
+        BYTE a[200000];
+        LogInfo(L"Doamne ajuta....");
+        dwResult = ClRecvMessageWithoutSize(a, 200000);
+        if (ERROR_SUCCESS != dwResult)
+        {
+            LogErrorWin(dwResult, L"ClRecvMessageWithoutSize");
+            __leave;
+        }
 
         bResult = TRUE;
     }

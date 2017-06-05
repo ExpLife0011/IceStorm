@@ -13,6 +13,18 @@ _Success_(return == 0)
 DWORD
 ClRecvMessage(
     _Inout_     PBYTE           PBuffer,
-    _In_        DWORD           DwBufferSize,
-    _Out_opt_   DWORD          *PDwRecvSize
+    _In_        DWORD           DwBufferSize
+);
+
+_Success_(return == ERROR_SUCCESS)
+DWORD
+ClRecvMessageWithoutSize(
+    _Inout_bytecap_(DwBufferSize)   PBYTE           PBuffer,
+    _In_                            DWORD           DwBufferSize
+);
+
+_Success_(return == ERROR_SUCCESS)
+DWORD
+ClRecvDWORD(
+    _Inout_     DWORD           *PDwBufferSize
 );

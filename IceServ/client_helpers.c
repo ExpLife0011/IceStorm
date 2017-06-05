@@ -10,6 +10,7 @@
 
 #undef WIN32_LEAN_AND_MEAN
 
+_Success_(return == ERROR_SUCCESS)
 DWORD
 ClSendAuxBuffer(
     _In_        PBYTE           PBuffer,
@@ -58,17 +59,67 @@ ClSendMessage(
     return ERROR_SUCCESS;
 }
 
+
+_Success_(return == ERROR_SUCCESS)
+DWORD
+ClRecvAuxBuffer(
+    _Inout_bytecap_(DwBufferSize)   PBYTE           PBuffer,
+    _In_                            DWORD           DwBufferSize,
+    _In_                            DWORD           DwFlags
+)
+{
+    INT32       iResult     = 0;
+    INT32       iMessageLen = 0;
+    INT32       iError      = 0;
+    PCHAR       pAuxBuffer  = 0;
+    DWORD       dwResult    = ERROR_SUCCESS;
+
+    iMessageLen = DwBufferSize;
+    pAuxBuffer = (PCHAR) PBuffer;
+
+    while (TRUE)
+    {
+        iResult = recv(gServerSocket, pAuxBuffer, iMessageLen, DwFlags);
+        if (iResult == SOCKET_ERROR)
+        {
+            iError = WSAGetLastError();
+            if (WSAEWOULDBLOCK == iError)
+            {
+                if (WAIT_OBJECT_0 == WaitForSingleObject(gHStopEvent, 50))
+                {
+                    dwResult = ERROR_CANCELLED;
+                    break;
+                }
+                continue;
+            }
+            else
+            {
+                dwResult = iError;
+                LogErrorWin(dwResult, L"recv");
+                break;
+            }
+        }
+
+        LogInfo(L"Received: %d / %d bytes", iResult, iMessageLen);
+
+        if (iResult == iMessageLen) break;
+
+        iMessageLen -= iResult;
+        pAuxBuffer += iResult;
+    }
+
+    return dwResult;
+}
+
 _Use_decl_anno_impl_
 DWORD
 ClRecvMessage(
     PBYTE           PBuffer,
-    DWORD           DwBufferSize,
-    DWORD          *PDwRecvSize
+    DWORD           DwBufferSize
 )
 {
-        PBuffer,
-        DwBufferSize,
-        PDwRecvSize;
+    PBuffer,
+        DwBufferSize;
     return 0;
 }
 
@@ -78,7 +129,27 @@ ClGetNextMessageSize(
     VOID
 )
 {
-    DWORD dwMessageSize = 0;
+    //DWORD dwMessageSize = 0;
 
     //recv(gServerSocket, &dwMessageSize, sizeof(DWORD), MSG_PEEK);
+    return 0;
+}
+
+_Use_decl_anno_impl_
+DWORD
+ClRecvMessageWithoutSize(
+    PBYTE           PBuffer,
+    DWORD           DwBufferSize
+)
+{
+    return ClRecvAuxBuffer(PBuffer, DwBufferSize, 0);
+}
+
+_Use_decl_anno_impl_
+DWORD
+ClRecvDWORD(
+    DWORD           *PDwValue
+)
+{
+    return ClRecvMessageWithoutSize((PBYTE) PDwValue, sizeof(DWORD));
 }
