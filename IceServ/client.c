@@ -45,19 +45,18 @@ SendHandshakePackage(
         if (dwHandShakeResult == 0)
         {
             LogError(L"Handshake failed");
-        }
-
-        LogInfo(L"Handshake had success");
-
-        BYTE a[200000];
-        LogInfo(L"Doamne ajuta....");
-        dwResult = ClRecvMessageWithoutSize(a, 200000);
-        if (ERROR_SUCCESS != dwResult)
-        {
-            LogErrorWin(dwResult, L"ClRecvMessageWithoutSize");
             __leave;
         }
 
+        BYTE x[200];
+        dwResult = ClRecvMessage(x, 200);
+        if (0 != dwResult)
+        {
+            LogError(L"xxxxxxxxxxxxxxxxxxxxxxx: %d", dwResult);
+            __leave;
+        }
+
+        LogInfo(L"Handshake had success");
         bResult = TRUE;
     }
     __finally

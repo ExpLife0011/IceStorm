@@ -13,7 +13,13 @@ _Success_(return == 0)
 DWORD
 ClRecvMessage(
     _Inout_     PBYTE           PBuffer,
-    _In_        DWORD           DwBufferSize
+    _In_        DWORD           DwMexBufferSize
+);
+
+_Success_(return == 0)
+DWORD
+ClGetNextMessageSize(
+    _Inout_     DWORD           *PDwNextSize
 );
 
 _Success_(return == ERROR_SUCCESS)

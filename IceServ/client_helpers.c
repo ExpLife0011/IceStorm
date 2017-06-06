@@ -115,24 +115,74 @@ _Use_decl_anno_impl_
 DWORD
 ClRecvMessage(
     PBYTE           PBuffer,
-    DWORD           DwBufferSize
+    DWORD           DwMexBufferSize
 )
 {
-    PBuffer,
-        DwBufferSize;
-    return 0;
+    DWORD           dwResult            = ERROR_SUCCESS;
+    BOOLEAN         bOverflow           = FALSE;
+    DWORD           dwMessageSize       = 0;
+    DWORD           dwRemainingSize     = 0;
+    DWORD           dwSizeToReceive     = 0;
+
+    __try
+    {
+        dwResult = ClRecvDWORD(&dwMessageSize);
+        if (ERROR_SUCCESS != dwResult)
+        {
+            LogErrorWin(dwResult, L"Failed to get message size");
+            __leave;
+        }
+        
+        LogInfo(L"Received size: %d", dwMessageSize);
+        int a = 0;
+        scanf_s("%d", &a);
+
+        if (dwMessageSize <= DwMexBufferSize)
+        {
+            dwResult = ClRecvMessageWithoutSize(PBuffer, dwMessageSize);
+            if (ERROR_SUCCESS != dwResult)
+            {
+                LogErrorWin(dwResult, L"Failed to get the message");
+                __leave;
+            }
+            __leave;
+        }
+
+        bOverflow = TRUE;
+        dwRemainingSize = dwMessageSize;
+        dwSizeToReceive = DwMexBufferSize;
+
+        while (0 != dwRemainingSize)
+        {
+            dwResult = ClRecvMessageWithoutSize(PBuffer, dwSizeToReceive);
+            if (ERROR_SUCCESS != dwResult)
+            {
+                LogErrorWin(dwResult, L"Failead to receive part of the message");
+                __leave;
+            }
+
+            dwRemainingSize -= dwSizeToReceive;
+            dwSizeToReceive = ((dwRemainingSize > DwMexBufferSize) ? DwMexBufferSize : dwRemainingSize);
+        }
+    }
+    __finally
+    {
+        if (ERROR_SUCCESS == dwResult && bOverflow)
+        {
+            dwResult = ERROR_BUFFER_OVERFLOW;
+        }
+    }
+
+    return dwResult;
 }
 
 _Use_decl_anno_impl_
 DWORD
 ClGetNextMessageSize(
-    VOID
+    DWORD           *PDwNextSize
 )
 {
-    //DWORD dwMessageSize = 0;
-
-    //recv(gServerSocket, &dwMessageSize, sizeof(DWORD), MSG_PEEK);
-    return 0;
+    return ClRecvAuxBuffer((PBYTE) PDwNextSize, sizeof(DWORD), MSG_PEEK);
 }
 
 _Use_decl_anno_impl_

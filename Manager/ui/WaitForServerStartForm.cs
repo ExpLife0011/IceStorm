@@ -50,9 +50,11 @@ namespace Manager.ui
                     string handshake  = Encoding.ASCII.GetString(buffer);
 
                     handler.Send(BitConverter.GetBytes(1));
+                    
+                    handler.Send(BitConverter.GetBytes(520));
 
-                    buffer = new byte[200000];
-                    for (int i = 0; i < 200000; i++)
+                    buffer = new byte[520];
+                    for (int i = 0; i < 520; i++)
                     {
                         buffer[i] = (byte) (i % 50);
                     }
