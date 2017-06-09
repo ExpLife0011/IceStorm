@@ -3,20 +3,32 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Windows.Forms;
+using Manager.Controller;
 
-namespace Manager.ui
+namespace Manager.UI
 {
-    public partial class WaitForServerStartForm : Form
+    public partial class MainForm : Form
     {
         private string serverIp = "";
         private int port = 0;
-
-        public WaitForServerStartForm()
+        private ClientController ctrl;
+        
+        public MainForm(ClientController ctrl)
         {
-            InitializeComponent();
+            this.ctrl = ctrl;
 
-            LoadConfig();
-            StartServer();
+            InitializeComponent();
+            InitFields();
+
+            //    LoadConfig();
+            //    //StartServer();
+
+        }
+
+        private void InitFields()
+        {
+            mainLayout.Width = Width;
+            mainLayout.Height = Height;
         }
 
         private void LoadConfig()

@@ -92,12 +92,11 @@ ClRecvAuxBuffer(
                 }
                 continue;
             }
-            else
-            {
-                dwResult = iError;
-                LogErrorWin(dwResult, L"recv");
-                break;
-            }
+            
+            dwResult = iError;
+            LogErrorWin(dwResult, L"recv");
+            break;
+            
         }
 
         LogInfo(L"Received: %d / %d bytes", iResult, iMessageLen);
