@@ -1,6 +1,6 @@
 ﻿namespace Manager.Domain
 {
-    class Client
+    public class Client
     {
         public string Name { get; set; }
         public string Ip { get; set; }

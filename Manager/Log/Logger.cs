@@ -40,7 +40,19 @@ namespace Manager.Log
                 return instance;
             }
         }
-        
+
+        public void Close()
+        {
+            try
+            {
+                file.Close();
+            }
+            catch
+            {
+
+            }
+        }
+
         public void Info(string message)
         {
             WriteMessage("[INFO]", message);

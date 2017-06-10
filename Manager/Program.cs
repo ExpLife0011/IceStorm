@@ -37,6 +37,7 @@ namespace Manager
             }
 
             server.StopServer();
+            log.Close();
         }
     }
 }
