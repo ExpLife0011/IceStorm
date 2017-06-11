@@ -36,5 +36,30 @@ namespace Manager.Controller
 
             clientsChangedCallback(clients, clientsChangedContext);
         }
+
+        public AppCtrlRule[] GetAppCtrlRules(Client client)
+        {
+            if (null == client)
+            {
+                throw new Exception("Invalid client.");
+            }
+
+            return server.GetAppCtrlRules(client);
+        }
+
+        public FSRule[] GetFSRules(Client client)
+        {
+            return server.GetFSRules(client);
+        }
+
+        public AppCtrlEvent[] GetAppCtrlEvents(Client client)
+        {
+            return server.GetAppCtrlEvents(client);
+        }
+
+        public FSEvent[] GetFSEvents(Client client)
+        {
+            return server.GetFSEvents(client);
+        }
     }
 }

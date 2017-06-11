@@ -7,7 +7,7 @@
 
         public IceStringMatcher ProcessPathMatcher { get; set; }
         public string ProcessPath { get; set; }
-        public int Pid { get; set; }
+        public int PID { get; set; }
 
         public IceStringMatcher ParentPathMatcher { get; set; }
         public string ParentPath { get; set; }

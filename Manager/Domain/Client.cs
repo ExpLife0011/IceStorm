@@ -2,6 +2,8 @@
 {
     public class Client
     {
+        public int ClientID { get; set; }
+
         public string Name { get; set; }
         public string Ip { get; set; }
         public string MAC { get; set; }

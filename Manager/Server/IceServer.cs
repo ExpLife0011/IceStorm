@@ -74,6 +74,7 @@ namespace Manager.Server
                         for (int j = 0; j < i; j++)
                         {
                             clients[j] = new Client();
+                            clients[j].ClientID = j + 1;
                             clients[j].Name = "Machine " + j;
                             clients[j].Ip = string.Format("{0}.{0}.{0}.{0}", j);
                         }
@@ -95,7 +96,7 @@ namespace Manager.Server
                     }
                 }
                 
-                if (stopEvent.WaitOne(5000)) break;
+                if (stopEvent.WaitOne(100)) break;
                 log.Info("nu");
             }
 
@@ -106,6 +107,92 @@ namespace Manager.Server
             }
 
             log.Info("ListenThread stopped");
+        }
+
+        public AppCtrlRule[] GetAppCtrlRules(Client client)
+        {
+            AppCtrlRule[] fakeAppRules = new AppCtrlRule[10];
+
+            for (int i = 0; i < fakeAppRules.Length; i++)
+            {
+                fakeAppRules[i] = new AppCtrlRule();
+
+                fakeAppRules[i].RuleId = i + 1;
+                fakeAppRules[i].ProcessPath = "C:\\path\\proces" + i + ".exe";
+                fakeAppRules[i].ParentPath = "C:\\path\\parinte" + i + ".exe";
+                fakeAppRules[i].ParentPID = (i + 1) * 50 + i;
+                fakeAppRules[i].PID = (i + 1) * 50;
+                fakeAppRules[i].ProcessPathMatcher = ((i % 2) == 1) ? IceStringMatcher.Equal : IceStringMatcher.Wildmat;
+                fakeAppRules[i].ParentPathMatcher = ((i % 2) == 1) ? IceStringMatcher.Equal : IceStringMatcher.Wildmat;
+                fakeAppRules[i].AddTime = 6000 + i;
+                fakeAppRules[i].Verdict = ((i % 2) == 1) ? IceScanVerdict.Allow : IceScanVerdict.Deny;
+            }
+
+            return fakeAppRules;
+        }
+
+        public FSRule[] GetFSRules(Client client)
+        {
+            FSRule[] fakeFSRules = new FSRule[10];
+
+            for (int i = 0; i < fakeFSRules.Length; i++)
+            {
+                fakeFSRules[i] = new FSRule();
+
+                fakeFSRules[i].RuleId = i + 1;
+                fakeFSRules[i].ProcessPathMatcher = ((i % 2) == 1) ? IceStringMatcher.Equal : IceStringMatcher.Wildmat;
+                fakeFSRules[i].ProcessPath = "C:\\path\\proces" + i + ".exe";
+                fakeFSRules[i].PID = (i + 1) * 20;
+                fakeFSRules[i].FilePathMatcher = ((i % 2) == 1) ? IceStringMatcher.Equal : IceStringMatcher.Wildmat;
+                fakeFSRules[i].FilePath = "C:\\fisiere\\file" + i + ".txt";
+                fakeFSRules[i].DeniedOperations = i;
+                fakeFSRules[i].AddTime = 5000 + i;
+            }
+
+            return fakeFSRules;
+        }
+
+        public AppCtrlEvent[] GetAppCtrlEvents(Client client)
+        {
+            AppCtrlEvent[] fakeAppEvents = new AppCtrlEvent[10];
+
+            for (int i = 0; i < fakeAppEvents.Length; i++)
+            {
+                fakeAppEvents[i] = new AppCtrlEvent();
+
+                fakeAppEvents[i].EventId = i + 1;
+                fakeAppEvents[i].ProcessPath = "C:\\path\\proces" + i + ".exe";
+                fakeAppEvents[i].PID = (i + 1) * 50;
+                fakeAppEvents[i].ParentPath = "C:\\path\\parinte" + i + ".exe";
+                fakeAppEvents[i].ParentPID = (i + 1) * 50 + i;
+                fakeAppEvents[i].Verdict = ((i % 2) == 1) ? IceScanVerdict.Allow : IceScanVerdict.Deny;
+                fakeAppEvents[i].MatchedRuleId = i * 2 +1;
+                fakeAppEvents[i].EventTime = 6000 + i;
+            }
+
+            return fakeAppEvents;
+        }
+
+        public FSEvent[] GetFSEvents(Client client)
+        {
+            FSEvent[] fakeFSEvents = new FSEvent[10];
+
+            for (int i = 0; i < fakeFSEvents.Length; i++)
+            {
+                fakeFSEvents[i] = new FSEvent();
+
+                fakeFSEvents[i].EventID = i + 1;
+                fakeFSEvents[i].ProcessPath = "C:\\path\\proces" + i + ".exe";
+                fakeFSEvents[i].PID = (i + 1) * 20;
+                fakeFSEvents[i].FilePath = "C:\\fisiere\\file" + i + ".txt";
+                fakeFSEvents[i].RequiredOperations = i + 10;
+                fakeFSEvents[i].DeniedOperations = i + 10 - 5;
+                fakeFSEvents[i].RequiredOperations = i;
+                fakeFSEvents[i].MatchedRuleId = i * 2 + 1;
+                fakeFSEvents[i].EventTime = 7000 + i;
+            }
+
+            return fakeFSEvents;
         }
 
         private void NotifyClientsChange()

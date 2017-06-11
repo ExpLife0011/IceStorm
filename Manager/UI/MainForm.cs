@@ -4,6 +4,8 @@ using System.Windows.Forms;
 using Manager.Controller;
 using Manager.Domain;
 using Manager.Log;
+using System.ComponentModel;
+using System.Threading;
 
 namespace Manager.UI
 {
@@ -92,7 +94,19 @@ namespace Manager.UI
             else
             {
                 SetClientInfo();
-                GetNeededList();
+                GetNeededList(clients[listClients.SelectedIndices[0]]);
+            }
+        }
+
+        private void tabControl_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (listClients.SelectedIndices.Count == 0)
+            {
+                ResetAllLists();
+            }
+            else
+            {
+                GetNeededList(clients[listClients.SelectedIndices[0]]);
             }
         }
 
@@ -117,23 +131,24 @@ namespace Manager.UI
             }
         }
 
-        private void GetNeededList()
+        private void GetNeededList(Client client)
         {
             switch (tabControl.SelectedIndex)
             {
                 case 0:
-                    GetAppCtrlRulesList();
+                    GetAppCtrlRulesList(client);
                     break;
                 case 1:
-                    
+                    GetFSRulesList(client);
                     break;
                 case 2:
-                    
+                    GetAppCtrlEventsList(client);
                     break;
                 case 3:
-                    
+                    GetFSEventsList(client);
                     break;
                 default:
+                    ResetAllLists();
                     break;
             }
         }
@@ -147,35 +162,39 @@ namespace Manager.UI
             }
         }
 
-        private void GetAppCtrlRulesList()
+        private void GetAppCtrlRulesList(Client client)
         {
-            AppCtrlRule[] fakeAppRules = new AppCtrlRule[10];
-            
-            for (int i = 0; i < fakeAppRules.Length; i++)
+            BackgroundWorker bw = new BackgroundWorker();
+
+            bw.WorkerReportsProgress = false;
+            bw.WorkerSupportsCancellation = false;
+
+            bw.DoWork += new DoWorkEventHandler((object sender, DoWorkEventArgs e) =>
             {
-                fakeAppRules[i] = new AppCtrlRule();
+                e.Result = ctrl.GetAppCtrlRules(client);
+            });
 
-                fakeAppRules[i].RuleId = i + 1;
-                fakeAppRules[i].ProcessPath = "C:\\path\\proces" + i + ".exe";
-                fakeAppRules[i].ParentPath =  "C:\\path\\parinte" + i + ".exe";
-                fakeAppRules[i].ParentPID = (i + 1) * 50 + i;
-                fakeAppRules[i].Pid = (i + 1) * 50;
-                fakeAppRules[i].ProcessPathMatcher = ((i % 2) == 1) ? IceStringMatcher.Equal : IceStringMatcher.Wildmat;
-                fakeAppRules[i].ParentPathMatcher = ((i % 2) == 1) ? IceStringMatcher.Equal : IceStringMatcher.Wildmat;
-                fakeAppRules[i].AddTime = 6000 + i;
-                fakeAppRules[i].Verdict = ((i % 2) == 1) ? IceScanVerdict.Allow : IceScanVerdict.Deny;
-            }
+            bw.RunWorkerCompleted += new RunWorkerCompletedEventHandler((object sender, RunWorkerCompletedEventArgs e) =>
+            {
+                if (e.Error != null)
+                {
+                    MessageBox.Show(e.Error.Message, "Error");
+                    return;
+                }
 
-            SetAppCtrlList(fakeAppRules);
+                SetAppCtrlRulesList(e.Result as AppCtrlRule[]);
+            });
+
+            bw.RunWorkerAsync();
         }
 
-        private void SetAppCtrlList(AppCtrlRule[] appRules)
+        private void SetAppCtrlRulesList(AppCtrlRule[] appRules)
         {
             listAppRules.Items.Clear();
             foreach (AppCtrlRule r in appRules)
             {
                 string[] row = {
-                    r.RuleId.ToString(), r.ProcessPathMatcher.ToString(), r.ProcessPath, r.Pid.ToString(),
+                    r.RuleId.ToString(), r.ProcessPathMatcher.ToString(), r.ProcessPath, r.PID.ToString(),
                     r.ParentPathMatcher.ToString(), r.ParentPath.ToString(), r.ParentPID.ToString(), 
                     r.Verdict.ToString(), r.AddTime.ToString() 
                 };
@@ -183,5 +202,127 @@ namespace Manager.UI
                 listAppRules.Items.Add(lvi);
             }
         }
+
+        private void GetFSRulesList(Client client)
+        {
+            BackgroundWorker bw = new BackgroundWorker();
+
+            bw.WorkerReportsProgress = false;
+            bw.WorkerSupportsCancellation = false;
+
+            bw.DoWork += new DoWorkEventHandler((object sender, DoWorkEventArgs e) =>
+            {
+                e.Result = ctrl.GetFSRules(client);
+            });
+
+            bw.RunWorkerCompleted += new RunWorkerCompletedEventHandler((object sender, RunWorkerCompletedEventArgs e) =>
+            {
+                if (e.Error != null)
+                {
+                    MessageBox.Show(e.Error.Message, "Error");
+                    return;
+                }
+
+                SetFSRulesList(e.Result as FSRule[]);
+            });
+
+            bw.RunWorkerAsync();
+        }
+
+        private void SetFSRulesList(FSRule[] fsRules)
+        {
+            listFSRules.Items.Clear();
+            foreach (FSRule r in fsRules)
+            {
+                string[] row = {
+                    r.RuleId.ToString(), r.ProcessPathMatcher.ToString(), r.ProcessPath, r.PID.ToString(),
+                    r.FilePathMatcher.ToString(), r.FilePath.ToString(), r.DeniedOperations.ToString(), r.AddTime.ToString()
+                };
+                ListViewItem lvi = new ListViewItem(row);
+                listFSRules.Items.Add(lvi);
+            }
+        }
+
+        private void GetAppCtrlEventsList(Client client)
+        {
+            BackgroundWorker bw = new BackgroundWorker();
+
+            bw.WorkerReportsProgress = false;
+            bw.WorkerSupportsCancellation = false;
+
+            bw.DoWork += new DoWorkEventHandler((object sender, DoWorkEventArgs e) =>
+            {
+                e.Result = ctrl.GetAppCtrlEvents(client);
+            });
+
+            bw.RunWorkerCompleted += new RunWorkerCompletedEventHandler((object sender, RunWorkerCompletedEventArgs e) =>
+            {
+                if (e.Error != null)
+                {
+                    MessageBox.Show(e.Error.Message, "Error");
+                    return;
+                }
+
+                SetAppCtrlEventsList(e.Result as AppCtrlEvent[]);
+            });
+
+            bw.RunWorkerAsync();
+        }
+
+        private void SetAppCtrlEventsList(AppCtrlEvent[] appEvents)
+        {
+            listAppEvents.Items.Clear();
+            foreach (AppCtrlEvent e in appEvents)
+            {
+                string[] row = {
+                    e.EventId.ToString(), e.ProcessPath, e.PID.ToString(), e.ParentPath, e.ParentPID.ToString(),
+                    e.Verdict.ToString(), e.MatchedRuleId.ToString(), e.EventTime.ToString()
+                };
+                ListViewItem lvi = new ListViewItem(row);
+                listAppEvents.Items.Add(lvi);
+            }
+        }
+
+        private void GetFSEventsList(Client client)
+        {
+            BackgroundWorker bw = new BackgroundWorker();
+
+            bw.WorkerReportsProgress = false;
+            bw.WorkerSupportsCancellation = false;
+
+            bw.DoWork += new DoWorkEventHandler((object sender, DoWorkEventArgs e) =>
+            {
+                e.Result = ctrl.GetFSEvents(client);
+            });
+
+            bw.RunWorkerCompleted += new RunWorkerCompletedEventHandler((object sender, RunWorkerCompletedEventArgs e) =>
+            {
+                if (e.Error != null)
+                {
+                    MessageBox.Show(e.Error.Message, "Error");
+                    return;
+                }
+
+                SetFSEventList(e.Result as FSEvent[]);
+            });
+
+            bw.RunWorkerAsync();
+        }
+
+        private void SetFSEventList(FSEvent[] fsEvent)
+        {
+            listFSEvents.Items.Clear();
+            foreach (FSEvent e in fsEvent)
+            {
+                string[] row = {
+                    e.EventID.ToString(), e.ProcessPath, e.PID.ToString(), e.FilePath.ToString(),
+                    e.RequiredOperations.ToString(), e.DeniedOperations.ToString(), e.RequiredOperations.ToString(),
+                    e.MatchedRuleId.ToString(), e.EventTime.ToString()
+                };
+                ListViewItem lvi = new ListViewItem(row);
+                listFSEvents.Items.Add(lvi);
+            }
+        }
+
     }
 }

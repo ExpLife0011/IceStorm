@@ -5,10 +5,10 @@
         public int EventId { get; set; }
 
         public string ProcessPath { get; set; }
-        public string Pid { get; set; }
+        public int PID { get; set; }
 
         public string ParentPath { get; set; }
-        public int ParentPid { get; set; }
+        public int ParentPID { get; set; }
 
         public IceScanVerdict Verdict { get; set; }
         public int MatchedRuleId { get; set; }
