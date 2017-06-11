@@ -12,7 +12,7 @@
         public int DeniedOperations { get; set; }
         public int RemainingOperations { get; set; }
 
-        public int MatchedRuleId { get; set; }
+        public int MatchedRuleID { get; set; }
         public int EventTime { get; set; }
     }
 }

@@ -2,7 +2,7 @@
 {
     public class AppCtrlRule
     {
-        public int RuleId { get; set; }
+        public int RuleID { get; set; }
         public IceScanVerdict Verdict { get; set; }
 
         public IceStringMatcher ProcessPathMatcher { get; set; }

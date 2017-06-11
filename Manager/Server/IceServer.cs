@@ -75,8 +75,10 @@ namespace Manager.Server
                         {
                             clients[j] = new Client();
                             clients[j].ClientID = j + 1;
-                            clients[j].Name = "Machine " + j;
-                            clients[j].Ip = string.Format("{0}.{0}.{0}.{0}", j);
+                            clients[j].Name = "Client " + j;
+                            clients[j].IP = string.Format("{0}.{0}.{0}.{0}", j);
+                            clients[j].OS = "Windows 10";
+                            clients[j].Platform = "x64";
                         }
 
                         NotifyClientsChange();
@@ -117,7 +119,7 @@ namespace Manager.Server
             {
                 fakeAppRules[i] = new AppCtrlRule();
 
-                fakeAppRules[i].RuleId = i + 1;
+                fakeAppRules[i].RuleID = i + 1;
                 fakeAppRules[i].ProcessPath = "C:\\path\\proces" + i + ".exe";
                 fakeAppRules[i].ParentPath = "C:\\path\\parinte" + i + ".exe";
                 fakeAppRules[i].ParentPID = (i + 1) * 50 + i;
@@ -139,7 +141,7 @@ namespace Manager.Server
             {
                 fakeFSRules[i] = new FSRule();
 
-                fakeFSRules[i].RuleId = i + 1;
+                fakeFSRules[i].RuleID = i + 1;
                 fakeFSRules[i].ProcessPathMatcher = ((i % 2) == 1) ? IceStringMatcher.Equal : IceStringMatcher.Wildmat;
                 fakeFSRules[i].ProcessPath = "C:\\path\\proces" + i + ".exe";
                 fakeFSRules[i].PID = (i + 1) * 20;
@@ -160,13 +162,13 @@ namespace Manager.Server
             {
                 fakeAppEvents[i] = new AppCtrlEvent();
 
-                fakeAppEvents[i].EventId = i + 1;
+                fakeAppEvents[i].EventID = i + 1;
                 fakeAppEvents[i].ProcessPath = "C:\\path\\proces" + i + ".exe";
                 fakeAppEvents[i].PID = (i + 1) * 50;
                 fakeAppEvents[i].ParentPath = "C:\\path\\parinte" + i + ".exe";
                 fakeAppEvents[i].ParentPID = (i + 1) * 50 + i;
                 fakeAppEvents[i].Verdict = ((i % 2) == 1) ? IceScanVerdict.Allow : IceScanVerdict.Deny;
-                fakeAppEvents[i].MatchedRuleId = i * 2 +1;
+                fakeAppEvents[i].MatchedRuleID = i * 2 +1;
                 fakeAppEvents[i].EventTime = 6000 + i;
             }
 
@@ -188,7 +190,7 @@ namespace Manager.Server
                 fakeFSEvents[i].RequiredOperations = i + 10;
                 fakeFSEvents[i].DeniedOperations = i + 10 - 5;
                 fakeFSEvents[i].RequiredOperations = i;
-                fakeFSEvents[i].MatchedRuleId = i * 2 + 1;
+                fakeFSEvents[i].MatchedRuleID = i * 2 + 1;
                 fakeFSEvents[i].EventTime = 7000 + i;
             }
 

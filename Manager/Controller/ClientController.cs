@@ -61,5 +61,10 @@ namespace Manager.Controller
         {
             return server.GetFSEvents(client);
         }
+
+        public int EnableAppCtrl(Client client, int enable)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

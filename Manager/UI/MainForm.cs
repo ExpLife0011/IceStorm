@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Text;
 using System.Windows.Forms;
 using Manager.Controller;
 using Manager.Domain;
 using Manager.Log;
 using System.ComponentModel;
-using System.Threading;
 
 namespace Manager.UI
 {
@@ -35,7 +33,8 @@ namespace Manager.UI
         {
             mainLayout.Width = Width;
             mainLayout.Height = Height;
-
+            ResetRuleInfo();
+            ResetClientInfo();
             InitHeaders();
         }
 
@@ -81,7 +80,6 @@ namespace Manager.UI
             {
                 log.Error("ClientsListChanged->BeginInvoke: " + ex.Message);
             }
-            
         }
 
         private void listClients_SelectedIndexChanged(object sender, EventArgs e)
@@ -90,6 +88,7 @@ namespace Manager.UI
             {
                 ResetClientInfo();
                 ResetAllLists();
+                ResetRuleInfo();
             }
             else
             {
@@ -108,26 +107,47 @@ namespace Manager.UI
             {
                 GetNeededList(clients[listClients.SelectedIndices[0]]);
             }
+            ResetRuleInfo();
         }
 
         private void SetClientInfo()
         {
             Client c = clients[listClients.SelectedIndices[0]];
-            Label[] lblLst = { lblName, lblMAC, lblIP };
-            string[] txtLst = { c.Name, c.MAC, c.Ip };
+            Label[] lblLst = { lblName, lblMAC, lblIP, lblOS, lblPlatform };
+            string[] txtLst = { c.Name, c.MAC, c.IP, c.OS, c.Platform };
 
             for (int i = 0; i < lblLst.Length; i++)
-            { 
+            {
                 lblLst[i].Text = string.IsNullOrEmpty(txtLst[i]) ? "-" : txtLst[i];
             }
+
+            Control[] lst2 = { lblAppStatus, lblFSStatus, btnAppStatus, btnFSScanStatus, btnSetOption };
+            foreach (Control ct in lst2)
+            {
+                ct.Visible = true;
+            }
+
+            lblAppStatus.Text = "AppCtrl: " + (c.IsAppCtrlEnabled ? "Enabled" : "Disabled");
+            lblAppStatus.ForeColor = (c.IsAppCtrlEnabled ? System.Drawing.Color.Green : System.Drawing.Color.Red);
+            btnAppStatus.Text = (c.IsAppCtrlEnabled ? "Disable AppCtrl" : "Enable AppCtrl");
+
+            lblFSStatus.Text = "FSScan: " + (c.IsFSScanEnabled ? "Enabled" : "Disabled");
+            lblFSStatus.ForeColor = (c.IsFSScanEnabled ? System.Drawing.Color.Green : System.Drawing.Color.Red);
+            btnFSScanStatus.Text = (c.IsFSScanEnabled ? "Disable FSScan" : "Enable FSScan");
         }
 
         private void ResetClientInfo()
         {
-            Label[] lst = { lblName, lblMAC, lblIP };
+            Label[] lst = { lblName, lblMAC, lblIP, lblOS, lblPlatform };
             foreach (Label l in lst)
             {
                 l.Text = "-";
+            }
+
+            Control[] lst2 = { lblAppStatus, lblFSStatus, btnAppStatus, btnFSScanStatus, btnSetOption };
+            foreach (Control c in lst2)
+            {
+                c.Visible = false;
             }
         }
 
@@ -194,7 +214,7 @@ namespace Manager.UI
             foreach (AppCtrlRule r in appRules)
             {
                 string[] row = {
-                    r.RuleId.ToString(), r.ProcessPathMatcher.ToString(), r.ProcessPath, r.PID.ToString(),
+                    r.RuleID.ToString(), r.ProcessPathMatcher.ToString(), r.ProcessPath, r.PID.ToString(),
                     r.ParentPathMatcher.ToString(), r.ParentPath.ToString(), r.ParentPID.ToString(), 
                     r.Verdict.ToString(), r.AddTime.ToString() 
                 };
@@ -235,7 +255,7 @@ namespace Manager.UI
             foreach (FSRule r in fsRules)
             {
                 string[] row = {
-                    r.RuleId.ToString(), r.ProcessPathMatcher.ToString(), r.ProcessPath, r.PID.ToString(),
+                    r.RuleID.ToString(), r.ProcessPathMatcher.ToString(), r.ProcessPath, r.PID.ToString(),
                     r.FilePathMatcher.ToString(), r.FilePath.ToString(), r.DeniedOperations.ToString(), r.AddTime.ToString()
                 };
                 ListViewItem lvi = new ListViewItem(row);
@@ -275,8 +295,8 @@ namespace Manager.UI
             foreach (AppCtrlEvent e in appEvents)
             {
                 string[] row = {
-                    e.EventId.ToString(), e.ProcessPath, e.PID.ToString(), e.ParentPath, e.ParentPID.ToString(),
-                    e.Verdict.ToString(), e.MatchedRuleId.ToString(), e.EventTime.ToString()
+                    e.EventID.ToString(), e.ProcessPath, e.PID.ToString(), e.ParentPath, e.ParentPID.ToString(),
+                    e.Verdict.ToString(), e.MatchedRuleID.ToString(), e.EventTime.ToString()
                 };
                 ListViewItem lvi = new ListViewItem(row);
                 listAppEvents.Items.Add(lvi);
@@ -317,12 +337,104 @@ namespace Manager.UI
                 string[] row = {
                     e.EventID.ToString(), e.ProcessPath, e.PID.ToString(), e.FilePath.ToString(),
                     e.RequiredOperations.ToString(), e.DeniedOperations.ToString(), e.RequiredOperations.ToString(),
-                    e.MatchedRuleId.ToString(), e.EventTime.ToString()
+                    e.MatchedRuleID.ToString(), e.EventTime.ToString()
                 };
                 ListViewItem lvi = new ListViewItem(row);
                 listFSEvents.Items.Add(lvi);
             }
         }
 
+        private void listAppRules_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (listAppRules.SelectedIndices.Count == 0)
+            {
+                ResetRuleInfo();
+                return;
+            }
+            
+            EnableRuleInfo();
+            groupBoxRule.Text = "Application Control Rule";
+        }
+
+        private void listFSRules_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (listFSRules.SelectedIndices.Count == 0)
+            {
+                ResetRuleInfo();
+                return;
+            }
+            
+            EnableRuleInfo();
+            groupBoxRule.Text = "File System Rule";
+        }
+
+        private void listAppEvents_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (listAppEvents.SelectedIndices.Count == 0)
+            {
+                ResetRuleInfo();
+                return;
+            }
+        
+            EnableRuleInfo();
+            groupBoxRule.Text = "Application Control Events";
+        }
+
+        private void listFSEvents_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (listFSEvents.SelectedIndices.Count == 0)
+            {
+                ResetRuleInfo();
+                return;
+            }
+            
+            EnableRuleInfo();
+            groupBoxRule.Text = "File System Event";
+        }
+
+        private void ResetRuleInfo()
+        {
+            groupBoxRule.Visible = false;
+        }
+
+        private void EnableRuleInfo()
+        {
+            groupBoxRule.Visible = true;
+        }
+
+        private void btnAppStatus_Click(object sender, EventArgs e)
+        {
+            Client client = clients[listClients.SelectedIndices[0]];
+            BackgroundWorker bw = new BackgroundWorker();
+
+            bw.WorkerReportsProgress = false;
+            bw.WorkerSupportsCancellation = false;
+
+            bw.DoWork += new DoWorkEventHandler((object sender2, DoWorkEventArgs e2) =>
+            {
+                e2.Result = ctrl.EnableAppCtrl(client, client.IsAppCtrlEnabled ? 0 : 1);
+            });
+
+            bw.RunWorkerCompleted += new RunWorkerCompletedEventHandler((object sender2, RunWorkerCompletedEventArgs e2) =>
+            {
+                if (e2.Error != null)
+                {
+                    MessageBox.Show(e2.Error.Message, "Error");
+                    return;
+                }
+
+                bool hadSuccess = (int) e2.Result == 1 ? true : false;
+                MessageBox.Show("AppCtrl status change " + (hadSuccess ? "had success" : "failed"), hadSuccess ? "Success" : "Error");
+
+                //SetFSEventList(e.Result as FSEvent[]);
+            });
+
+            bw.RunWorkerAsync();
+        }
+
+        private void btnFSScanStatus_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

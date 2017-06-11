@@ -2,7 +2,7 @@
 {
     public class FSRule
     {
-        public int RuleId { get; set; }
+        public int RuleID { get; set; }
         public int DeniedOperations { get; set; }
 
         public IceStringMatcher ProcessPathMatcher { get; set; }
