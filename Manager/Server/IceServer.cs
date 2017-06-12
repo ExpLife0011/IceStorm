@@ -197,6 +197,28 @@ namespace Manager.Server
             return fakeFSEvents;
         }
 
+        public int GetAppCtrlStatus(Client client)
+        {
+            return client.IsAppCtrlEnabled ? 1 : 0;
+        }
+
+        public int EnableAppCtrl(Client client, int enable)
+        {
+            client.IsAppCtrlEnabled = enable == 1;
+            return 1;
+        }
+
+        public int EnableFSScan(Client client, int enable)
+        {
+            client.IsFSScanEnabled = enable == 1;
+            return 1;
+        }
+
+        public int GetFSScanStatus(Client client)
+        {
+            return client.IsFSScanEnabled ? 1 : 0;
+        }
+
         private void NotifyClientsChange()
         {
             if (null == ClientsChangedCallback) return;

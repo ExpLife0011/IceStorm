@@ -64,7 +64,22 @@ namespace Manager.Controller
 
         public int EnableAppCtrl(Client client, int enable)
         {
-            throw new NotImplementedException();
+            return server.EnableAppCtrl(client, enable);
+        }
+
+        public int GetAppCtrlStatus(Client client)
+        {
+            return server.GetAppCtrlStatus(client);
+        }
+
+        public int EnableFSScan(Client client, int enable)
+        {
+            return server.EnableFSScan(client, enable);
+        }
+
+        public int GetFSScanStatus(Client client)
+        {
+            return server.GetFSScanStatus(client);
         }
     }
 }

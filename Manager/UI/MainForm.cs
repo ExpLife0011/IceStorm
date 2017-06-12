@@ -127,13 +127,8 @@ namespace Manager.UI
                 ct.Visible = true;
             }
 
-            lblAppStatus.Text = "AppCtrl: " + (c.IsAppCtrlEnabled ? "Enabled" : "Disabled");
-            lblAppStatus.ForeColor = (c.IsAppCtrlEnabled ? System.Drawing.Color.Green : System.Drawing.Color.Red);
-            btnAppStatus.Text = (c.IsAppCtrlEnabled ? "Disable AppCtrl" : "Enable AppCtrl");
-
-            lblFSStatus.Text = "FSScan: " + (c.IsFSScanEnabled ? "Enabled" : "Disabled");
-            lblFSStatus.ForeColor = (c.IsFSScanEnabled ? System.Drawing.Color.Green : System.Drawing.Color.Red);
-            btnFSScanStatus.Text = (c.IsFSScanEnabled ? "Disable FSScan" : "Enable FSScan");
+            SetAppCtrlStatus(c.IsAppCtrlEnabled);
+            SetFSScanStatus(c.IsFSScanEnabled);
         }
 
         private void ResetClientInfo()
@@ -402,14 +397,25 @@ namespace Manager.UI
             groupBoxRule.Visible = true;
         }
 
+        private void SetAppCtrlStatus(bool isEnabled)
+        {
+            lblAppStatus.Text = "AppCtrl: " + (isEnabled ? "Enabled" : "Disabled");
+            lblAppStatus.ForeColor = (isEnabled ? System.Drawing.Color.Green : System.Drawing.Color.Red);
+            btnAppStatus.Text = (isEnabled ? "Disable AppCtrl" : "Enable AppCtrl");
+        }
+
+        private void SetFSScanStatus(bool isEnabled)
+        {
+            lblFSStatus.Text = "FSScan: " + (isEnabled ? "Enabled" : "Disabled");
+            lblFSStatus.ForeColor = (isEnabled ? System.Drawing.Color.Green : System.Drawing.Color.Red);
+            btnFSScanStatus.Text = (isEnabled ? "Disable FSScan" : "Enable FSScan");
+        }
+
         private void btnAppStatus_Click(object sender, EventArgs e)
         {
             Client client = clients[listClients.SelectedIndices[0]];
             BackgroundWorker bw = new BackgroundWorker();
-
-            bw.WorkerReportsProgress = false;
-            bw.WorkerSupportsCancellation = false;
-
+            
             bw.DoWork += new DoWorkEventHandler((object sender2, DoWorkEventArgs e2) =>
             {
                 e2.Result = ctrl.EnableAppCtrl(client, client.IsAppCtrlEnabled ? 0 : 1);
@@ -422,11 +428,29 @@ namespace Manager.UI
                     MessageBox.Show(e2.Error.Message, "Error");
                     return;
                 }
+                
+                BackgroundWorker bw2 = new BackgroundWorker();
+                bw2.DoWork += new DoWorkEventHandler((object sender3, DoWorkEventArgs e3) =>
+                {
+                    e3.Result = ctrl.GetAppCtrlStatus(client);
+                });
 
-                bool hadSuccess = (int) e2.Result == 1 ? true : false;
+                bw2.RunWorkerCompleted += new RunWorkerCompletedEventHandler((object sender3, RunWorkerCompletedEventArgs e3) =>
+                {
+                    if (e3.Error != null)
+                    {
+                        MessageBox.Show(e2.Error.Message, "Error");
+                        return;
+                    }
+
+                    bool isEnabled = (int) e3.Result == 1 ? true : false;
+                    client.IsAppCtrlEnabled = isEnabled;
+                    SetAppCtrlStatus(isEnabled);
+                });
+
+                bw2.RunWorkerAsync();
+                bool hadSuccess = (int)e2.Result == 1 ? true : false;
                 MessageBox.Show("AppCtrl status change " + (hadSuccess ? "had success" : "failed"), hadSuccess ? "Success" : "Error");
-
-                //SetFSEventList(e.Result as FSEvent[]);
             });
 
             bw.RunWorkerAsync();
@@ -434,7 +458,47 @@ namespace Manager.UI
 
         private void btnFSScanStatus_Click(object sender, EventArgs e)
         {
+            Client client = clients[listClients.SelectedIndices[0]];
+            BackgroundWorker bw = new BackgroundWorker();
 
+            bw.DoWork += new DoWorkEventHandler((object sender2, DoWorkEventArgs e2) =>
+            {
+                e2.Result = ctrl.EnableFSScan(client, client.IsFSScanEnabled ? 0 : 1);
+            });
+
+            bw.RunWorkerCompleted += new RunWorkerCompletedEventHandler((object sender2, RunWorkerCompletedEventArgs e2) =>
+            {
+                if (e2.Error != null)
+                {
+                    MessageBox.Show(e2.Error.Message, "Error");
+                    return;
+                }
+
+                BackgroundWorker bw2 = new BackgroundWorker();
+                bw2.DoWork += new DoWorkEventHandler((object sender3, DoWorkEventArgs e3) =>
+                {
+                    e3.Result = ctrl.GetFSScanStatus(client);
+                });
+
+                bw2.RunWorkerCompleted += new RunWorkerCompletedEventHandler((object sender3, RunWorkerCompletedEventArgs e3) =>
+                {
+                    if (e3.Error != null)
+                    {
+                        MessageBox.Show(e2.Error.Message, "Error");
+                        return;
+                    }
+
+                    bool isEnabled = (int)e3.Result == 1 ? true : false;
+                    client.IsFSScanEnabled = isEnabled;
+                    SetFSScanStatus(isEnabled);
+                });
+
+                bw2.RunWorkerAsync();
+                bool hadSuccess = (int)e2.Result == 1 ? true : false;
+                MessageBox.Show("AppCtrl status change " + (hadSuccess ? "had success" : "failed"), hadSuccess ? "Success" : "Error");
+            });
+
+            bw.RunWorkerAsync();
         }
     }
 }
