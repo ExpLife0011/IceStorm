@@ -86,5 +86,15 @@ namespace Manager.Controller
         {
             return server.SendSetOption(client, option, value);
         }
+
+        public int DeleteAppCtrlRule(Client client, int id)
+        {
+            return server.DeleteAppCtrlRule(client, id);
+        }
+
+        public int DeleteFSScanRule(Client client, int id)
+        {
+            return server.DeleteFSScanRule(client, id);
+        }
     }
 }

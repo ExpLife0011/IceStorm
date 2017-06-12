@@ -564,7 +564,64 @@ namespace Manager.UI
 
         private void btnDelete_Click(object sender, EventArgs e)
         {
+            string ruleType = tabControl.SelectedIndex == 0 ? "AppCtrl Rule" : "FSScan Rule";
+            ListView lv = tabControl.SelectedIndex == 0 ? listAppRules : listFSRules;
+            int selectedIndex = tabControl.SelectedIndex;
+            int id = 0;
+            int.TryParse(lv.SelectedItems[0].SubItems[0].Text, out id);
 
+            var confirmResult = MessageBox.Show(string.Format("Are you sure to delete {0} with id {1}?", ruleType, id), "Delete " + ruleType, MessageBoxButtons.YesNo);
+            if (confirmResult == DialogResult.No) return;
+
+            Client client = clients[listClients.SelectedIndices[0]];
+            BackgroundWorker bw = new BackgroundWorker();
+
+            bw.DoWork += new DoWorkEventHandler((object sender2, DoWorkEventArgs e2) =>
+            {
+                e2.Result = selectedIndex == 0 ? ctrl.DeleteAppCtrlRule(client, id) : ctrl.DeleteFSScanRule(client, id);
+            });
+
+            bw.RunWorkerCompleted += new RunWorkerCompletedEventHandler((object sender2, RunWorkerCompletedEventArgs e2) =>
+            {
+                if (e2.Error != null)
+                {
+                    MessageBox.Show(e2.Error.Message, "Error");
+                    return;
+                }
+                
+                if ((int)e2.Result != 1)
+                {
+                    MessageBox.Show(string.Format(string.Format("Delete of {0} with {0} failed."), ruleType, id), "Error");
+                    return;
+                }
+
+                if (selectedIndex == 0) GetAppCtrlRulesList(client);
+                else GetFSRulesList(client);
+
+                //BackgroundWorker bw2 = new BackgroundWorker();
+
+                //bw2.DoWork += new DoWorkEventHandler((object sender3, DoWorkEventArgs e3) =>
+                //{
+                //    if (selectedIndex == 0) e3.Result = ctrl.GetAppCtrlRules(client);
+                //    else e3.Result = ctrl.GetFSRules(client);
+                //});
+
+                //bw2.RunWorkerCompleted += new RunWorkerCompletedEventHandler((object sender3, RunWorkerCompletedEventArgs e3) =>
+                //{
+                //    if (selectedIndex == 0)
+                //    {
+                //        SetAppCtrlRulesList(e3.Result as AppCtrlRule[]);
+                //    }
+                //    else
+                //    {
+                //        SetFSRulesList(e3.Result as FSRule[]);
+                //    }
+                //});
+
+                //bw2.RunWorkerAsync();
+            });
+
+            bw.RunWorkerAsync();
         }
     }
 }

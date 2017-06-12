@@ -113,6 +113,8 @@ namespace Manager.Server
 
         public AppCtrlRule[] GetAppCtrlRules(Client client)
         {
+            if (null != client.AppCtrlRules) return client.AppCtrlRules;
+
             AppCtrlRule[] fakeAppRules = new AppCtrlRule[10];
 
             for (int i = 0; i < fakeAppRules.Length; i++)
@@ -130,11 +132,14 @@ namespace Manager.Server
                 fakeAppRules[i].Verdict = ((i % 2) == 1) ? IceScanVerdict.Allow : IceScanVerdict.Deny;
             }
 
+            client.AppCtrlRules = fakeAppRules;
             return fakeAppRules;
         }
 
         public FSRule[] GetFSRules(Client client)
         {
+            if (null != client.FSRules) return client.FSRules;
+
             FSRule[] fakeFSRules = new FSRule[10];
 
             for (int i = 0; i < fakeFSRules.Length; i++)
@@ -151,11 +156,14 @@ namespace Manager.Server
                 fakeFSRules[i].AddTime = 5000 + i;
             }
 
+            client.FSRules = fakeFSRules;
             return fakeFSRules;
         }
 
         public AppCtrlEvent[] GetAppCtrlEvents(Client client)
         {
+            if (null != client.AppCtrlEvents) return client.AppCtrlEvents;
+
             AppCtrlEvent[] fakeAppEvents = new AppCtrlEvent[10];
 
             for (int i = 0; i < fakeAppEvents.Length; i++)
@@ -172,11 +180,14 @@ namespace Manager.Server
                 fakeAppEvents[i].EventTime = 6000 + i;
             }
 
+            client.AppCtrlEvents = fakeAppEvents;
             return fakeAppEvents;
         }
 
         public FSEvent[] GetFSEvents(Client client)
         {
+            if (null != client.FSEvents) return client.FSEvents;
+
             FSEvent[] fakeFSEvents = new FSEvent[10];
 
             for (int i = 0; i < fakeFSEvents.Length; i++)
@@ -194,6 +205,7 @@ namespace Manager.Server
                 fakeFSEvents[i].EventTime = 7000 + i;
             }
 
+            client.FSEvents = fakeFSEvents;
             return fakeFSEvents;
         }
 
@@ -223,6 +235,18 @@ namespace Manager.Server
         {
             log.Info("Setoption " + option + " " + value);
 
+            return 1;
+        }
+
+        public int DeleteFSScanRule(Client client, int id)
+        {
+            client.FSRules = client.FSRules.Where(rule => rule.RuleID != id).ToArray();
+            return 1;
+        }
+
+        public int DeleteAppCtrlRule(Client client, int id)
+        {
+            client.AppCtrlRules = client.AppCtrlRules.Where(rule => rule.RuleID != id).ToArray();
             return 1;
         }
 
