@@ -33,7 +33,7 @@ namespace Manager.UI
         {
             mainLayout.Width = Width;
             mainLayout.Height = Height;
-            ResetRuleInfo();
+            SetRuleInfo();
             ResetClientInfo();
             InitHeaders();
         }
@@ -84,11 +84,11 @@ namespace Manager.UI
 
         private void listClients_SelectedIndexChanged(object sender, EventArgs e)
         {
+            SetRuleInfo();
             if (listClients.SelectedIndices.Count == 0)
             {
                 ResetClientInfo();
                 ResetAllLists();
-                ResetRuleInfo();
             }
             else
             {
@@ -107,7 +107,7 @@ namespace Manager.UI
             {
                 GetNeededList(clients[listClients.SelectedIndices[0]]);
             }
-            ResetRuleInfo();
+            SetRuleInfo();
         }
 
         private void SetClientInfo()
@@ -294,6 +294,7 @@ namespace Manager.UI
                     e.Verdict.ToString(), e.MatchedRuleID.ToString(), e.EventTime.ToString()
                 };
                 ListViewItem lvi = new ListViewItem(row);
+                if (e.Verdict == IceScanVerdict.Deny) lvi.ForeColor = System.Drawing.Color.Red;
                 listAppEvents.Items.Add(lvi);
             }
         }
@@ -327,6 +328,7 @@ namespace Manager.UI
         private void SetFSEventList(FSEvent[] fsEvent)
         {
             listFSEvents.Items.Clear();
+
             foreach (FSEvent e in fsEvent)
             {
                 string[] row = {
@@ -335,68 +337,72 @@ namespace Manager.UI
                     e.MatchedRuleID.ToString(), e.EventTime.ToString()
                 };
                 ListViewItem lvi = new ListViewItem(row);
+                if (e.DeniedOperations != 0) lvi.ForeColor = System.Drawing.Color.Red;
                 listFSEvents.Items.Add(lvi);
             }
         }
 
         private void listAppRules_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (listAppRules.SelectedIndices.Count == 0)
-            {
-                ResetRuleInfo();
-                return;
-            }
-            
-            EnableRuleInfo();
+            SetRuleInfo();
+            if (listAppRules.SelectedIndices.Count == 0) return;
             groupBoxRule.Text = "Application Control Rule";
         }
 
         private void listFSRules_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (listFSRules.SelectedIndices.Count == 0)
-            {
-                ResetRuleInfo();
-                return;
-            }
-            
-            EnableRuleInfo();
+            SetRuleInfo();
+            if (listFSRules.SelectedIndices.Count == 0) return;
             groupBoxRule.Text = "File System Rule";
         }
 
         private void listAppEvents_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (listAppEvents.SelectedIndices.Count == 0)
-            {
-                ResetRuleInfo();
-                return;
-            }
-        
-            EnableRuleInfo();
+            SetRuleInfo();
+            if (listAppEvents.SelectedIndices.Count == 0) return;
             groupBoxRule.Text = "Application Control Events";
         }
 
         private void listFSEvents_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (listFSEvents.SelectedIndices.Count == 0)
-            {
-                ResetRuleInfo();
-                return;
-            }
-            
-            EnableRuleInfo();
+            SetRuleInfo();
+            if (listFSEvents.SelectedIndices.Count == 0) return;
             groupBoxRule.Text = "File System Event";
         }
 
-        private void ResetRuleInfo()
+        private void SetRuleInfo()
         {
-            groupBoxRule.Visible = false;
-        }
+            ListView lv;
+            if (listClients.SelectedIndices.Count == 0)
+            {
+                groupBoxRule.Visible = false;
+            }
+            else
+            {
+                groupBoxRule.Visible = true;
+                btnAdd.Visible = true;
+                btnUpdate.Enabled = false;
+                btnDelete.Enabled = false;
+            }
 
-        private void EnableRuleInfo()
-        {
-            groupBoxRule.Visible = true;
-        }
+            switch (tabControl.SelectedIndex)
+            {
+                case 0:
+                    lv = listAppRules;
+                    break;
+                case 1:
+                    lv = listFSRules;
+                    break;
+                default:
+                    return;
+            }
 
+            if (lv.SelectedIndices.Count == 0) return;
+
+            btnUpdate.Enabled = true;
+            btnDelete.Enabled = true;
+        }
+        
         private void SetAppCtrlStatus(bool isEnabled)
         {
             lblAppStatus.Text = "AppCtrl: " + (isEnabled ? "Enabled" : "Disabled");
@@ -499,6 +505,66 @@ namespace Manager.UI
             });
 
             bw.RunWorkerAsync();
+        }
+
+        private void btnSetOption_Click(object sender, EventArgs e)
+        {
+            AuxiliarForm auxForm = new AuxiliarForm(AuxFormType.SetOption);
+            auxForm.Text = "Set Option";
+
+            auxForm.ShowDialog();
+            string[] values = auxForm.Values;
+
+            try
+            {
+                int option = int.Parse(values[0]);
+                int value = int.Parse(values[1]);
+                Client client = clients[listClients.SelectedIndices[0]];
+
+                BackgroundWorker bw = new BackgroundWorker();
+
+                bw.DoWork += new DoWorkEventHandler((object sender2, DoWorkEventArgs e2) =>
+                {
+                    e2.Result = ctrl.SendSetOption(client, option, value);
+                });
+
+                bw.RunWorkerCompleted += new RunWorkerCompletedEventHandler((object sender2, RunWorkerCompletedEventArgs e2) =>
+                {
+                    if (e2.Error != null)
+                    {
+                        MessageBox.Show(e2.Error.Message, "Error");
+                        return;
+                    }
+
+                    int result = (int)e2.Result;
+                    bool hadSuccess = result == 1;
+                    MessageBox.Show(
+                        string.Format("Set Option {0} {1} {2}", option, value, (hadSuccess ? "had success" : "failed")),
+                        "Error"
+                        );
+                });
+
+                bw.RunWorkerAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error");
+            }
+        }
+
+        private void btnAdd_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void btnUpdate_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void btnDelete_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

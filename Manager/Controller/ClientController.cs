@@ -81,5 +81,10 @@ namespace Manager.Controller
         {
             return server.GetFSScanStatus(client);
         }
+
+        public int SendSetOption(Client client, int option, int value)
+        {
+            return server.SendSetOption(client, option, value);
+        }
     }
 }

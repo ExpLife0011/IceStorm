@@ -74,6 +74,15 @@
             this.columnHeader17 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.listClients = new System.Windows.Forms.ListView();
             this.groupBoxClient = new System.Windows.Forms.GroupBox();
+            this.btnSetOption = new System.Windows.Forms.Button();
+            this.btnFSScanStatus = new System.Windows.Forms.Button();
+            this.lblFSStatus = new System.Windows.Forms.Label();
+            this.btnAppStatus = new System.Windows.Forms.Button();
+            this.lblAppStatus = new System.Windows.Forms.Label();
+            this.lblPlatform = new System.Windows.Forms.Label();
+            this.lblOS = new System.Windows.Forms.Label();
+            this.label4 = new System.Windows.Forms.Label();
+            this.label2 = new System.Windows.Forms.Label();
             this.lblMAC = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
             this.lblIP = new System.Windows.Forms.Label();
@@ -81,18 +90,9 @@
             this.lblName = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.groupBoxRule = new System.Windows.Forms.GroupBox();
-            this.btnAdd = new System.Windows.Forms.Button();
-            this.btnUpdate = new System.Windows.Forms.Button();
             this.btnDelete = new System.Windows.Forms.Button();
-            this.label2 = new System.Windows.Forms.Label();
-            this.label4 = new System.Windows.Forms.Label();
-            this.lblOS = new System.Windows.Forms.Label();
-            this.lblPlatform = new System.Windows.Forms.Label();
-            this.lblAppStatus = new System.Windows.Forms.Label();
-            this.btnAppStatus = new System.Windows.Forms.Button();
-            this.lblFSStatus = new System.Windows.Forms.Label();
-            this.btnFSScanStatus = new System.Windows.Forms.Button();
-            this.btnSetOption = new System.Windows.Forms.Button();
+            this.btnUpdate = new System.Windows.Forms.Button();
+            this.btnAdd = new System.Windows.Forms.Button();
             this.mainLayout.SuspendLayout();
             this.tabControl.SuspendLayout();
             this.tabAppCtrlRules.SuspendLayout();
@@ -499,6 +499,90 @@
             this.groupBoxClient.TabStop = false;
             this.groupBoxClient.Text = "Client Info";
             // 
+            // btnSetOption
+            // 
+            this.btnSetOption.Location = new System.Drawing.Point(9, 248);
+            this.btnSetOption.Name = "btnSetOption";
+            this.btnSetOption.Size = new System.Drawing.Size(120, 23);
+            this.btnSetOption.TabIndex = 14;
+            this.btnSetOption.Text = "Set Option";
+            this.btnSetOption.UseVisualStyleBackColor = true;
+            this.btnSetOption.Click += new System.EventHandler(this.btnSetOption_Click);
+            // 
+            // btnFSScanStatus
+            // 
+            this.btnFSScanStatus.Location = new System.Drawing.Point(9, 203);
+            this.btnFSScanStatus.Name = "btnFSScanStatus";
+            this.btnFSScanStatus.Size = new System.Drawing.Size(120, 23);
+            this.btnFSScanStatus.TabIndex = 13;
+            this.btnFSScanStatus.Text = "Enable FSScan";
+            this.btnFSScanStatus.UseVisualStyleBackColor = true;
+            this.btnFSScanStatus.Click += new System.EventHandler(this.btnFSScanStatus_Click);
+            // 
+            // lblFSStatus
+            // 
+            this.lblFSStatus.AutoSize = true;
+            this.lblFSStatus.Location = new System.Drawing.Point(6, 187);
+            this.lblFSStatus.Name = "lblFSStatus";
+            this.lblFSStatus.Size = new System.Drawing.Size(90, 13);
+            this.lblFSStatus.TabIndex = 12;
+            this.lblFSStatus.Text = "FSScan: Enabled";
+            // 
+            // btnAppStatus
+            // 
+            this.btnAppStatus.Location = new System.Drawing.Point(9, 150);
+            this.btnAppStatus.Name = "btnAppStatus";
+            this.btnAppStatus.Size = new System.Drawing.Size(120, 23);
+            this.btnAppStatus.TabIndex = 11;
+            this.btnAppStatus.Text = "Enable AppCtrl";
+            this.btnAppStatus.UseVisualStyleBackColor = true;
+            this.btnAppStatus.Click += new System.EventHandler(this.btnAppStatus_Click);
+            // 
+            // lblAppStatus
+            // 
+            this.lblAppStatus.AutoSize = true;
+            this.lblAppStatus.Location = new System.Drawing.Point(6, 133);
+            this.lblAppStatus.Name = "lblAppStatus";
+            this.lblAppStatus.Size = new System.Drawing.Size(86, 13);
+            this.lblAppStatus.TabIndex = 10;
+            this.lblAppStatus.Text = "AppCtrl: Enabled";
+            // 
+            // lblPlatform
+            // 
+            this.lblPlatform.AutoSize = true;
+            this.lblPlatform.Location = new System.Drawing.Point(53, 102);
+            this.lblPlatform.Name = "lblPlatform";
+            this.lblPlatform.Size = new System.Drawing.Size(10, 13);
+            this.lblPlatform.TabIndex = 9;
+            this.lblPlatform.Text = "-";
+            // 
+            // lblOS
+            // 
+            this.lblOS.AutoSize = true;
+            this.lblOS.Location = new System.Drawing.Point(53, 86);
+            this.lblOS.Name = "lblOS";
+            this.lblOS.Size = new System.Drawing.Size(10, 13);
+            this.lblOS.TabIndex = 8;
+            this.lblOS.Text = "-";
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(-1, 102);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(48, 13);
+            this.label4.TabIndex = 7;
+            this.label4.Text = "Platform:";
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(22, 86);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(25, 13);
+            this.label2.TabIndex = 6;
+            this.label2.Text = "OS:";
+            // 
             // lblMAC
             // 
             this.lblMAC.AutoSize = true;
@@ -569,14 +653,16 @@
             this.groupBoxRule.TabStop = false;
             this.groupBoxRule.Text = "Rule";
             // 
-            // btnAdd
+            // btnDelete
             // 
-            this.btnAdd.Location = new System.Drawing.Point(7, 20);
-            this.btnAdd.Name = "btnAdd";
-            this.btnAdd.Size = new System.Drawing.Size(120, 23);
-            this.btnAdd.TabIndex = 0;
-            this.btnAdd.Text = "Add";
-            this.btnAdd.UseVisualStyleBackColor = true;
+            this.btnDelete.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnDelete.Location = new System.Drawing.Point(957, 20);
+            this.btnDelete.Name = "btnDelete";
+            this.btnDelete.Size = new System.Drawing.Size(120, 23);
+            this.btnDelete.TabIndex = 2;
+            this.btnDelete.Text = "Delete";
+            this.btnDelete.UseVisualStyleBackColor = true;
+            this.btnDelete.Click += new System.EventHandler(this.btnDelete_Click);
             // 
             // btnUpdate
             // 
@@ -587,99 +673,17 @@
             this.btnUpdate.TabIndex = 1;
             this.btnUpdate.Text = "Update";
             this.btnUpdate.UseVisualStyleBackColor = true;
+            this.btnUpdate.Click += new System.EventHandler(this.btnUpdate_Click);
             // 
-            // btnDelete
+            // btnAdd
             // 
-            this.btnDelete.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnDelete.Location = new System.Drawing.Point(957, 20);
-            this.btnDelete.Name = "btnDelete";
-            this.btnDelete.Size = new System.Drawing.Size(120, 23);
-            this.btnDelete.TabIndex = 2;
-            this.btnDelete.Text = "Delete";
-            this.btnDelete.UseVisualStyleBackColor = true;
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(22, 86);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(25, 13);
-            this.label2.TabIndex = 6;
-            this.label2.Text = "OS:";
-            // 
-            // label4
-            // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(-1, 102);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(48, 13);
-            this.label4.TabIndex = 7;
-            this.label4.Text = "Platform:";
-            // 
-            // lblOS
-            // 
-            this.lblOS.AutoSize = true;
-            this.lblOS.Location = new System.Drawing.Point(53, 86);
-            this.lblOS.Name = "lblOS";
-            this.lblOS.Size = new System.Drawing.Size(10, 13);
-            this.lblOS.TabIndex = 8;
-            this.lblOS.Text = "-";
-            // 
-            // lblPlatform
-            // 
-            this.lblPlatform.AutoSize = true;
-            this.lblPlatform.Location = new System.Drawing.Point(53, 102);
-            this.lblPlatform.Name = "lblPlatform";
-            this.lblPlatform.Size = new System.Drawing.Size(10, 13);
-            this.lblPlatform.TabIndex = 9;
-            this.lblPlatform.Text = "-";
-            // 
-            // lblAppStatus
-            // 
-            this.lblAppStatus.AutoSize = true;
-            this.lblAppStatus.Location = new System.Drawing.Point(6, 133);
-            this.lblAppStatus.Name = "lblAppStatus";
-            this.lblAppStatus.Size = new System.Drawing.Size(86, 13);
-            this.lblAppStatus.TabIndex = 10;
-            this.lblAppStatus.Text = "AppCtrl: Enabled";
-            // 
-            // btnAppStatus
-            // 
-            this.btnAppStatus.Location = new System.Drawing.Point(9, 150);
-            this.btnAppStatus.Name = "btnAppStatus";
-            this.btnAppStatus.Size = new System.Drawing.Size(120, 23);
-            this.btnAppStatus.TabIndex = 11;
-            this.btnAppStatus.Text = "Enable AppCtrl";
-            this.btnAppStatus.UseVisualStyleBackColor = true;
-            this.btnAppStatus.Click += new System.EventHandler(this.btnAppStatus_Click);
-            // 
-            // lblFSStatus
-            // 
-            this.lblFSStatus.AutoSize = true;
-            this.lblFSStatus.Location = new System.Drawing.Point(6, 187);
-            this.lblFSStatus.Name = "lblFSStatus";
-            this.lblFSStatus.Size = new System.Drawing.Size(90, 13);
-            this.lblFSStatus.TabIndex = 12;
-            this.lblFSStatus.Text = "FSScan: Enabled";
-            // 
-            // btnFSScanStatus
-            // 
-            this.btnFSScanStatus.Location = new System.Drawing.Point(9, 203);
-            this.btnFSScanStatus.Name = "btnFSScanStatus";
-            this.btnFSScanStatus.Size = new System.Drawing.Size(120, 23);
-            this.btnFSScanStatus.TabIndex = 13;
-            this.btnFSScanStatus.Text = "Enable FSScan";
-            this.btnFSScanStatus.UseVisualStyleBackColor = true;
-            this.btnFSScanStatus.Click += new System.EventHandler(this.btnFSScanStatus_Click);
-            // 
-            // btnSetOption
-            // 
-            this.btnSetOption.Location = new System.Drawing.Point(9, 248);
-            this.btnSetOption.Name = "btnSetOption";
-            this.btnSetOption.Size = new System.Drawing.Size(120, 23);
-            this.btnSetOption.TabIndex = 14;
-            this.btnSetOption.Text = "Set Option";
-            this.btnSetOption.UseVisualStyleBackColor = true;
+            this.btnAdd.Location = new System.Drawing.Point(7, 20);
+            this.btnAdd.Name = "btnAdd";
+            this.btnAdd.Size = new System.Drawing.Size(120, 23);
+            this.btnAdd.TabIndex = 0;
+            this.btnAdd.Text = "Add";
+            this.btnAdd.UseVisualStyleBackColor = true;
+            this.btnAdd.Click += new System.EventHandler(this.btnAdd_Click);
             // 
             // MainForm
             // 
@@ -687,7 +691,6 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1384, 661);
             this.Controls.Add(this.mainLayout);
-            this.ImeMode = System.Windows.Forms.ImeMode.NoControl;
             this.MinimumSize = new System.Drawing.Size(800, 700);
             this.Name = "MainForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;

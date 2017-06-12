@@ -219,6 +219,13 @@ namespace Manager.Server
             return client.IsFSScanEnabled ? 1 : 0;
         }
 
+        public int SendSetOption(Client client, int option, int value)
+        {
+            log.Info("Setoption " + option + " " + value);
+
+            return 1;
+        }
+
         private void NotifyClientsChange()
         {
             if (null == ClientsChangedCallback) return;
