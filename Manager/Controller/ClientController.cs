@@ -101,5 +101,10 @@ namespace Manager.Controller
         {
             return server.AddAppCtrlRule(client, rule);
         }
+
+        public int AddFSScanRule(Client client, FSRule rule)
+        {
+            return server.AddFSScanRule(client, rule);
+        }
     }
 }

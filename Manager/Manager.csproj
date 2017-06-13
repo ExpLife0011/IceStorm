@@ -114,6 +114,7 @@
     <Compile Include="Domain\Client.cs" />
     <Compile Include="Domain\FSEvent.cs" />
     <Compile Include="Domain\FSRule.cs" />
+    <Compile Include="Domain\IceFSFlags.cs" />
     <Compile Include="Domain\IceScanVerdict.cs" />
     <Compile Include="Domain\IceStringMatcher.cs" />
     <Compile Include="Log\Logger.cs" />

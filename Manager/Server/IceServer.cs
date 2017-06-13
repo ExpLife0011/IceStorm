@@ -256,6 +256,19 @@ namespace Manager.Server
             return rule.RuleID;
         }
 
+        public int AddFSScanRule(Client client, FSRule rule)
+        {
+            rule.RuleID = client.FSRules.Length + 1;
+            FSRule[] rules = client.FSRules;
+            int len = client.FSRules.Length;
+
+            Array.Resize(ref rules, rules.Length + 1);
+            rules[len] = rule;
+
+            client.FSRules = rules;
+            return rule.RuleID;
+        }
+
         public int DeleteAppCtrlRule(Client client, int id)
         {
             client.AppCtrlRules = client.AppCtrlRules.Where(rule => rule.RuleID != id).ToArray();

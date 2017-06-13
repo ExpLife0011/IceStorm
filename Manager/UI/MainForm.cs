@@ -68,6 +68,7 @@ namespace Manager.UI
                         listClients.Items.Clear();
                         ResetClientInfo();
                         ResetAllLists();
+                        SetRuleInfo();
 
                         foreach (Client c in lst)
                         {
@@ -152,15 +153,19 @@ namespace Manager.UI
             {
                 case 0:
                     GetAppCtrlRulesList(client);
+                    groupBoxRule.Text = "Application Control Rule";
                     break;
                 case 1:
                     GetFSRulesList(client);
+                    groupBoxRule.Text = "File System Rule";
                     break;
                 case 2:
                     GetAppCtrlEventsList(client);
+                    groupBoxRule.Text = "Application Control Event";
                     break;
                 case 3:
                     GetFSEventsList(client);
+                    groupBoxRule.Text = "File System Event";
                     break;
                 default:
                     ResetAllLists();
@@ -210,9 +215,15 @@ namespace Manager.UI
             foreach (AppCtrlRule r in appRules)
             {
                 string[] row = {
-                    r.RuleID.ToString(), r.ProcessPathMatcher.ToString(), r.ProcessPath, r.PID.ToString(),
-                    r.ParentPathMatcher.ToString(), r.ParentPath.ToString(), r.ParentPID.ToString(), 
-                    r.Verdict.ToString(), r.AddTime.ToString() 
+                    r.RuleID.ToString(),
+                    r.ProcessPathMatcher.ToString(),
+                    r.ProcessPath,
+                    r.PID.ToString(),
+                    r.ParentPathMatcher.ToString(),
+                    r.ParentPath,
+                    r.ParentPID.ToString(), 
+                    r.Verdict.ToString(),
+                    r.AddTime.ToString() 
                 };
                 ListViewItem lvi = new ListViewItem(row);
                 listAppRules.Items.Add(lvi);
@@ -252,12 +263,35 @@ namespace Manager.UI
             foreach (FSRule r in fsRules)
             {
                 string[] row = {
-                    r.RuleID.ToString(), r.ProcessPathMatcher.ToString(), r.ProcessPath, r.PID.ToString(),
-                    r.FilePathMatcher.ToString(), r.FilePath.ToString(), r.DeniedOperations.ToString(), r.AddTime.ToString()
+                    r.RuleID.ToString(),
+                    r.ProcessPathMatcher.ToString(),
+                    r.ProcessPath,
+                    r.PID.ToString(),
+                    r.FilePathMatcher.ToString(),
+                    r.FilePath,
+                    GetOperationsString(r.DeniedOperations),
+                    r.AddTime.ToString()
                 };
                 ListViewItem lvi = new ListViewItem(row);
                 listFSRules.Items.Add(lvi);
             }
+        }
+
+        private string GetOperationsString(int operations)
+        {
+            string str = "";
+
+            if (operations == (int) IceFSFlags.None) return "None";
+
+            if ((operations & (int)IceFSFlags.Create) != 0) str += "Create, ";
+            if ((operations & (int)IceFSFlags.Open) != 0) str += "Open, ";
+            if ((operations & (int)IceFSFlags.Write) != 0) str += "Write, ";
+            if ((operations & (int)IceFSFlags.Read) != 0) str += "Read, ";
+            if ((operations & (int)IceFSFlags.Delete) != 0) str += "Delete, ";
+
+            if (string.IsNullOrEmpty(str)) return "None";
+            
+            return str.Remove(str.Length - 2);
         }
 
         private void GetAppCtrlEventsList(Client client)
@@ -334,9 +368,15 @@ namespace Manager.UI
             foreach (FSEvent e in fsEvent)
             {
                 string[] row = {
-                    e.EventID.ToString(), e.ProcessPath, e.PID.ToString(), e.FilePath.ToString(),
-                    e.RequiredOperations.ToString(), e.DeniedOperations.ToString(), e.RequiredOperations.ToString(),
-                    e.MatchedRuleID.ToString(), e.EventTime.ToString()
+                    e.EventID.ToString(),
+                    e.ProcessPath,
+                    e.PID.ToString(),
+                    e.FilePath,
+                    GetOperationsString(e.RequiredOperations),
+                    GetOperationsString(e.DeniedOperations),
+                    GetOperationsString(e.RequiredOperations),
+                    e.MatchedRuleID.ToString(),
+                    e.EventTime.ToString()
                 };
                 ListViewItem lvi = new ListViewItem(row);
                 if (e.DeniedOperations != 0) lvi.ForeColor = System.Drawing.Color.Red;
@@ -347,29 +387,21 @@ namespace Manager.UI
         private void listAppRules_SelectedIndexChanged(object sender, EventArgs e)
         {
             SetRuleInfo();
-            if (listAppRules.SelectedIndices.Count == 0) return;
-            groupBoxRule.Text = "Application Control Rule";
         }
 
         private void listFSRules_SelectedIndexChanged(object sender, EventArgs e)
         {
             SetRuleInfo();
-            if (listFSRules.SelectedIndices.Count == 0) return;
-            groupBoxRule.Text = "File System Rule";
         }
 
         private void listAppEvents_SelectedIndexChanged(object sender, EventArgs e)
         {
             SetRuleInfo();
-            if (listAppEvents.SelectedIndices.Count == 0) return;
-            groupBoxRule.Text = "Application Control Events";
         }
 
         private void listFSEvents_SelectedIndexChanged(object sender, EventArgs e)
         {
             SetRuleInfo();
-            if (listFSEvents.SelectedIndices.Count == 0) return;
-            groupBoxRule.Text = "File System Event";
         }
 
         private void SetRuleInfo()
@@ -565,7 +597,22 @@ namespace Manager.UI
             int selectedIndex = tabControl.SelectedIndex;
             AuxiliarForm auxForm = new AuxiliarForm(selectedIndex == 0 ? AuxFormType.AddAppCtrl : AuxFormType.AddFSScan);
             
-            auxForm.Text = "Add Application Control Rule";
+            if (selectedIndex == 0)
+            {
+                auxForm.ValidateFunction = (string[] results) =>
+                {
+                    ;
+                };
+            }
+            else
+            {
+                auxForm.ValidateFunction = (string[] results) =>
+                {
+
+                };
+            }
+
+            auxForm.Text = selectedIndex == 0 ? "Add Application Control Rule" : "Add File System Scan Rule";
             auxForm.ShowDialog();
 
             if (auxForm.Result != AuxFormResult.Completed) return;
@@ -573,12 +620,65 @@ namespace Manager.UI
             string[] values = auxForm.Values;
             if (selectedIndex == 0) AddAppCtrlRule(values);
             else AddFSScanRule(values);
-
         }
 
         private void AddFSScanRule(string[] values)
         {
-            
+            try
+            {
+                Client client = clients[listClients.SelectedIndices[0]];
+                FSRule rule = new FSRule();
+
+                rule.ProcessPathMatcher = values[0].Equals("Equals") ? IceStringMatcher.Equal : IceStringMatcher.Wildmat;
+                rule.ProcessPath = values[1];
+                rule.PID = int.Parse(values[2]);
+                rule.FilePathMatcher = values[3].Equals("Equals") ? IceStringMatcher.Equal : IceStringMatcher.Wildmat;
+                rule.FilePath = values[4];
+                rule.DeniedOperations = int.Parse(values[5]);
+                
+                BackgroundWorker bw = new BackgroundWorker();
+
+                bw.DoWork += new DoWorkEventHandler((object sender2, DoWorkEventArgs e2) =>
+                {
+                    e2.Result = ctrl.AddFSScanRule(client, rule);
+                });
+
+                bw.RunWorkerCompleted += new RunWorkerCompletedEventHandler((object sender2, RunWorkerCompletedEventArgs e2) =>
+                {
+                    if (e2.Error != null)
+                    {
+                        MessageBox.Show(e2.Error.Message, "Error");
+                        return;
+                    }
+
+                    BackgroundWorker bw2 = new BackgroundWorker();
+                    bw2.DoWork += new DoWorkEventHandler((object sender3, DoWorkEventArgs e3) =>
+                    {
+                        e3.Result = ctrl.GetFSRules(client);
+                    });
+
+                    bw2.RunWorkerCompleted += new RunWorkerCompletedEventHandler((object sender3, RunWorkerCompletedEventArgs e3) =>
+                    {
+                        if (e3.Error != null)
+                        {
+                            MessageBox.Show(e3.Error.Message, "Error");
+                            return;
+                        }
+                        SetFSRulesList(e3.Result as FSRule[]);
+                    });
+
+                    bw2.RunWorkerAsync();
+
+                    int ruleId = (int)e2.Result;
+                    MessageBox.Show(string.Format("FSScan rule with id {0} was added with success.", ruleId), "Success");
+                });
+
+                bw.RunWorkerAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error");
+            }
         }
 
         private void AddAppCtrlRule(string[] values)
@@ -684,28 +784,6 @@ namespace Manager.UI
                 if (selectedIndex == 0) GetAppCtrlRulesList(client);
                 else GetFSRulesList(client);
                 SetRuleInfo();
-
-                //BackgroundWorker bw2 = new BackgroundWorker();
-
-                //bw2.DoWork += new DoWorkEventHandler((object sender3, DoWorkEventArgs e3) =>
-                //{
-                //    if (selectedIndex == 0) e3.Result = ctrl.GetAppCtrlRules(client);
-                //    else e3.Result = ctrl.GetFSRules(client);
-                //});
-
-                //bw2.RunWorkerCompleted += new RunWorkerCompletedEventHandler((object sender3, RunWorkerCompletedEventArgs e3) =>
-                //{
-                //    if (selectedIndex == 0)
-                //    {
-                //        SetAppCtrlRulesList(e3.Result as AppCtrlRule[]);
-                //    }
-                //    else
-                //    {
-                //        SetFSRulesList(e3.Result as FSRule[]);
-                //    }
-                //});
-
-                //bw2.RunWorkerAsync();
             });
 
             bw.RunWorkerAsync();
