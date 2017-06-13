@@ -243,6 +243,18 @@ namespace Manager.Server
             client.FSRules = client.FSRules.Where(rule => rule.RuleID != id).ToArray();
             return 1;
         }
+        public int AddAppCtrlRule(Client client, AppCtrlRule rule)
+        {
+            rule.RuleID = client.AppCtrlRules.Length + 1;
+            AppCtrlRule[] rules = client.AppCtrlRules;
+            int len = client.AppCtrlRules.Length;
+
+            Array.Resize(ref rules, rules.Length + 1);
+            rules[len] = rule;
+
+            client.AppCtrlRules = rules;
+            return rule.RuleID;
+        }
 
         public int DeleteAppCtrlRule(Client client, int id)
         {

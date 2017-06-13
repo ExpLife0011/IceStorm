@@ -198,6 +198,7 @@ namespace Manager.UI
                 }
 
                 SetAppCtrlRulesList(e.Result as AppCtrlRule[]);
+                SetRuleInfo();
             });
 
             bw.RunWorkerAsync();
@@ -239,6 +240,7 @@ namespace Manager.UI
                 }
 
                 SetFSRulesList(e.Result as FSRule[]);
+                SetRuleInfo();
             });
 
             bw.RunWorkerAsync();
@@ -380,7 +382,7 @@ namespace Manager.UI
             else
             {
                 groupBoxRule.Visible = true;
-                btnAdd.Visible = true;
+                btnAdd.Enabled = false;
                 btnUpdate.Enabled = false;
                 btnDelete.Enabled = false;
             }
@@ -396,6 +398,8 @@ namespace Manager.UI
                 default:
                     return;
             }
+
+            btnAdd.Enabled = true;
 
             if (lv.SelectedIndices.Count == 0) return;
 
@@ -501,7 +505,7 @@ namespace Manager.UI
 
                 bw2.RunWorkerAsync();
                 bool hadSuccess = (int)e2.Result == 1 ? true : false;
-                MessageBox.Show("AppCtrl status change " + (hadSuccess ? "had success" : "failed"), hadSuccess ? "Success" : "Error");
+                MessageBox.Show("FSScan status change " + (hadSuccess ? "had success" : "failed"), hadSuccess ? "Success" : "Error");
             });
 
             bw.RunWorkerAsync();
@@ -513,6 +517,8 @@ namespace Manager.UI
             auxForm.Text = "Set Option";
 
             auxForm.ShowDialog();
+            if (auxForm.Result != AuxFormResult.Completed) return;
+
             string[] values = auxForm.Values;
 
             try
@@ -540,7 +546,7 @@ namespace Manager.UI
                     bool hadSuccess = result == 1;
                     MessageBox.Show(
                         string.Format("Set Option {0} {1} {2}", option, value, (hadSuccess ? "had success" : "failed")),
-                        "Error"
+                        hadSuccess ? "Success" : "Error"
                         );
                 });
 
@@ -554,7 +560,86 @@ namespace Manager.UI
 
         private void btnAdd_Click(object sender, EventArgs e)
         {
+            string ruleType = tabControl.SelectedIndex == 0 ? "AppCtrl Rule" : "FSScan Rule";
+            ListView lv = tabControl.SelectedIndex == 0 ? listAppRules : listFSRules;
+            int selectedIndex = tabControl.SelectedIndex;
+            AuxiliarForm auxForm = new AuxiliarForm(selectedIndex == 0 ? AuxFormType.AddAppCtrl : AuxFormType.AddFSScan);
+            
+            auxForm.Text = "Add Application Control Rule";
+            auxForm.ShowDialog();
 
+            if (auxForm.Result != AuxFormResult.Completed) return;
+
+            string[] values = auxForm.Values;
+            if (selectedIndex == 0) AddAppCtrlRule(values);
+            else AddFSScanRule(values);
+
+        }
+
+        private void AddFSScanRule(string[] values)
+        {
+            
+        }
+
+        private void AddAppCtrlRule(string[] values)
+        {
+            try
+            {
+                Client client = clients[listClients.SelectedIndices[0]];
+                AppCtrlRule rule = new AppCtrlRule();
+
+                rule.ProcessPathMatcher = values[0].Equals("Equals") ? IceStringMatcher.Equal : IceStringMatcher.Wildmat;
+                rule.ProcessPath = values[1];
+                rule.PID = int.Parse(values[2]);
+                rule.ParentPathMatcher = values[3].Equals("Equals") ? IceStringMatcher.Equal : IceStringMatcher.Wildmat;
+                rule.ParentPath = values[4];
+                rule.ParentPID = int.Parse(values[5]);
+                rule.Verdict = values[6].Equals("Allow") ? IceScanVerdict.Allow : IceScanVerdict.Deny;
+
+                BackgroundWorker bw = new BackgroundWorker();
+
+                bw.DoWork += new DoWorkEventHandler((object sender2, DoWorkEventArgs e2) =>
+                {
+                    e2.Result = ctrl.AddAppCtrlRule(client, rule);
+                });
+
+                bw.RunWorkerCompleted += new RunWorkerCompletedEventHandler((object sender2, RunWorkerCompletedEventArgs e2) =>
+                {
+                    if (e2.Error != null)
+                    {
+                        MessageBox.Show(e2.Error.Message, "Error");
+                        return;
+                    }
+
+
+                    BackgroundWorker bw2 = new BackgroundWorker();
+                    bw2.DoWork += new DoWorkEventHandler((object sender3, DoWorkEventArgs e3) =>
+                    {
+                        e3.Result = ctrl.GetAppCtrlRules(client);
+                    });
+
+                    bw2.RunWorkerCompleted += new RunWorkerCompletedEventHandler((object sender3, RunWorkerCompletedEventArgs e3) =>
+                    {
+                        if (e3.Error != null)
+                        {
+                            MessageBox.Show(e3.Error.Message, "Error");
+                            return;
+                        }
+                        SetAppCtrlRulesList(e3.Result as AppCtrlRule[]);
+                    });
+
+                    bw2.RunWorkerAsync();
+
+                    int ruleId = (int)e2.Result;
+                    MessageBox.Show(string.Format("AppCtrl rule with id {0} was added with success.", ruleId), "Success");
+                });
+
+                bw.RunWorkerAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error");
+            }
         }
 
         private void btnUpdate_Click(object sender, EventArgs e)
@@ -580,7 +665,7 @@ namespace Manager.UI
             {
                 e2.Result = selectedIndex == 0 ? ctrl.DeleteAppCtrlRule(client, id) : ctrl.DeleteFSScanRule(client, id);
             });
-
+            
             bw.RunWorkerCompleted += new RunWorkerCompletedEventHandler((object sender2, RunWorkerCompletedEventArgs e2) =>
             {
                 if (e2.Error != null)
@@ -595,8 +680,10 @@ namespace Manager.UI
                     return;
                 }
 
+                SetRuleInfo();
                 if (selectedIndex == 0) GetAppCtrlRulesList(client);
                 else GetFSRulesList(client);
+                SetRuleInfo();
 
                 //BackgroundWorker bw2 = new BackgroundWorker();
 
