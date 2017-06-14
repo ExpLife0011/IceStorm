@@ -228,6 +228,7 @@ namespace Manager.UI
                 ListViewItem lvi = new ListViewItem(row);
                 listAppRules.Items.Add(lvi);
             }
+            SetRuleInfo();
         }
 
         private void GetFSRulesList(Client client)
@@ -275,6 +276,7 @@ namespace Manager.UI
                 ListViewItem lvi = new ListViewItem(row);
                 listFSRules.Items.Add(lvi);
             }
+            SetRuleInfo();
         }
 
         private string GetOperationsString(int operations)
@@ -592,7 +594,6 @@ namespace Manager.UI
 
         private void btnAdd_Click(object sender, EventArgs e)
         {
-            string ruleType = tabControl.SelectedIndex == 0 ? "AppCtrl Rule" : "FSScan Rule";
             ListView lv = tabControl.SelectedIndex == 0 ? listAppRules : listFSRules;
             int selectedIndex = tabControl.SelectedIndex;
             AuxiliarForm auxForm = new AuxiliarForm(selectedIndex == 0 ? AuxFormType.AddAppCtrl : AuxFormType.AddFSScan);
@@ -629,10 +630,10 @@ namespace Manager.UI
                 Client client = clients[listClients.SelectedIndices[0]];
                 FSRule rule = new FSRule();
 
-                rule.ProcessPathMatcher = values[0].Equals("Equals") ? IceStringMatcher.Equal : IceStringMatcher.Wildmat;
+                rule.ProcessPathMatcher = values[0].Equals("Equal") ? IceStringMatcher.Equal : IceStringMatcher.Wildmat;
                 rule.ProcessPath = values[1];
                 rule.PID = int.Parse(values[2]);
-                rule.FilePathMatcher = values[3].Equals("Equals") ? IceStringMatcher.Equal : IceStringMatcher.Wildmat;
+                rule.FilePathMatcher = values[3].Equals("Equal") ? IceStringMatcher.Equal : IceStringMatcher.Wildmat;
                 rule.FilePath = values[4];
                 rule.DeniedOperations = int.Parse(values[5]);
                 
@@ -688,10 +689,10 @@ namespace Manager.UI
                 Client client = clients[listClients.SelectedIndices[0]];
                 AppCtrlRule rule = new AppCtrlRule();
 
-                rule.ProcessPathMatcher = values[0].Equals("Equals") ? IceStringMatcher.Equal : IceStringMatcher.Wildmat;
+                rule.ProcessPathMatcher = values[0].Equals("Equal") ? IceStringMatcher.Equal : IceStringMatcher.Wildmat;
                 rule.ProcessPath = values[1];
                 rule.PID = int.Parse(values[2]);
-                rule.ParentPathMatcher = values[3].Equals("Equals") ? IceStringMatcher.Equal : IceStringMatcher.Wildmat;
+                rule.ParentPathMatcher = values[3].Equals("Equal") ? IceStringMatcher.Equal : IceStringMatcher.Wildmat;
                 rule.ParentPath = values[4];
                 rule.ParentPID = int.Parse(values[5]);
                 rule.Verdict = values[6].Equals("Allow") ? IceScanVerdict.Allow : IceScanVerdict.Deny;
@@ -725,6 +726,8 @@ namespace Manager.UI
                             MessageBox.Show(e3.Error.Message, "Error");
                             return;
                         }
+
+                        SetRuleInfo();
                         SetAppCtrlRulesList(e3.Result as AppCtrlRule[]);
                     });
 
@@ -744,7 +747,153 @@ namespace Manager.UI
 
         private void btnUpdate_Click(object sender, EventArgs e)
         {
+            ListView lv = tabControl.SelectedIndex == 0 ? listAppRules : listFSRules;
+            int selectedIndex = tabControl.SelectedIndex;
+            Client client = clients[listClients.SelectedIndices[0]];
+            AuxiliarForm auxForm;
+            AppCtrlRule appRule = new AppCtrlRule();
+            FSRule fsRule = new FSRule();
 
+            if (selectedIndex == 0)
+            {
+                appRule = client.AppCtrlRules[listAppRules.SelectedIndices[0]];
+                auxForm = new AuxiliarForm(selectedIndex == 0 ? AuxFormType.UpdateAppCtrl : AuxFormType.UpdateFSScan, appRule);
+            }
+            else
+            {
+                fsRule = client.FSRules[listFSRules.SelectedIndices[0]];
+                auxForm = new AuxiliarForm(selectedIndex == 0 ? AuxFormType.UpdateAppCtrl : AuxFormType.UpdateFSScan, fsRule);
+            }
+
+            auxForm.Text = selectedIndex == 0 ? "Update Application Control Rule" : "Update File System Scan Rule";
+            auxForm.ShowDialog();
+
+            if (auxForm.Result != AuxFormResult.Completed) return;
+
+            string[] values = auxForm.Values;
+            if (selectedIndex == 0) UpdateAppCtrlRule(values, appRule.RuleID);
+            else UpdateFSScanRule(values, fsRule.RuleID);
+        }
+
+        private void UpdateFSScanRule(string[] values, int ruleID)
+        {
+            try
+            {
+                Client client = clients[listClients.SelectedIndices[0]];
+                FSRule rule = new FSRule();
+
+                rule.RuleID = ruleID;
+                rule.ProcessPathMatcher = values[0].Equals("Equal") ? IceStringMatcher.Equal : IceStringMatcher.Wildmat;
+                rule.ProcessPath = values[1];
+                rule.PID = int.Parse(values[2]);
+                rule.FilePathMatcher = values[3].Equals("Equal") ? IceStringMatcher.Equal : IceStringMatcher.Wildmat;
+                rule.FilePath = values[4];
+                rule.DeniedOperations = int.Parse(values[5]);
+
+                BackgroundWorker bw = new BackgroundWorker();
+
+                bw.DoWork += new DoWorkEventHandler((object sender2, DoWorkEventArgs e2) =>
+                {
+                    e2.Result = ctrl.UpdateFSScanRule(client, rule);
+                });
+
+                bw.RunWorkerCompleted += new RunWorkerCompletedEventHandler((object sender2, RunWorkerCompletedEventArgs e2) =>
+                {
+                    if (e2.Error != null)
+                    {
+                        MessageBox.Show(e2.Error.Message, "Error");
+                        return;
+                    }
+
+                    BackgroundWorker bw2 = new BackgroundWorker();
+                    bw2.DoWork += new DoWorkEventHandler((object sender3, DoWorkEventArgs e3) =>
+                    {
+                        e3.Result = ctrl.GetFSRules(client);
+                    });
+
+                    bw2.RunWorkerCompleted += new RunWorkerCompletedEventHandler((object sender3, RunWorkerCompletedEventArgs e3) =>
+                    {
+                        if (e3.Error != null)
+                        {
+                            MessageBox.Show(e3.Error.Message, "Error");
+                            return;
+                        }
+                        SetFSRulesList(e3.Result as FSRule[]);
+                    });
+
+                    bw2.RunWorkerAsync();
+
+                    MessageBox.Show(string.Format("FSScan rule with id {0} was added with success.", ruleID), "Success");
+                });
+
+                bw.RunWorkerAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error");
+            }
+        }
+
+        private void UpdateAppCtrlRule(string[] values, int ruleID)
+        {
+            try
+            {
+                Client client = clients[listClients.SelectedIndices[0]];
+                AppCtrlRule rule = new AppCtrlRule();
+
+                rule.RuleID = ruleID;
+                rule.ProcessPathMatcher = values[0].Equals("Equal") ? IceStringMatcher.Equal : IceStringMatcher.Wildmat;
+                rule.ProcessPath = values[1];
+                rule.PID = int.Parse(values[2]);
+                rule.ParentPathMatcher = values[3].Equals("Equal") ? IceStringMatcher.Equal : IceStringMatcher.Wildmat;
+                rule.ParentPath = values[4];
+                rule.ParentPID = int.Parse(values[5]);
+                rule.Verdict = values[6].Equals("Allow") ? IceScanVerdict.Allow : IceScanVerdict.Deny;
+
+                BackgroundWorker bw = new BackgroundWorker();
+
+                bw.DoWork += new DoWorkEventHandler((object sender2, DoWorkEventArgs e2) =>
+                {
+                    e2.Result = ctrl.UpdateAppCtrlRule(client, rule);
+                });
+
+                bw.RunWorkerCompleted += new RunWorkerCompletedEventHandler((object sender2, RunWorkerCompletedEventArgs e2) =>
+                {
+                    if (e2.Error != null)
+                    {
+                        MessageBox.Show(e2.Error.Message, "Error");
+                        return;
+                    }
+
+
+                    BackgroundWorker bw2 = new BackgroundWorker();
+                    bw2.DoWork += new DoWorkEventHandler((object sender3, DoWorkEventArgs e3) =>
+                    {
+                        e3.Result = ctrl.GetAppCtrlRules(client);
+                    });
+
+                    bw2.RunWorkerCompleted += new RunWorkerCompletedEventHandler((object sender3, RunWorkerCompletedEventArgs e3) =>
+                    {
+                        if (e3.Error != null)
+                        {
+                            MessageBox.Show(e3.Error.Message, "Error");
+                            return;
+                        }
+                        SetAppCtrlRulesList(e3.Result as AppCtrlRule[]);
+                    });
+
+                    bw2.RunWorkerAsync();
+
+                    //int ruleId = (int)e2.Result;
+                    MessageBox.Show(string.Format("AppCtrl rule with id {0} was updated with success.", ruleID), "Success");
+                });
+
+                bw.RunWorkerAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error");
+            }
         }
 
         private void btnDelete_Click(object sender, EventArgs e)

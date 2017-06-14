@@ -275,6 +275,62 @@ namespace Manager.Server
             return 1;
         }
 
+        public int UpdateAppCtrlRule(Client client, AppCtrlRule rule)
+        {
+            for (int i = 0; i < clients.Length; i++)
+            {
+                if (clients[i].ClientID == client.ClientID)
+                {
+                    for (int j = 0; j < clients[i].AppCtrlRules.Length; j++)
+                    {
+                        if (clients[i].AppCtrlRules[j].RuleID == rule.RuleID)
+                        {
+                            clients[i].AppCtrlRules[j].ProcessPathMatcher = rule.ProcessPathMatcher;
+                            clients[i].AppCtrlRules[j].ProcessPath = rule.ProcessPath;
+                            clients[i].AppCtrlRules[j].PID = rule.PID;
+                            clients[i].AppCtrlRules[j].ParentPathMatcher = rule.ParentPathMatcher;
+                            clients[i].AppCtrlRules[j].ParentPath = rule.ParentPath;
+                            clients[i].AppCtrlRules[j].ParentPID = rule.ParentPID;
+                            clients[i].AppCtrlRules[j].Verdict = rule.Verdict;
+
+                            break;
+                        }
+                    }
+
+                    break;
+                }
+            }
+            
+            return 1;
+        }
+
+        public int UpdateFSScanRule(Client client, FSRule rule)
+        {
+            for (int i = 0; i < clients.Length; i++)
+            {
+                if (clients[i].ClientID == client.ClientID)
+                {
+                    for (int j = 0; j < clients[i].FSRules.Length; j++)
+                    {
+                        if (clients[i].FSRules[j].RuleID == rule.RuleID)
+                        {
+                            clients[i].FSRules[j].ProcessPathMatcher = rule.ProcessPathMatcher;
+                            clients[i].FSRules[j].ProcessPath = rule.ProcessPath;
+                            clients[i].FSRules[j].PID = rule.PID;
+                            clients[i].FSRules[j].FilePathMatcher = rule.FilePathMatcher;
+                            clients[i].FSRules[j].FilePath = rule.FilePath;
+                            clients[i].FSRules[j].DeniedOperations = rule.DeniedOperations;
+
+                            break;
+                        }
+                    }
+
+                    break;
+                }
+            }
+
+            return 1;
+        }
         private void NotifyClientsChange()
         {
             if (null == ClientsChangedCallback) return;

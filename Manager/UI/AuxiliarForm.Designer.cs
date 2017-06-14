@@ -55,12 +55,14 @@
             this.mainLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30F));
             this.mainLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30F));
             this.mainLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 30F));
-            this.mainLayout.Size = new System.Drawing.Size(380, 300);
+            this.mainLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
+            this.mainLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
+            this.mainLayout.Size = new System.Drawing.Size(380, 350);
             this.mainLayout.TabIndex = 0;
             // 
             // btnComplete
             // 
-            this.btnComplete.Location = new System.Drawing.Point(3, 273);
+            this.btnComplete.Location = new System.Drawing.Point(15, 263);
             this.btnComplete.Margin = new System.Windows.Forms.Padding(15, 3, 3, 3);
             this.btnComplete.Name = "btnComplete";
             this.btnComplete.Size = new System.Drawing.Size(75, 23);
@@ -72,7 +74,7 @@
             // btnCancel
             // 
             this.btnCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnCancel.Location = new System.Drawing.Point(302, 273);
+            this.btnCancel.Location = new System.Drawing.Point(290, 263);
             this.btnCancel.Margin = new System.Windows.Forms.Padding(3, 3, 15, 3);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(75, 23);

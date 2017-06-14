@@ -34,13 +34,34 @@ namespace Manager.UI
         private int nrOfRows;
         private Control[] controls;
         private Label[] labels;
+        private AppCtrlRule appRule;
+        private FSRule fsRule;
 
         public AuxFormResult Result { get; private set; }
+        public string[] InitialValues { private get; set; }
         public string[] Values { get; private set; }
         public Action<string[]> ValidateFunction { get; set; }
 
         public AuxiliarForm(AuxFormType formType)
         {
+            this.formType = formType;
+            Result = AuxFormResult.Canceled;
+            InitializeComponent();
+            CreateFields();
+        }
+
+        public AuxiliarForm(AuxFormType formType, AppCtrlRule appRule)
+        {
+            this.appRule = appRule;
+            this.formType = formType;
+            Result = AuxFormResult.Canceled;
+            InitializeComponent();
+            CreateFields();
+        }
+
+        public AuxiliarForm(AuxFormType formType, FSRule fsRule)
+        {
+            this.fsRule = fsRule;
             this.formType = formType;
             Result = AuxFormResult.Canceled;
             InitializeComponent();
@@ -61,22 +82,27 @@ namespace Manager.UI
                     break;
 
                 case AuxFormType.AddAppCtrl:
+                case AuxFormType.UpdateAppCtrl:
                     controls[0] = CreateIceStringMatcherSelect();
                     controls[1] = new TextBox();
                     controls[1].Anchor = AnchorStyles.Right;
                     controls[2] = new NumericUpDown();
+                    (controls[2] as NumericUpDown).Maximum = int.MaxValue;
                     controls[3] = CreateIceStringMatcherSelect();
                     controls[4] = new TextBox();
                     controls[4].Anchor = AnchorStyles.Right;
                     controls[5] = new NumericUpDown();
+                    (controls[5] as NumericUpDown).Maximum = int.MaxValue;
                     controls[6] = CreateIceScanVerdictSelect();
                     break;
 
                 case AuxFormType.AddFSScan:
+                case AuxFormType.UpdateFSScan:
                     controls[0] = CreateIceStringMatcherSelect();
                     controls[1] = new TextBox();
                     controls[1].Anchor = AnchorStyles.Right;
                     controls[2] = new NumericUpDown();
+                    (controls[2] as NumericUpDown).Maximum = int.MaxValue;
                     controls[3] = CreateIceStringMatcherSelect();
                     controls[4] = new TextBox();
                     controls[4].Anchor = AnchorStyles.Right;
@@ -90,11 +116,69 @@ namespace Manager.UI
                     return;
             }
 
+            if (formType == AuxFormType.UpdateAppCtrl)
+            {
+                InitialValues = new string[] {
+                    appRule.ProcessPathMatcher.ToString(),
+                    appRule.ProcessPath,
+                    appRule.PID.ToString(),
+                    appRule.ParentPathMatcher.ToString(),
+                    appRule.ParentPath,
+                    appRule.ParentPID.ToString(),
+                    appRule.Verdict.ToString()
+                };
+
+                (controls[0] as ComboBox).SelectedIndex = InitialValues[0].Equals("Equal") ? 0 : 1;
+                controls[1].Text = InitialValues[1];
+                controls[2].Text = InitialValues[2];
+                (controls[3] as ComboBox).SelectedIndex = InitialValues[3].Equals("Equal") ? 0 : 1;
+                controls[4].Text = InitialValues[4];
+                controls[5].Text = InitialValues[5];
+                (controls[6] as ComboBox).SelectedIndex = InitialValues[6].Equals("Allow") ? 0 : 1;
+            }
+            else if (formType == AuxFormType.UpdateFSScan)
+            {
+                InitialValues = new string[] {
+                    fsRule.ProcessPathMatcher.ToString(),
+                    fsRule.ProcessPath,
+                    fsRule.PID.ToString(),
+                    fsRule.FilePathMatcher.ToString(),
+                    fsRule.FilePath,
+                    fsRule.DeniedOperations.ToString()
+                };
+
+                (controls[0] as ComboBox).SelectedIndex = InitialValues[0].Equals("Equal") ? 0 : 1;
+                controls[1].Text = InitialValues[1];
+                controls[2].Text = InitialValues[2];
+                (controls[3] as ComboBox).SelectedIndex = InitialValues[3].Equals("Equal") ? 0 : 1;
+                controls[4].Text = InitialValues[4];
+                SetListBoxSelectedIndex((controls[5] as ListBox), int.Parse(InitialValues[5]));
+            }
+
             for (int i = 0; i < nrOfRows; i++)
             {
                 controls[i].Anchor |= AnchorStyles.Left;
                 mainLayout.Controls.Add(controls[i], 1, i);
             }
+        }
+
+        private void SetListBoxSelectedIndex(ListBox listBox, int flags)
+        {
+            for (int i = 0; i < 6; i++)
+            {
+                listBox.SetSelected(i, false);
+            }
+
+            if (flags == (int) IceFSFlags.None)
+            {
+                listBox.SetSelected(0, true);
+            }
+
+            if ((flags & (int) IceFSFlags.Create) != 0) listBox.SetSelected(1, true);
+            if ((flags & (int)IceFSFlags.Open) != 0) listBox.SetSelected(2, true);
+            if ((flags & (int)IceFSFlags.Write) != 0) listBox.SetSelected(3, true);
+            if ((flags & (int)IceFSFlags.Read) != 0) listBox.SetSelected(4, true);
+            if ((flags & (int)IceFSFlags.Delete) != 0) listBox.SetSelected(5, true);
         }
 
         private ListBox CreateIceFSOperationsSelect()
@@ -139,11 +223,13 @@ namespace Manager.UI
                     break;
 
                 case AuxFormType.AddAppCtrl:
+                case AuxFormType.UpdateAppCtrl:
                     lblText = new string[] { "Process Matcher", "Process Path", "PID", "Parent Matcher", "Parent Path", "Parent PID", "Verdict" };
                     nrOfRows = lblText.Length;
                     break;
 
                 case AuxFormType.AddFSScan:
+                case AuxFormType.UpdateFSScan:
                     lblText = new string[] { "Process Matcher", "Process Path", "PID", "File Matcher", "File Path", "Denied Flags" };
                     nrOfRows = lblText.Length;
                     break;
@@ -197,7 +283,7 @@ namespace Manager.UI
             for (int i = 0; i < nrOfRows; i++)
             {
                 string text = controls[i].Text;
-                if (formType == AuxFormType.AddFSScan && i == 5) text = GetListBoxText(5);
+                if ((formType == AuxFormType.AddFSScan || formType == AuxFormType.UpdateFSScan) && i == 5) text = GetListBoxText(5);
 
                 Values[i] = string.IsNullOrEmpty(text) ? null : text;
             }
