@@ -53,12 +53,40 @@ ClSendMessage(
     DWORD dwResult = ERROR_SUCCESS;
 
     if (ERROR_SUCCESS != (dwResult = ClSendAuxBuffer((PBYTE) &DwBufferSize, (DWORD) sizeof(DWORD)))) return dwResult;
-    LogInfo(L"Buffer: %S", (PCHAR) PBuffer);
+    
     if (ERROR_SUCCESS != (dwResult = ClSendAuxBuffer(PBuffer, DwBufferSize))) return dwResult;
 
     return ERROR_SUCCESS;
 }
 
+_Use_decl_anno_impl_
+DWORD
+ClSendString(
+    PWCHAR          PString
+)
+{
+    DWORD dwResult  = ERROR_SUCCESS;
+    DWORD dwSize    = (NULL == PString) ? 0 : (wcslen(PString) * sizeof(WCHAR));
+
+    if (ERROR_SUCCESS != (dwResult = ClSendDWORD(dwSize))) return dwResult;
+
+    if (ERROR_SUCCESS != (dwResult = ClSendAuxBuffer((PBYTE) PString, dwSize))) return dwResult;
+
+    return ERROR_SUCCESS;
+}
+
+_Use_decl_anno_impl_
+DWORD
+ClSendDWORD(
+    DWORD           DwValue
+)
+{
+    DWORD dwResult  = ERROR_SUCCESS;
+    
+    if (ERROR_SUCCESS != (dwResult = ClSendAuxBuffer((PBYTE) &DwValue, sizeof(DWORD)))) return dwResult;
+
+    return ERROR_SUCCESS;
+}
 
 _Success_(return == ERROR_SUCCESS)
 DWORD

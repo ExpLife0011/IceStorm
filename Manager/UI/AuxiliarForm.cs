@@ -278,6 +278,11 @@ namespace Manager.UI
                     if (string.IsNullOrEmpty(controls[3].Text)) errors += "\"" + labels[3].Text.Remove(labels[3].Text.Length - 1) + "\", ";
                     if (string.IsNullOrEmpty(controls[5].Text)) errors += "\"" + labels[5].Text.Remove(labels[5].Text.Length - 1) + "\", ";
                     break;
+
+                case AuxFormType.SetOption:
+                    if (string.IsNullOrEmpty(controls[0].Text)) errors += "\"" + labels[0].Text.Remove(labels[0].Text.Length - 1) + "\", ";
+                    if (string.IsNullOrEmpty(controls[1].Text)) errors += "\"" + labels[1].Text.Remove(labels[1].Text.Length - 1) + "\", ";
+                    break;
             }
 
             for (int i = 0; i < nrOfRows; i++)

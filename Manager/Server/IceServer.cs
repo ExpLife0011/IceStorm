@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,14 +13,19 @@ namespace Manager.Server
 {
     public class IceServer
     {
+        private const string HANDSHAKE = "168494987!#())-=+_IceStorm153_))((--85*";
+
         private Logger log = Logger.Instance;
 
         private ManualResetEvent stopEvent;
         private Thread threadListen;
+        private Socket listener;
+        private SocketHelper soc;
 
         private string serverIp = "";
         private int port = 0;
 
+        private object syncClients = new object();
         private Client[] clients;
         public Action<Client[]> ClientsChangedCallback { get; set; }
 
@@ -33,11 +39,33 @@ namespace Manager.Server
             LoadConfig();
             threadListen = new Thread(ListenThread);
             stopEvent = new ManualResetEvent(false);
+            soc = new SocketHelper(ref stopEvent);
+
             threadListen.Start();
 
             log.Info("Server started");
         }
 
+        private void LoadConfig()
+        {
+            serverIp = "192.168.194.1";
+            port = 12345;
+        }
+        
+        private IPEndPoint GetIPEndPoint()
+        {
+            IPAddress ipAddress = null;// ipHostInfo.AddressList[0];
+            foreach (IPAddress ipAddr in Dns.GetHostEntry(Dns.GetHostName()).AddressList)
+            {
+                if (ipAddr.ToString().Equals(serverIp))
+                {
+                    ipAddress = ipAddr;
+                    break;
+                }
+            }
+
+            return new IPEndPoint(ipAddress, port);
+        }
         public void StopServer()
         {
             stopEvent.Set();
@@ -48,40 +76,71 @@ namespace Manager.Server
             log.Info("Server stopped");
         }
 
-        public Client[] GetClients()
-        {
-            return clients;
-        }
-
         private void ListenThread()
         {
-            if (stopEvent.WaitOne(2000)) return;
+            if (stopEvent.WaitOne(1000)) return;
 
             log.Info("ListenThread started");
             int errors = 0;
             bool restartServer = false;
-            int i = 0;
+            
+            if (!CreateSocket()) return;
 
+            log.Info("Waiting for clients...");
             while (true)
             {
                 try
                 {
-                    if (i < 5)
+                    Socket clientSocket = null;
+                    
+                    try
                     {
-                        i++;
-                        clients = new Client[i];
-
-                        for (int j = 0; j < i; j++)
+                        clientSocket = listener.Accept();
+                    }
+                    catch (SocketException ex)
+                    {
+                        if (ex.ErrorCode != 10035)
                         {
-                            clients[j] = new Client();
-                            clients[j].ClientID = j + 1;
-                            clients[j].Name = "Client " + j;
-                            clients[j].IP = string.Format("{0}.{0}.{0}.{0}", j);
-                            clients[j].OS = "Windows 10";
-                            clients[j].Platform = "x64";
+                            log.Error(ex.Message);
+                            throw;
                         }
+                    }
+                    
+                    if (null == clientSocket)
+                    {
+                        if (stopEvent.WaitOne(200)) break;
+                        continue;
+                    }
 
-                        NotifyClientsChange();
+                    if (stopEvent.WaitOne(1)) break;
+                    //clientSocket.RemoteEndPoint
+                    log.Info(string.Format("Client connected"));
+
+                    clientSocket.Blocking = false;
+
+                    int idx = 0;
+                    lock (syncClients)
+                    {
+                        idx = clients.Length;
+                        Array.Resize(ref clients, idx + 1);
+                        clients[idx] = new Client();
+                        clients[idx].Socket = clientSocket;
+                        clients[idx].IP = clients[idx].Socket.RemoteEndPoint.ToString();
+
+                        if (!GetHanshakePackege(clients[idx]))
+                        {
+                            clients[idx].Socket.Shutdown(SocketShutdown.Both);
+                            clients[idx].Socket.Close();
+                        }
+                        else
+                        {
+                            clients[idx].Name = soc.RecvString(clients[idx].Socket);
+                            clients[idx].OS = soc.RecvString(clients[idx].Socket);
+                            clients[idx].Platform = soc.RecvString(clients[idx].Socket);
+                            clients[idx].NrOfProcessors = soc.RecvDWORD(clients[idx].Socket);
+
+                            NotifyClientsChange();
+                        }
                     }
 
                     errors = 0;
@@ -109,6 +168,50 @@ namespace Manager.Server
             }
 
             log.Info("ListenThread stopped");
+        }
+
+        private bool GetHanshakePackege(Client client)
+        {
+            int result = 1;
+            string handshakePacket = soc.RecvString(client.Socket);
+
+            if (!HANDSHAKE.Equals(handshakePacket)) result = 0;
+            
+            log.Info(string.Format("Client {0} sent {1} handshake.", client.IP, result == 1 ? "good" : "bad"));
+
+            soc.SendDWORD(client.Socket, result);
+
+            return result == 1;
+        }
+
+        private bool CreateSocket()
+        {
+            while (true)
+            {
+                try
+                {
+                    IPEndPoint localEndPoint = GetIPEndPoint();
+                    listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+
+                    listener.Blocking = false;
+                    listener.Bind(localEndPoint);
+                    listener.Listen(100);
+
+                    log.Info("Listen socket created with success");
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    log.Error(ex.Message);
+                }
+
+                if (stopEvent.WaitOne(200)) return false;
+            }
+        }
+
+        public Client[] GetClients()
+        {
+            return clients;
         }
 
         public AppCtrlRule[] GetAppCtrlRules(Client client)
@@ -336,72 +439,6 @@ namespace Manager.Server
             if (null == ClientsChangedCallback) return;
 
             ClientsChangedCallback(clients);
-        }
-
-        private void LoadConfig()
-        {
-            serverIp = "192.168.194.1";
-            port = 12345;
-        }
-
-        //private void StartServer()
-        //{
-        //    IPEndPoint localEndPoint = GetIPEndPoint();
-        //    Socket listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-
-        //    try
-        //    {
-        //        listener.Bind(localEndPoint);
-        //        listener.Listen(100);
-
-        //        while (true)
-        //        {
-        //            Console.WriteLine("Waiting for a connection...");
-        //            Socket handler = listener.Accept();
-        //            Console.WriteLine("Client connected");
-
-        //            byte[] buffer = new byte[40];
-
-        //            handler.Receive(buffer, 4, SocketFlags.None);
-        //            int x = BitConverter.ToInt32(buffer, 0);
-
-        //            handler.Receive(buffer, x, SocketFlags.None);
-        //            string handshake = Encoding.ASCII.GetString(buffer);
-
-        //            handler.Send(BitConverter.GetBytes(1));
-
-        //            handler.Send(BitConverter.GetBytes(520));
-
-        //            buffer = new byte[520];
-        //            for (int i = 0; i < 520; i++)
-        //            {
-        //                buffer[i] = (byte)(i % 50);
-        //            }
-
-        //            handler.Send(buffer);
-
-        //            handler.Shutdown(SocketShutdown.Both);
-        //            handler.Close();
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Console.WriteLine(ex.ToString());
-        //    }
-        //}
-
-        private IPEndPoint GetIPEndPoint()
-        {
-            IPAddress ipAddress = null;// ipHostInfo.AddressList[0];
-            foreach (IPAddress ipAddr in Dns.GetHostEntry(Dns.GetHostName()).AddressList)
-            {
-                if (ipAddr.ToString().Equals(serverIp))
-                {
-                    ipAddress = ipAddr;
-                }
-            }
-
-            return new IPEndPoint(ipAddress, port);
         }
     }
 }

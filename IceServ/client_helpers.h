@@ -11,6 +11,18 @@ ClSendMessage(
 
 _Success_(return == 0)
 DWORD
+ClSendString(
+    _In_opt_z_  PWCHAR          PString
+);
+
+_Success_(return == 0)
+DWORD
+ClSendDWORD(
+    _In_        DWORD           DwValue
+);
+
+_Success_(return == 0)
+DWORD
 ClRecvMessage(
     _Inout_     PBYTE           PBuffer,
     _In_        DWORD           DwMexBufferSize

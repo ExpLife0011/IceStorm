@@ -83,7 +83,7 @@
             this.lblOS = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
-            this.lblMAC = new System.Windows.Forms.Label();
+            this.lblProc = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
             this.lblIP = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
@@ -484,7 +484,7 @@
             this.groupBoxClient.Controls.Add(this.lblOS);
             this.groupBoxClient.Controls.Add(this.label4);
             this.groupBoxClient.Controls.Add(this.label2);
-            this.groupBoxClient.Controls.Add(this.lblMAC);
+            this.groupBoxClient.Controls.Add(this.lblProc);
             this.groupBoxClient.Controls.Add(this.label5);
             this.groupBoxClient.Controls.Add(this.lblIP);
             this.groupBoxClient.Controls.Add(this.label3);
@@ -583,23 +583,23 @@
             this.label2.TabIndex = 6;
             this.label2.Text = "OS:";
             // 
-            // lblMAC
+            // lblProc
             // 
-            this.lblMAC.AutoSize = true;
-            this.lblMAC.Location = new System.Drawing.Point(53, 66);
-            this.lblMAC.Name = "lblMAC";
-            this.lblMAC.Size = new System.Drawing.Size(10, 13);
-            this.lblMAC.TabIndex = 5;
-            this.lblMAC.Text = "-";
+            this.lblProc.AutoSize = true;
+            this.lblProc.Location = new System.Drawing.Point(53, 66);
+            this.lblProc.Name = "lblProc";
+            this.lblProc.Size = new System.Drawing.Size(10, 13);
+            this.lblProc.TabIndex = 5;
+            this.lblProc.Text = "-";
             // 
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(14, 66);
+            this.label5.Location = new System.Drawing.Point(4, 66);
             this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(33, 13);
+            this.label5.Size = new System.Drawing.Size(43, 13);
             this.label5.TabIndex = 4;
-            this.label5.Text = "MAC:";
+            this.label5.Text = "NrProc:";
             // 
             // lblIP
             // 
@@ -720,7 +720,7 @@
         private System.Windows.Forms.TabPage tabFSEvents;
         private System.Windows.Forms.ListView listClients;
         private System.Windows.Forms.GroupBox groupBoxClient;
-        private System.Windows.Forms.Label lblMAC;
+        private System.Windows.Forms.Label lblProc;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.Label lblIP;
         private System.Windows.Forms.Label label3;

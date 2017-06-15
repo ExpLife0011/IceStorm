@@ -12,8 +12,8 @@
 #undef WIN32_LEAN_AND_MEAN
 
 
-#define HANDSHAKE       "168494987!#())-=+_IceStorm153_))((--85*"
-#define HANDSHAKE_SIZE  ((DWORD) 40)
+#define HANDSHAKE       L"168494987!#())-=+_IceStorm153_))((--85*"
+#define HANDSHAKE_SIZE  ((DWORD) (39 * sizeof(WCHAR)))
 
 SOCKET gServerSocket        = INVALID_SOCKET;
 
@@ -47,15 +47,7 @@ SendHandshakePackage(
             LogError(L"Handshake failed");
             __leave;
         }
-
-        BYTE x[200];
-        dwResult = ClRecvMessage(x, 200);
-        if (0 != dwResult)
-        {
-            LogError(L"xxxxxxxxxxxxxxxxxxxxxxx: %d", dwResult);
-            __leave;
-        }
-
+        
         LogInfo(L"Handshake had success");
         bResult = TRUE;
     }
@@ -184,4 +176,19 @@ StopClient(
     {
         LogWarningWin(WSAGetLastError(), L"WSACleanup");
     }
+}
+
+_Use_decl_anno_impl_
+VOID
+SendMachineInfo(
+    IC_MACHINE_INFO *PMachineInfo
+)
+{
+    if (ERROR_SUCCESS != ClSendString(PMachineInfo->PMachineName)) return;
+
+    if (ERROR_SUCCESS != ClSendString(PMachineInfo->POS)) return;
+
+    if (ERROR_SUCCESS != ClSendString(PMachineInfo->PArchitecture)) return;
+
+    if (ERROR_SUCCESS != ClSendDWORD(PMachineInfo->DwNrOfProcessors)) return;
 }

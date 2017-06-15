@@ -1,4 +1,6 @@
-﻿namespace Manager.Domain
+﻿using System.Net.Sockets;
+
+namespace Manager.Domain
 {
     public class Client
     {
@@ -6,7 +8,7 @@
 
         public string Name { get; set; }
         public string IP { get; set; }
-        public string MAC { get; set; }
+        public int NrOfProcessors { get; set; }
         public string OS { get; set; }
         public string Platform { get; set; }
 
@@ -17,5 +19,7 @@
 
         public bool IsAppCtrlEnabled { get; set; }
         public bool IsFSScanEnabled { get; set; }
+
+        public Socket Socket { get; set; }
     }
 }

@@ -114,8 +114,8 @@ namespace Manager.UI
         private void SetClientInfo()
         {
             Client c = clients[listClients.SelectedIndices[0]];
-            Label[] lblLst = { lblName, lblMAC, lblIP, lblOS, lblPlatform };
-            string[] txtLst = { c.Name, c.MAC, c.IP, c.OS, c.Platform };
+            Label[] lblLst = { lblName, lblIP, lblOS, lblPlatform, lblProc };
+            string[] txtLst = { c.Name, c.IP, c.OS, c.Platform, c.NrOfProcessors.ToString() };
 
             for (int i = 0; i < lblLst.Length; i++)
             {
@@ -134,7 +134,7 @@ namespace Manager.UI
 
         private void ResetClientInfo()
         {
-            Label[] lst = { lblName, lblMAC, lblIP, lblOS, lblPlatform };
+            Label[] lst = { lblName, lblProc, lblIP, lblOS, lblPlatform };
             foreach (Label l in lst)
             {
                 l.Text = "-";
