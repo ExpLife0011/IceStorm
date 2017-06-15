@@ -44,5 +44,5 @@ ClRecvMessageWithoutSize(
 _Success_(return == ERROR_SUCCESS)
 DWORD
 ClRecvDWORD(
-    _Inout_     DWORD           *PDwBufferSize
+    _Inout_     DWORD           *PDwValue
 );

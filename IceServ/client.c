@@ -192,3 +192,23 @@ SendMachineInfo(
 
     if (ERROR_SUCCESS != ClSendDWORD(PMachineInfo->DwNrOfProcessors)) return;
 }
+
+_Use_decl_anno_impl_
+IC_SERVER_COMMAND
+GetCommandFromServer(
+    VOID
+)
+{
+    DWORD dwStatus  = 0;
+    DWORD dwCommand = IcServerCommand_Error;
+
+    dwStatus = ClRecvDWORD(&dwCommand);
+    if (ERROR_SUCCESS != dwStatus)
+    {
+        LogErrorWin(dwStatus, L"Failed to get command from server");
+        dwCommand = IcServerCommand_Error;
+    }
+
+    LogInfo(L"Received command: %d", dwCommand);
+    return dwCommand;
+}

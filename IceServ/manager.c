@@ -2,6 +2,7 @@
 #include "manager.h"
 #include "client.h"
 #include "global_data.h"
+#include "client_helpers.h"
 
 BOOLEAN
 SleepOrExit(
@@ -92,6 +93,54 @@ LoadMachineInfo(
     swprintf_s(PMachineInfo->POS, MAX_OS_NAME, L"%s (%d)", L"Windows 10", ov.dwBuildNumber);
 }
 
+VOID
+ExecuteCommand(
+    _In_    IC_SERVER_COMMAND       DwCommand
+)
+{
+    switch (DwCommand)
+    {
+        case IcServerCommand_Ping:
+            ClSendDWORD(IcServerCommandResult_Success);
+            break;
+
+        default:
+            LogInfo(L"Unknown command: %d", DwCommand);
+            ClSendDWORD(IcServerCommandResult_Error);
+            break;
+    }
+}
+
+VOID
+WaitForCommands(
+    VOID
+)
+{
+    IC_SERVER_COMMAND dwCommand = 0;
+
+    LogInfo(L"Starting to wait for commands...");
+    while (TRUE)
+    {
+        if (SleepOrExit(1)) break;
+        
+        dwCommand = GetCommandFromServer();
+
+        if (SleepOrExit(1)) break;
+
+        if (dwCommand == IcServerCommandResult_Error)
+        {
+            LogWarning(L"Server does not respond");
+            break;
+        }
+
+        ExecuteCommand(dwCommand);
+     
+        if (SleepOrExit(1)) break;
+    }
+
+    LogInfo(L"WaitForCommands DONE");
+}
+
 _Use_decl_anno_impl_
 DWORD
 WINAPI
@@ -107,27 +156,34 @@ ManagerThread(
 
     __try
     {
-        LoadMachineInfo(&machineInfo);
-
-        LogInfo(L"machineInfo.PMachineName: %s", machineInfo.PMachineName);
-        LogInfo(L"machineInfo.POS: %s", machineInfo.POS);
-        LogInfo(L"machineInfo.PArchitecture: %s", machineInfo.PArchitecture);
-        LogInfo(L"machineInfo.DwNrOfProcessors: %d", machineInfo.DwNrOfProcessors);
-
-        LoadServerInfo(pIpAddr, pPort);
-        LogInfo(L"Server address: %S:%S", pIpAddr, pPort);
-
-        while (!StartClient(pIpAddr, pPort))
+        while (TRUE)
         {
+            LoadMachineInfo(&machineInfo);
+
+            LogInfo(L"machineInfo.PMachineName: %s", machineInfo.PMachineName);
+            LogInfo(L"machineInfo.POS: %s", machineInfo.POS);
+            LogInfo(L"machineInfo.PArchitecture: %s", machineInfo.PArchitecture);
+            LogInfo(L"machineInfo.DwNrOfProcessors: %d", machineInfo.DwNrOfProcessors);
+
+            LoadServerInfo(pIpAddr, pPort);
+            LogInfo(L"Server address: %S:%S", pIpAddr, pPort);
+
+            while (!StartClient(pIpAddr, pPort))
+            {
+                if (SleepOrExit(5 * 1000)) __leave;
+            }
+            LogInfo(L"We are now connected to the server...");
+
+            SendMachineInfo(&machineInfo);
+            LogInfo(L"Machine data sent");
+            if (SleepOrExit(5)) __leave;
+
+            WaitForCommands();
+
+            StopClient();
+
             if (SleepOrExit(5 * 1000)) __leave;
         }
-        LogInfo(L"We are now connected to the server...");
-        
-        SendMachineInfo(&machineInfo);
-        LogInfo(L"Machine data sent");
-        if (SleepOrExit(5)) __leave;
-
-
 
     }
     __finally

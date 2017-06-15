@@ -121,6 +121,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Server\IceServer.cs" />
+    <Compile Include="Server\IceServerCommand.cs" />
     <Compile Include="Server\SocketHelper.cs" />
     <Compile Include="UI\AuxiliarForm.cs">
       <SubType>Form</SubType>

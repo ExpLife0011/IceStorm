@@ -113,8 +113,7 @@ namespace Manager.Server
                     }
 
                     if (stopEvent.WaitOne(1)) break;
-                    //clientSocket.RemoteEndPoint
-                    log.Info(string.Format("Client connected"));
+                    log.Info(string.Format("Client {0} connected", clientSocket.RemoteEndPoint));
 
                     clientSocket.Blocking = false;
 
@@ -207,6 +206,76 @@ namespace Manager.Server
 
                 if (stopEvent.WaitOne(200)) return false;
             }
+        }
+
+        private void NotifyClientsChange()
+        {
+            if (null == ClientsChangedCallback) return;
+
+            RefreshClients();
+
+            ClientsChangedCallback(clients);
+        }
+
+        private void RefreshClients()
+        {
+            Client[] newClients = new Client[0];
+            int newLen = 0;
+
+            log.Info("Refreshing clients list");
+
+            foreach (Client c in clients)
+            {
+                if (!CheckIfClientIsStillConnected(c))
+                {
+                    c.Socket.Shutdown(SocketShutdown.Both);
+                    c.Socket.Close();
+                    continue;
+                }
+
+                Array.Resize(ref newClients, newLen + 1);
+                newClients[newLen] = c;
+
+                newLen++;
+            }
+
+            clients = newClients;
+        }
+
+        private bool CheckIfClientIsStillConnected(Client c)
+        {
+            Socket s = c.Socket;
+            bool isConnected = false;
+
+            try
+            {
+                isConnected = PingClient(c);
+            }
+            catch (Exception ex)
+            {
+                log.Error(ex.Message);
+                isConnected = false;
+            }
+
+            return isConnected;
+        }
+
+        private bool PingClient(Client c)
+        {
+            bool isConnected = false;
+
+            try
+            {
+                soc.SendDWORD(c.Socket, (int)IceServerCommand.Ping);
+                int r = soc.RecvDWORD(c.Socket);
+                isConnected = r == (int)IceServerCommandResult.Success;
+            }
+            catch (Exception ex)
+            {
+                log.Error("Ping on " + c.Socket.RemoteEndPoint + " failed: " + ex.Message);
+            }
+
+            return isConnected;
         }
 
         public Client[] GetClients()
@@ -433,12 +502,6 @@ namespace Manager.Server
             }
 
             return 1;
-        }
-        private void NotifyClientsChange()
-        {
-            if (null == ClientsChangedCallback) return;
-
-            ClientsChangedCallback(clients);
         }
     }
 }

@@ -127,6 +127,17 @@ ClRecvAuxBuffer(
             
         }
 
+        if (iResult == 0)
+        {
+            if (WAIT_OBJECT_0 == WaitForSingleObject(gHStopEvent, 100))
+            {
+                LogInfo(L"Stop event signaled");
+                dwResult = ERROR_CANCELLED;
+                break;
+            }
+            continue;
+        }
+
         LogInfo(L"Received: %d / %d bytes", iResult, iMessageLen);
 
         if (iResult == iMessageLen) break;
