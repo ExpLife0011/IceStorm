@@ -69,9 +69,12 @@ ClSendString(
     DWORD dwSize    = (NULL == PString) ? 0 : (wcslen(PString) * sizeof(WCHAR));
 
     if (ERROR_SUCCESS != (dwResult = ClSendDWORD(dwSize))) return dwResult;
-
-    if (ERROR_SUCCESS != (dwResult = ClSendAuxBuffer((PBYTE) PString, dwSize))) return dwResult;
-    LogInfo(L"Sent STRING: %s", PString);
+    
+    if (dwSize != 0)
+    {
+        if (ERROR_SUCCESS != (dwResult = ClSendAuxBuffer((PBYTE) PString, dwSize))) return dwResult;
+        LogInfo(L"Sent STRING: %s", PString);
+    }
 
     return ERROR_SUCCESS;
 }

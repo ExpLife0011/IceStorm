@@ -12,12 +12,12 @@ InitAppCtrlRules(
 
     __try
     {
-        dwResult = DBInit();
-        if (ERROR_SUCCESS != dwResult)
-        {
-            LogErrorWin(dwResult, L"DBInit");
-            __leave;
-        }
+        //dwResult = DBInit();
+        //if (ERROR_SUCCESS != dwResult)
+        //{
+        //    LogErrorWin(dwResult, L"DBInit");
+        //    __leave;
+        //}
     }
     __finally
     {
@@ -37,11 +37,11 @@ UninitAppCtrlRules(
 {
     DWORD dwResult = ERROR_SUCCESS;
 
-    dwResult = DBUninit();
-    if (ERROR_SUCCESS != dwResult)
-    {
-        LogWarningWin(dwResult, L"DBUninit");
-    }
+    //dwResult = DBUninit();
+    //if (ERROR_SUCCESS != dwResult)
+    //{
+    //    LogWarningWin(dwResult, L"DBUninit");
+    //}
 
     return dwResult;
 }

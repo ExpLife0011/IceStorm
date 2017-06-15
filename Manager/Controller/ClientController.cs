@@ -49,12 +49,18 @@ namespace Manager.Controller
 
         public AppCtrlEvent[] GetAppCtrlEvents(Client client)
         {
-            return server.GetAppCtrlEvents(client);
+            lock (client.SyncAccess)
+            {
+                return server.GetAppCtrlEvents(client);
+            }
         }
 
         public FSEvent[] GetFSEvents(Client client)
         {
-            return server.GetFSEvents(client);
+            lock (client.SyncAccess)
+            {
+                return server.GetFSEvents(client);
+            }
         }
 
         public int EnableAppCtrl(Client client, int enable)

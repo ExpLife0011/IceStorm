@@ -972,5 +972,16 @@ namespace Manager.UI
 
             bw.RunWorkerAsync();
         }
+
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            if (keyData != Keys.F5) return false;
+
+            if (listClients.SelectedIndices.Count == 0) return false;
+
+            GetNeededList(clients[listClients.SelectedIndices[0]]);
+
+            return true;
+        }
     }
 }

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Manager.Server
+﻿namespace Manager.Server
 {
     enum IceServerCommand : int
     {
@@ -16,7 +10,9 @@ namespace Manager.Server
         GetFSScanStatus     = 0x4,
 
         SetAppCtrlStatus    = 0x8,
-        SetFSScanStatus     = 0x10
+        SetFSScanStatus     = 0x10,
+
+        GetAppCtrlEvents    = 0x20
     }
 
     enum IceServerCommandResult : int

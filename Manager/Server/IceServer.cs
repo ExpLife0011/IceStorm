@@ -356,32 +356,41 @@ namespace Manager.Server
 
         public AppCtrlEvent[] GetAppCtrlEvents(Client client)
         {
-            return new AppCtrlEvent[0];
-            //if (null != client.AppCtrlEvents) return client.AppCtrlEvents;
+            soc.SendDWORD(client.Socket, (int)IceServerCommand.GetAppCtrlEvents);
+            soc.SendDWORD(client.Socket, 0);
 
-            //AppCtrlEvent[] fakeAppEvents = new AppCtrlEvent[10];
+            IceServerCommandResult cmdResult = (IceServerCommandResult)soc.RecvDWORD(client.Socket);
+            if (cmdResult != IceServerCommandResult.Success)
+                throw new Exception("Failed to get AppCtrl Events for client " + client.Name);
 
-            //for (int i = 0; i < fakeAppEvents.Length; i++)
-            //{
-            //    fakeAppEvents[i] = new AppCtrlEvent();
+            int len = soc.RecvDWORD(client.Socket);
 
-            //    fakeAppEvents[i].EventID = i + 1;
-            //    fakeAppEvents[i].ProcessPath = "C:\\path\\proces" + i + ".exe";
-            //    fakeAppEvents[i].PID = (i + 1) * 50;
-            //    fakeAppEvents[i].ParentPath = "C:\\path\\parinte" + i + ".exe";
-            //    fakeAppEvents[i].ParentPID = (i + 1) * 50 + i;
-            //    fakeAppEvents[i].Verdict = ((i % 2) == 1) ? IceScanVerdict.Allow : IceScanVerdict.Deny;
-            //    fakeAppEvents[i].MatchedRuleID = i * 2 +1;
-            //    fakeAppEvents[i].EventTime = 6000 + i;
-            //}
+            if (len == 0) return new AppCtrlEvent[0];
 
-            //client.AppCtrlEvents = fakeAppEvents;
-            //return fakeAppEvents;
+            AppCtrlEvent[] appEvents = new AppCtrlEvent[len];
+
+            for (int i = 0; i < len; i++)
+            {
+                appEvents[i] = new AppCtrlEvent();
+
+                appEvents[i].EventID = soc.RecvDWORD(client.Socket);
+                appEvents[i].ProcessPath = soc.RecvString(client.Socket);
+                appEvents[i].PID = soc.RecvDWORD(client.Socket);
+                appEvents[i].ParentPath = soc.RecvString(client.Socket);
+                appEvents[i].ParentPID = soc.RecvDWORD(client.Socket);
+                appEvents[i].Verdict = (IceScanVerdict) soc.RecvDWORD(client.Socket);
+                appEvents[i].MatchedRuleID = soc.RecvDWORD(client.Socket);
+                appEvents[i].EventTime = soc.RecvDWORD(client.Socket);
+            }
+
+            client.AppCtrlEvents = appEvents;
+            return appEvents;
         }
 
         public FSEvent[] GetFSEvents(Client client)
         {
             return new FSEvent[0];
+
 
             //if (null != client.FSEvents) return client.FSEvents;
 

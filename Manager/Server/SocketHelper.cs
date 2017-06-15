@@ -24,6 +24,8 @@ namespace Manager.Server
             byte[] buffer = RecvMessage(s, sizeof(int));
             int size = BitConverter.ToInt32(buffer, 0);
 
+            if (size == 0) return null;
+
             buffer = RecvMessage(s, size);
             return Encoding.Unicode.GetString(buffer);
         }

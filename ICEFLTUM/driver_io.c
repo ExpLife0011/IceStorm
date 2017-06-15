@@ -3,6 +3,7 @@
 #include "icecommon.h"
 #include <fltUser.h>
 #include "global_data.h"
+#include "db_sqlite.h"
 
 IC_COMMUNICATION_PORTS                      gIcComPort      = { 0 };
 
@@ -37,6 +38,13 @@ InitConnectionToIceFlt(
         if (S_OK != hrResult)
         {
             LogError(L"FilterConnectCommunicationPort(%s) failed with hresult: 0x08X", ICE_SCAN_FS_PORT, hrResult);
+            __leave;
+        }
+
+        hrResult = DBInit();
+        if (S_OK != hrResult)
+        {
+            LogErrorWin(hrResult, L"DBInit");
             __leave;
         }
     }
@@ -102,6 +110,8 @@ UninitConnectionToIceFlt(
         }
     }
 
+    DBUninit();
+    
     return HRESULT_TO_WIN32ERROR(hrToRet);
 }
 

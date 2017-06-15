@@ -24,7 +24,9 @@ typedef enum _IC_SERVER_COMMAND
     IcServerCommand_GetFSScanStatus     = 0x4,
 
     IcServerCommand_SetAppCtrlStatus    = 0x8,
-    IcServerCommand_SetFSScanStatus     = 0x10
+    IcServerCommand_SetFSScanStatus     = 0x10,
+
+    IcServerCommand_GetAppCtrlEvents    = 0x20
 
 } IC_SERVER_COMMAND, *PIC_SERVER_COMMAND;
 

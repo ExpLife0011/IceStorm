@@ -175,6 +175,47 @@ SendSetFSScanStatus(
 }
 
 VOID
+SendAppCtrlEvents(
+    VOID
+)
+{
+    PIC_APPCTRL_EVENT   pEvents     = NULL;
+    DWORD               dwLength    = 0;
+    DWORD               dwStatus    = ERROR_SUCCESS;
+    DWORD               dwFirstId   = 0;
+    DWORD               idx         = 0;
+
+    if (ERROR_SUCCESS != ClRecvDWORD(&dwFirstId)) return;
+
+    dwStatus = IcGetAppCtrlEvents(&pEvents, &dwLength, dwFirstId);
+    if (ERROR_SUCCESS != dwStatus && ERROR_NOT_FOUND != dwStatus)
+    {
+        LogErrorWin(dwStatus, L"IcGetAppCtrlEvents");
+        ClSendDWORD(IcServerCommandResult_Error);
+        return;
+    }
+
+    if (ERROR_SUCCESS != ClSendDWORD(IcServerCommandResult_Success)) return;
+
+    if (ERROR_SUCCESS != ClSendDWORD(dwLength)) return;
+
+    for (idx = 0; idx < dwLength; idx++)
+    {
+        if (ERROR_SUCCESS != ClSendDWORD(pEvents[idx].DwEventId)) return;
+        if (ERROR_SUCCESS != ClSendString(pEvents[idx].PProcessPath)) return;
+        if (ERROR_SUCCESS != ClSendDWORD(pEvents[idx].DwPid)) return;
+        if (ERROR_SUCCESS != ClSendString(pEvents[idx].PParentPath)) return;
+        if (ERROR_SUCCESS != ClSendDWORD(pEvents[idx].DwParentPid)) return;
+        if (ERROR_SUCCESS != ClSendDWORD(pEvents[idx].Verdict)) return;
+        if (ERROR_SUCCESS != ClSendDWORD(pEvents[idx].DwMatchedRuleId)) return;
+        if (ERROR_SUCCESS != ClSendDWORD(pEvents[idx].DwEventTime)) return;
+    }
+
+    IcFreeAppCtrlEventsList(pEvents, dwLength);
+    pEvents = NULL;
+}
+
+VOID
 ExecuteCommand(
     _In_    IC_SERVER_COMMAND       DwCommand
 )
@@ -199,6 +240,10 @@ ExecuteCommand(
 
         case IcServerCommand_SetFSScanStatus:
             SendSetFSScanStatus();
+            break;
+
+        case IcServerCommand_GetAppCtrlEvents:
+            SendAppCtrlEvents();
             break;
 
         default:
