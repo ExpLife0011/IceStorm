@@ -14,3 +14,9 @@ DWORD
 StopFSScan(
     VOID
 );
+
+_Success_(ERROR_SUCCESS == return)
+DWORD
+GetFSscanStatus(
+    _Out_       BOOLEAN                    *PBEnabled
+);

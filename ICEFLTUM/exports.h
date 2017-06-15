@@ -202,6 +202,20 @@ IcFreeAppCtrlEventsList(
     _In_        DWORD                       DwLength
 );
 
+ICEFLTUM_API
+_Success_(ERROR_SUCCESS == return)
+DWORD
+IcGetAppCtrlStatus(
+    _Out_       BOOLEAN                    *PBEnabled
+);
+
+ICEFLTUM_API
+_Success_(ERROR_SUCCESS == return)
+DWORD
+IcGetFSscanStatus(
+    _Out_       BOOLEAN                    *PBEnabled
+);
+
 #ifdef __cplusplus
 } // extern "C"
 #endif // __cplusplus

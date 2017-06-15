@@ -14,3 +14,9 @@ DWORD
 StopAppCtrlScan(
     VOID
 );
+
+_Success_(ERROR_SUCCESS == return)
+DWORD
+GetAppCtrlStatus(
+    _Out_       BOOLEAN                    *PBEnabled
+);

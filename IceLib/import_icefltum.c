@@ -23,6 +23,8 @@ PFUNC_IcGetFSEvents                         IcGetFSEvents               = NULL;
 PFUNC_IcFreeFSEventsList                    IcFreeFSEventsList          = NULL;
 PFUNC_IcGetAppCtrlEvents                    IcGetAppCtrlEvents          = NULL;
 PFUNC_IcFreeAppCtrlEventsList               IcFreeAppCtrlEventsList     = NULL;
+PFUNC_IcGetAppCtrlStatus                    IcGetAppCtrlStatus          = NULL;
+PFUNC_IcGetFSscanStatus                     IcGetFSscanStatus           = NULL;
 
 HMODULE                                     gHIcefltUM                  = NULL;
 
@@ -230,6 +232,24 @@ IcImportIcefltUmAPI(
             ntStatus = NTSTATUS_FROM_WIN32(GetLastError());
             LogErrorNt(ntStatus, L"GetProcAddress(\"IcFreeAppCtrlEventsList\") failed");
             LogErrorWin(GetLastError(), L"GetProcAddress(\"IcFreeAppCtrlEventsList\") failed");
+            __leave;
+        }
+
+        IcGetAppCtrlStatus = (PFUNC_IcGetAppCtrlStatus) GetProcAddress(gHIcefltUM, "IcGetAppCtrlStatus");
+        if (NULL == IcGetAppCtrlStatus)
+        {
+            ntStatus = NTSTATUS_FROM_WIN32(GetLastError());
+            LogErrorNt(ntStatus, L"GetProcAddress(\"IcGetAppCtrlStatus\") failed");
+            LogErrorWin(GetLastError(), L"GetProcAddress(\"IcGetAppCtrlStatus\") failed");
+            __leave;
+        }
+
+        IcGetFSscanStatus = (PFUNC_IcGetFSscanStatus) GetProcAddress(gHIcefltUM, "IcGetFSscanStatus");
+        if (NULL == IcGetFSscanStatus)
+        {
+            ntStatus = NTSTATUS_FROM_WIN32(GetLastError());
+            LogErrorNt(ntStatus, L"GetProcAddress(\"IcGetFSscanStatus\") failed");
+            LogErrorWin(GetLastError(), L"GetProcAddress(\"IcGetFSscanStatus\") failed");
             __leave;
         }
     }

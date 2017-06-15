@@ -176,6 +176,22 @@ VOID
 );
 
 
+typedef
+_Success_(ERROR_SUCCESS == return)
+DWORD
+(*PFUNC_IcGetAppCtrlStatus) (
+    _Out_       BOOLEAN                    *PBEnabled
+);
+
+typedef
+_Success_(ERROR_SUCCESS == return)
+DWORD
+(*PFUNC_IcGetFSscanStatus) (
+    _Out_       BOOLEAN                    *PBEnabled
+);
+
+
+
 extern PFUNC_IcInitConnectionToIceFlt       IcInitConnectionToIceFlt;
 extern PFUNC_IcUninitConnectionToIceFlt     IcUninitConnectionToIceFlt;
 extern PFUNC_IcSendSetOption                IcSendSetOption;
@@ -197,6 +213,8 @@ extern PFUNC_IcGetFSEvents                  IcGetFSEvents;
 extern PFUNC_IcFreeFSEventsList             IcFreeFSEventsList;
 extern PFUNC_IcGetAppCtrlEvents             IcGetAppCtrlEvents;
 extern PFUNC_IcFreeAppCtrlEventsList        IcFreeAppCtrlEventsList;
+extern PFUNC_IcGetAppCtrlStatus             IcGetAppCtrlStatus;
+extern PFUNC_IcGetFSscanStatus              IcGetFSscanStatus;
 
 _Success_(NT_SUCCESS(return))
 NTSTATUS

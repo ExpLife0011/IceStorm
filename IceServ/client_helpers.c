@@ -71,6 +71,7 @@ ClSendString(
     if (ERROR_SUCCESS != (dwResult = ClSendDWORD(dwSize))) return dwResult;
 
     if (ERROR_SUCCESS != (dwResult = ClSendAuxBuffer((PBYTE) PString, dwSize))) return dwResult;
+    LogInfo(L"Sent STRING: %s", PString);
 
     return ERROR_SUCCESS;
 }
@@ -84,7 +85,7 @@ ClSendDWORD(
     DWORD dwResult  = ERROR_SUCCESS;
     
     if (ERROR_SUCCESS != (dwResult = ClSendAuxBuffer((PBYTE) &DwValue, sizeof(DWORD)))) return dwResult;
-
+    LogInfo(L"Sent DWORD: %d", DwValue);
     return ERROR_SUCCESS;
 }
 

@@ -21,5 +21,6 @@ namespace Manager.Domain
         public bool IsFSScanEnabled { get; set; }
 
         public Socket Socket { get; set; }
+        public object SyncAccess = new object();
     }
 }

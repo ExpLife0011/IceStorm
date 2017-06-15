@@ -18,12 +18,7 @@ namespace Manager.Controller
             this.server = server;
             this.server.ClientsChangedCallback = ClientsListChanged;
         }
-
-        public Client[] GetClients()
-        {
-            return server.GetClients();
-        }
-
+        
         public void SetClientsChangedCallback(Action<Client[], object> callback, object context)
         {
             clientsChangedCallback = callback;
@@ -64,22 +59,34 @@ namespace Manager.Controller
 
         public int EnableAppCtrl(Client client, int enable)
         {
-            return server.EnableAppCtrl(client, enable);
+            lock (client.SyncAccess)
+            {
+                return server.EnableAppCtrl(client, enable);
+            }
         }
 
         public int GetAppCtrlStatus(Client client)
         {
-            return server.GetAppCtrlStatus(client);
+            lock (client.SyncAccess)
+            {
+                return server.GetAppCtrlStatus(client);
+            }
         }
 
         public int EnableFSScan(Client client, int enable)
         {
-            return server.EnableFSScan(client, enable);
+            lock (client.SyncAccess)
+            {
+                return server.EnableFSScan(client, enable);
+            }
         }
 
         public int GetFSScanStatus(Client client)
         {
-            return server.GetFSScanStatus(client);
+            lock (client.SyncAccess)
+            {
+                return server.GetFSScanStatus(client);
+            }
         }
 
         public int SendSetOption(Client client, int option, int value)

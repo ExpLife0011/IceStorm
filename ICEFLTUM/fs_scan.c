@@ -451,3 +451,13 @@ StopFSScan(
     gBFSScanStarted = FALSE;
     return dwResult;
 }
+
+_Use_decl_anno_impl_
+DWORD
+GetFSscanStatus(
+    BOOLEAN                                *PBEnabled
+)
+{
+    *PBEnabled = gBFSScanStarted;
+    return ERROR_SUCCESS;
+}

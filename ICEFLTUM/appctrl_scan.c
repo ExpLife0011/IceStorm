@@ -456,3 +456,13 @@ StopAppCtrlScan(
     gBAppCtrlStarted = FALSE;
     return dwResult;
 }
+
+_Use_decl_anno_impl_
+DWORD
+GetAppCtrlStatus(
+    BOOLEAN                                *PBEnabled
+)
+{
+    *PBEnabled = gBAppCtrlStarted;
+    return ERROR_SUCCESS;
+}

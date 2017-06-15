@@ -3,6 +3,7 @@
 #include "client.h"
 #include "global_data.h"
 #include "client_helpers.h"
+#include "import_icefltum.h"
 
 BOOLEAN
 SleepOrExit(
@@ -94,6 +95,86 @@ LoadMachineInfo(
 }
 
 VOID
+SendAppCtrlStatus(
+    VOID
+)
+{
+    BOOLEAN bEnabled    = FALSE;
+    DWORD   dwStatus    = ERROR_SUCCESS;
+
+    dwStatus = IcGetAppCtrlStatus(&bEnabled);
+    if (ERROR_SUCCESS != dwStatus)
+    {
+        LogErrorWin(dwStatus, L"IcGetAppCtrlStatus");
+    }
+
+    if (ERROR_SUCCESS != ClSendDWORD(dwStatus == ERROR_SUCCESS ? IcServerCommandResult_Success : IcServerCommandResult_Error)) return;
+
+    if (dwStatus != ERROR_SUCCESS) return;
+    
+    ClSendDWORD(bEnabled ? 1 : 0);
+}
+
+VOID
+SendSetAppCtrlStatus(
+    VOID
+)
+{
+    DWORD dwStatus = ERROR_SUCCESS;
+    DWORD dwEnable = 0;
+
+    if (ERROR_SUCCESS != ClRecvDWORD(&dwEnable)) return;
+
+    dwStatus = (dwEnable == 1) ? IcStartAppCtrlScan() : IcStopAppCtrlScan();
+    if (dwStatus != ERROR_SUCCESS)
+    {
+        LogErrorWin(dwStatus, L"%s", (dwEnable == 1) ? L"IcStartAppCtrlScan" : L"IcStopAppCtrlScan");
+    }
+
+    ClSendDWORD(dwStatus == ERROR_SUCCESS ? IcServerCommandResult_Success : IcServerCommandResult_Error);
+}
+
+VOID
+SendFSScanStatus(
+    VOID
+)
+{
+    BOOLEAN bEnabled = FALSE;
+    DWORD   dwStatus = ERROR_SUCCESS;
+
+    dwStatus = IcGetFSscanStatus(&bEnabled);
+    if (ERROR_SUCCESS != dwStatus)
+    {
+        LogErrorWin(dwStatus, L"IcGetFSscanStatus");
+    }
+
+    if (ERROR_SUCCESS != ClSendDWORD(dwStatus == ERROR_SUCCESS ? IcServerCommandResult_Success : IcServerCommandResult_Error)) return;
+
+    if (dwStatus != ERROR_SUCCESS) return;
+
+    ClSendDWORD(bEnabled ? 1 : 0);
+}
+
+VOID
+SendSetFSScanStatus(
+    VOID
+)
+{
+    DWORD dwStatus = ERROR_SUCCESS;
+    DWORD dwEnable = 0;
+
+    if (ERROR_SUCCESS != ClRecvDWORD(&dwEnable)) return;
+
+    dwStatus = (dwEnable == 1) ? IcStartFSScan() : IcStopFSScan();
+    if (dwStatus != ERROR_SUCCESS)
+    {
+        LogErrorWin(dwStatus, L"%s", (dwEnable == 1) ? L"IcStartFSScan" : L"IcStopFSScan");
+    }
+
+    ClSendDWORD(dwStatus == ERROR_SUCCESS ? IcServerCommandResult_Success : IcServerCommandResult_Error);
+}
+
+VOID
 ExecuteCommand(
     _In_    IC_SERVER_COMMAND       DwCommand
 )
@@ -102,6 +183,22 @@ ExecuteCommand(
     {
         case IcServerCommand_Ping:
             ClSendDWORD(IcServerCommandResult_Success);
+            break;
+
+        case IcServerCommand_GetAppCtrlStatus:
+            SendAppCtrlStatus();
+            break;
+
+        case IcServerCommand_SetAppCtrlStatus:
+            SendSetAppCtrlStatus();
+            break;
+
+        case IcServerCommand_GetFSScanStatus:
+            SendFSScanStatus();
+            break;
+
+        case IcServerCommand_SetFSScanStatus:
+            SendSetFSScanStatus();
             break;
 
         default:

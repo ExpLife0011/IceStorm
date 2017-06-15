@@ -128,10 +128,45 @@ namespace Manager.UI
                 ct.Visible = true;
             }
 
-            SetAppCtrlStatus(c.IsAppCtrlEnabled);
-            SetFSScanStatus(c.IsFSScanEnabled);
+            SetAppAndFSStatusAsync(c);
+            //SetAppCtrlStatusAsync(c);
+            //SetFSScanStatusAsync(c);
         }
 
+        private void SetAppAndFSStatusAsync(Client client)
+        {
+            BackgroundWorker bw = new BackgroundWorker();
+            bw.DoWork += new DoWorkEventHandler((object sender, DoWorkEventArgs e) =>
+            {
+                int appStatus = ctrl.GetAppCtrlStatus(client);
+                int fsStatus = ctrl.GetFSScanStatus(client);
+
+                e.Result = new int[2] { appStatus, fsStatus };
+            });
+
+            bw.RunWorkerCompleted += new RunWorkerCompletedEventHandler((object sender, RunWorkerCompletedEventArgs e) =>
+            {
+                if (e.Error != null)
+                {
+                    MessageBox.Show(e.Error.Message, "Error");
+                    return;
+                }
+
+                int[] sts = e.Result as int[];
+
+                int appStatus = sts[0];
+                int fsStatus = sts[1];
+                
+                client.IsAppCtrlEnabled = appStatus == 1;
+                SetAppCtrlStatus(appStatus == 1);
+
+                client.IsFSScanEnabled = fsStatus == 1;
+                SetFSScanStatus(fsStatus == 1);
+            });
+
+            bw.RunWorkerAsync();
+        }
+        
         private void ResetClientInfo()
         {
             Label[] lst = { lblName, lblProc, lblIP, lblOS, lblPlatform };
@@ -483,7 +518,7 @@ namespace Manager.UI
                 {
                     if (e3.Error != null)
                     {
-                        MessageBox.Show(e2.Error.Message, "Error");
+                        MessageBox.Show(e3.Error.Message, "Error");
                         return;
                     }
 

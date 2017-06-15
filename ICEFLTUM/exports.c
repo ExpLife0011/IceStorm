@@ -300,3 +300,30 @@ IcFreeAppCtrlEventsList(
 
     FreeAppCtrlEventsList(PEvents, DwLength);
 }
+
+_Use_decl_anno_impl_
+DWORD
+IcGetAppCtrlStatus(
+    BOOLEAN                                *PBEnabled
+)
+{
+    if (NULL == PBEnabled)
+    {
+        return ERROR_INVALID_PARAMETER;
+    }
+
+    return GetAppCtrlStatus(PBEnabled);
+}
+
+_Use_decl_anno_impl_
+DWORD
+IcGetFSscanStatus(
+    BOOLEAN                                *PBEnabled
+)
+{
+    if (NULL == PBEnabled)
+    {
+        return ERROR_INVALID_PARAMETER;
+    }
+    return GetFSscanStatus(PBEnabled);
+}

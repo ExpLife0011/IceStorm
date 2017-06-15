@@ -35,6 +35,7 @@ namespace Manager.Server
 
             return value;
         }
+
         private byte[] RecvMessage(Socket s, int size)
         {
             byte[] buffer = new byte[size];
