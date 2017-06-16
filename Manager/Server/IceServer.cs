@@ -305,28 +305,35 @@ namespace Manager.Server
         /****************************************************************/
         public AppCtrlRule[] GetAppCtrlRules(Client client)
         {
-            return new AppCtrlRule[0];
-            //if (null != client.AppCtrlRules) return client.AppCtrlRules;
+            soc.SendDWORD(client.Socket, (int)IceServerCommand.GetAppCtrlRules);
+            
+            IceServerCommandResult cmdResult = (IceServerCommandResult)soc.RecvDWORD(client.Socket);
+            if (cmdResult != IceServerCommandResult.Success)
+                throw new Exception("Failed to get AppCtrl Rules for client " + client.Name);
 
-            //AppCtrlRule[] fakeAppRules = new AppCtrlRule[10];
+            int len = soc.RecvDWORD(client.Socket);
 
-            //for (int i = 0; i < fakeAppRules.Length; i++)
-            //{
-            //    fakeAppRules[i] = new AppCtrlRule();
+            if (len == 0) return new AppCtrlRule[0];
 
-            //    fakeAppRules[i].RuleID = i + 1;
-            //    fakeAppRules[i].ProcessPath = "C:\\path\\proces" + i + ".exe";
-            //    fakeAppRules[i].ParentPath = "C:\\path\\parinte" + i + ".exe";
-            //    fakeAppRules[i].ParentPID = (i + 1) * 50 + i;
-            //    fakeAppRules[i].PID = (i + 1) * 50;
-            //    fakeAppRules[i].ProcessPathMatcher = ((i % 2) == 1) ? IceStringMatcher.Equal : IceStringMatcher.Wildmat;
-            //    fakeAppRules[i].ParentPathMatcher = ((i % 2) == 1) ? IceStringMatcher.Equal : IceStringMatcher.Wildmat;
-            //    fakeAppRules[i].AddTime = 6000 + i;
-            //    fakeAppRules[i].Verdict = ((i % 2) == 1) ? IceScanVerdict.Allow : IceScanVerdict.Deny;
-            //}
+            AppCtrlRule[] appRules = new AppCtrlRule[len];
 
-            //client.AppCtrlRules = fakeAppRules;
-            //return fakeAppRules;
+            for (int i = 0; i < len; i++)
+            {
+                appRules[i] = new AppCtrlRule();
+
+                appRules[i].RuleID = soc.RecvDWORD(client.Socket);
+                appRules[i].ProcessPathMatcher = (IceStringMatcher) soc.RecvDWORD(client.Socket);
+                appRules[i].ProcessPath = soc.RecvString(client.Socket);
+                appRules[i].PID = soc.RecvDWORD(client.Socket);
+                appRules[i].ParentPathMatcher = (IceStringMatcher) soc.RecvDWORD(client.Socket);
+                appRules[i].ParentPath = soc.RecvString(client.Socket);
+                appRules[i].ParentPID = soc.RecvDWORD(client.Socket);
+                appRules[i].Verdict = (IceScanVerdict)soc.RecvDWORD(client.Socket);
+                appRules[i].AddTime = soc.RecvDWORD(client.Socket);
+            }
+
+            client.AppCtrlRules = appRules;
+            return appRules;
         }
 
         public FSRule[] GetFSRules(Client client)
@@ -354,10 +361,10 @@ namespace Manager.Server
             //return fakeFSRules;
         }
 
-        public AppCtrlEvent[] GetAppCtrlEvents(Client client)
+        public AppCtrlEvent[] GetAppCtrlEvents(Client client, int lastID)
         {
             soc.SendDWORD(client.Socket, (int)IceServerCommand.GetAppCtrlEvents);
-            soc.SendDWORD(client.Socket, 0);
+            soc.SendDWORD(client.Socket, lastID);
 
             IceServerCommandResult cmdResult = (IceServerCommandResult)soc.RecvDWORD(client.Socket);
             if (cmdResult != IceServerCommandResult.Success)
@@ -383,7 +390,7 @@ namespace Manager.Server
                 appEvents[i].EventTime = soc.RecvDWORD(client.Socket);
             }
 
-            client.AppCtrlEvents = appEvents;
+            //client.AppCtrlEvents = appEvents;
             return appEvents;
         }
 
@@ -483,18 +490,27 @@ namespace Manager.Server
             //client.FSRules = client.FSRules.Where(rule => rule.RuleID != id).ToArray();
             //return 1;
         }
+
         public int AddAppCtrlRule(Client client, AppCtrlRule rule)
         {
-            return 1;
-            //rule.RuleID = client.AppCtrlRules.Length + 1;
-            //AppCtrlRule[] rules = client.AppCtrlRules;
-            //int len = client.AppCtrlRules.Length;
+            soc.SendDWORD(client.Socket, (int)IceServerCommand.AddAppCtrlRule);
 
-            //Array.Resize(ref rules, rules.Length + 1);
-            //rules[len] = rule;
+            soc.SendDWORD(client.Socket, (int)rule.ProcessPathMatcher);
+            soc.SendString(client.Socket, rule.ProcessPath);
+            soc.SendDWORD(client.Socket, rule.PID);
+            soc.SendDWORD(client.Socket, (int)rule.ParentPathMatcher);
+            soc.SendString(client.Socket, rule.ParentPath);
+            soc.SendDWORD(client.Socket, rule.ParentPID);
+            soc.SendDWORD(client.Socket, (int)rule.Verdict);
 
-            //client.AppCtrlRules = rules;
-            //return rule.RuleID;
+            IceServerCommandResult cmdResult = (IceServerCommandResult)soc.RecvDWORD(client.Socket);
+            if (cmdResult != IceServerCommandResult.Success)
+                throw new Exception("Failed to Add AppCtrl Rule for client " + client.Name);
+
+            int ruleId = soc.RecvDWORD(client.Socket);
+
+            log.Info("AppCtrl rule was added: " + ruleId);
+            return ruleId;
         }
 
         public int AddFSScanRule(Client client, FSRule rule)
@@ -513,39 +529,35 @@ namespace Manager.Server
 
         public int DeleteAppCtrlRule(Client client, int id)
         {
+            soc.SendDWORD(client.Socket, (int)IceServerCommand.DeleteAppCtrlRule);
+
+            soc.SendDWORD(client.Socket, id);
+            
+            IceServerCommandResult cmdResult = (IceServerCommandResult)soc.RecvDWORD(client.Socket);
+            if (cmdResult != IceServerCommandResult.Success)
+                throw new Exception("Failed to Delete AppCtrl Rule " + id + " for client " + client.Name);
+
             return 1;
-            //client.AppCtrlRules = client.AppCtrlRules.Where(rule => rule.RuleID != id).ToArray();
-            //return 1;
         }
 
         public int UpdateAppCtrlRule(Client client, AppCtrlRule rule)
         {
+            soc.SendDWORD(client.Socket, (int)IceServerCommand.UpdateAppCtrlRule);
+            soc.SendDWORD(client.Socket, rule.RuleID);
+
+            soc.SendDWORD(client.Socket, (int)rule.ProcessPathMatcher);
+            soc.SendString(client.Socket, rule.ProcessPath);
+            soc.SendDWORD(client.Socket, rule.PID);
+            soc.SendDWORD(client.Socket, (int)rule.ParentPathMatcher);
+            soc.SendString(client.Socket, rule.ParentPath);
+            soc.SendDWORD(client.Socket, rule.ParentPID);
+            soc.SendDWORD(client.Socket, (int)rule.Verdict);
+
+            IceServerCommandResult cmdResult = (IceServerCommandResult)soc.RecvDWORD(client.Socket);
+            if (cmdResult != IceServerCommandResult.Success)
+                throw new Exception("Failed to Update AppCtrl Rule " + rule.RuleID + "  for client " + client.Name);
+
             return 1;
-            //for (int i = 0; i < clients.Length; i++)
-            //{
-            //    if (clients[i].ClientID == client.ClientID)
-            //    {
-            //        for (int j = 0; j < clients[i].AppCtrlRules.Length; j++)
-            //        {
-            //            if (clients[i].AppCtrlRules[j].RuleID == rule.RuleID)
-            //            {
-            //                clients[i].AppCtrlRules[j].ProcessPathMatcher = rule.ProcessPathMatcher;
-            //                clients[i].AppCtrlRules[j].ProcessPath = rule.ProcessPath;
-            //                clients[i].AppCtrlRules[j].PID = rule.PID;
-            //                clients[i].AppCtrlRules[j].ParentPathMatcher = rule.ParentPathMatcher;
-            //                clients[i].AppCtrlRules[j].ParentPath = rule.ParentPath;
-            //                clients[i].AppCtrlRules[j].ParentPID = rule.ParentPID;
-            //                clients[i].AppCtrlRules[j].Verdict = rule.Verdict;
-
-            //                break;
-            //            }
-            //        }
-
-            //        break;
-            //    }
-            //}
-
-            //return 1;
         }
 
         public int UpdateFSScanRule(Client client, FSRule rule)

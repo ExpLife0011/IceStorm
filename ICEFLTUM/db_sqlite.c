@@ -56,12 +56,14 @@ CreateTables(
 _Success_(return != NULL)
 PWCHAR
 CreateCopyOfWString(
-    _In_    PWCHAR                              PString
+    _In_    PWCHAR                              PString,
+    _In_    DWORD                               Matcher
 )
 {
     PWCHAR  pNewStr = NULL;
     DWORD   dwSize  = 0;
-    
+    DWORD   idx     = 0;
+
     if (NULL == PString) return NULL;
     
     dwSize = (DWORD) ((wcslen(PString) + 1) * sizeof(WCHAR));
@@ -71,6 +73,15 @@ CreateCopyOfWString(
         Sleep(10);
     }
     memcpy(pNewStr, PString, dwSize);
+
+    if (Matcher == IcStringMatcher_Wildmat)
+    {
+        for (idx = 0; idx < dwSize / sizeof(WCHAR); idx++)
+        {
+            if (pNewStr[idx] == L'%') pNewStr[idx] = L'*';
+            else if (pNewStr[idx] == L'_') pNewStr[idx] = L'?';
+        }
+    }
 
     return pNewStr;
 }
@@ -83,10 +94,10 @@ CreateAppCtrlRuleRow(
 {
     PRule->DwRuleId = (DWORD) sqlite3_column_int64(PStatement, 0);
     PRule->MatcherProcessPath = (DWORD) sqlite3_column_int64(PStatement, 1);
-    PRule->PProcessPath = CreateCopyOfWString(sqlite3_column_type(PStatement, 2) == SQLITE_NULL ? NULL : (PWCHAR) sqlite3_column_text16(PStatement, 2));
+    PRule->PProcessPath = CreateCopyOfWString(sqlite3_column_type(PStatement, 2) == SQLITE_NULL ? NULL : (PWCHAR) sqlite3_column_text16(PStatement, 2), PRule->MatcherProcessPath);
     PRule->DwPid = (DWORD) sqlite3_column_int64(PStatement, 3);
     PRule->MatcherParentPath = (DWORD) sqlite3_column_int64(PStatement, 4);
-    PRule->PParentPath = CreateCopyOfWString(sqlite3_column_type(PStatement, 5) == SQLITE_NULL ? NULL : (PWCHAR) sqlite3_column_text16(PStatement, 5));
+    PRule->PParentPath = CreateCopyOfWString(sqlite3_column_type(PStatement, 5) == SQLITE_NULL ? NULL : (PWCHAR) sqlite3_column_text16(PStatement, 5), PRule->MatcherParentPath);
     PRule->DwParentPid = (DWORD) sqlite3_column_int64(PStatement, 6);
     PRule->Verdict = (DWORD) sqlite3_column_int64(PStatement, 7);
     PRule->DwAddTime = (DWORD) sqlite3_column_int64(PStatement, 8);
@@ -100,10 +111,10 @@ CreateFSScanRuleRow(
 {
     PRule->DwRuleId = (DWORD) sqlite3_column_int64(PStatement, 0);
     PRule->MatcherProcessPath = (DWORD) sqlite3_column_int64(PStatement, 1);
-    PRule->PProcessPath = CreateCopyOfWString(sqlite3_column_type(PStatement, 2) == SQLITE_NULL ? NULL : (PWCHAR) sqlite3_column_text16(PStatement, 2));
+    PRule->PProcessPath = CreateCopyOfWString(sqlite3_column_type(PStatement, 2) == SQLITE_NULL ? NULL : (PWCHAR) sqlite3_column_text16(PStatement, 2), PRule->MatcherProcessPath);
     PRule->DwPid = (DWORD) sqlite3_column_int64(PStatement, 3);
     PRule->MatcherFilePath = (DWORD) sqlite3_column_int64(PStatement, 4);
-    PRule->PFilePath = CreateCopyOfWString(sqlite3_column_type(PStatement, 5) == SQLITE_NULL ? NULL : (PWCHAR) sqlite3_column_text16(PStatement, 5));
+    PRule->PFilePath = CreateCopyOfWString(sqlite3_column_type(PStatement, 5) == SQLITE_NULL ? NULL : (PWCHAR) sqlite3_column_text16(PStatement, 5), PRule->MatcherFilePath);
     PRule->UlDeniedOperations = (DWORD) sqlite3_column_int64(PStatement, 6);
     PRule->DwAddTime = (DWORD) sqlite3_column_int64(PStatement, 7);
 }
@@ -115,9 +126,9 @@ CreateFSEventRow(
 )
 {
     PEvent->DwEventId = (DWORD) sqlite3_column_int64(PStatement, 0);
-    PEvent->PProcessPath = CreateCopyOfWString(sqlite3_column_type(PStatement, 1) == SQLITE_NULL ? NULL : (PWCHAR) sqlite3_column_text16(PStatement, 1));
+    PEvent->PProcessPath = CreateCopyOfWString(sqlite3_column_type(PStatement, 1) == SQLITE_NULL ? NULL : (PWCHAR) sqlite3_column_text16(PStatement, 1), 100);
     PEvent->DwPid = (DWORD) sqlite3_column_int64(PStatement, 2);
-    PEvent->PFilePath = CreateCopyOfWString(sqlite3_column_type(PStatement, 3) == SQLITE_NULL ? NULL : (PWCHAR) sqlite3_column_text16(PStatement, 3));
+    PEvent->PFilePath = CreateCopyOfWString(sqlite3_column_type(PStatement, 3) == SQLITE_NULL ? NULL : (PWCHAR) sqlite3_column_text16(PStatement, 3), 100);
     PEvent->UlRequiredOperations = (DWORD) sqlite3_column_int64(PStatement, 4);
     PEvent->UlDeniedOperations = (DWORD) sqlite3_column_int64(PStatement, 5);
     PEvent->UlRemainingOperations = (DWORD) sqlite3_column_int64(PStatement, 6);
@@ -132,9 +143,9 @@ CreateAppCtrlEventRow(
 )
 {
     PEvent->DwEventId = (DWORD) sqlite3_column_int64(PStatement, 0);
-    PEvent->PProcessPath = CreateCopyOfWString(sqlite3_column_type(PStatement, 1) == SQLITE_NULL ? NULL : (PWCHAR) sqlite3_column_text16(PStatement, 1));
+    PEvent->PProcessPath = CreateCopyOfWString(sqlite3_column_type(PStatement, 1) == SQLITE_NULL ? NULL : (PWCHAR) sqlite3_column_text16(PStatement, 1), 100);
     PEvent->DwPid = (DWORD) sqlite3_column_int64(PStatement, 2);
-    PEvent->PParentPath = CreateCopyOfWString(sqlite3_column_type(PStatement, 3) == SQLITE_NULL ? NULL : (PWCHAR) sqlite3_column_text16(PStatement, 3));
+    PEvent->PParentPath = CreateCopyOfWString(sqlite3_column_type(PStatement, 3) == SQLITE_NULL ? NULL : (PWCHAR) sqlite3_column_text16(PStatement, 3), 100);
     PEvent->DwParentPid = (DWORD) sqlite3_column_int64(PStatement, 4);
     PEvent->Verdict = (DWORD) sqlite3_column_int64(PStatement, 5);
     PEvent->DwMatchedRuleId = (DWORD) sqlite3_column_int64(PStatement, 6);

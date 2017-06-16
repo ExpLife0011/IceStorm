@@ -70,10 +70,11 @@ ClSendString(
 
     if (ERROR_SUCCESS != (dwResult = ClSendDWORD(dwSize))) return dwResult;
     
+    //LogInfo(L"Sending string: %s", PString);
     if (dwSize != 0)
     {
         if (ERROR_SUCCESS != (dwResult = ClSendAuxBuffer((PBYTE) PString, dwSize))) return dwResult;
-        LogInfo(L"Sent STRING: %s", PString);
+        //LogInfo(L"Sent STRING: %s", PString);
     }
 
     return ERROR_SUCCESS;
@@ -244,4 +245,25 @@ ClRecvDWORD(
 )
 {
     return ClRecvMessageWithoutSize((PBYTE) PDwValue, sizeof(DWORD));
+}
+
+_Use_decl_anno_impl_
+DWORD
+ClRecvString(
+    PWCHAR        *PPString
+)
+{
+    DWORD       dwSize      = 0;
+    DWORD       dwStatus    = ERROR_SUCCESS;
+
+    if (ERROR_SUCCESS != (dwStatus = ClRecvDWORD(&dwSize))) return dwStatus;
+    if (0 == dwSize) return ERROR_SUCCESS;
+
+    *PPString = (PWCHAR) malloc(dwSize + sizeof(WCHAR));
+    if (*PPString == NULL) return ERROR_NOT_ENOUGH_MEMORY;
+    RtlSecureZeroMemory(*PPString, dwSize + sizeof(WCHAR));
+
+    if (ERROR_SUCCESS != (dwStatus = ClRecvMessageWithoutSize((PBYTE) *PPString, dwSize))) return dwStatus;
+
+    return ERROR_SUCCESS;
 }

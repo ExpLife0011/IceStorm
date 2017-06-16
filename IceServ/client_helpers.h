@@ -46,3 +46,9 @@ DWORD
 ClRecvDWORD(
     _Inout_     DWORD           *PDwValue
 );
+
+_Success_(return == ERROR_SUCCESS)
+DWORD
+ClRecvString(
+    _Out_       PWCHAR         *PPString
+);

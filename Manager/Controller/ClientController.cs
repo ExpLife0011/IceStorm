@@ -34,24 +34,47 @@ namespace Manager.Controller
 
         public AppCtrlRule[] GetAppCtrlRules(Client client)
         {
-            if (null == client)
+            lock (client.SyncAccess)
             {
-                throw new Exception("Invalid client.");
+                return server.GetAppCtrlRules(client);
             }
-
-            return server.GetAppCtrlRules(client);
         }
 
         public FSRule[] GetFSRules(Client client)
         {
-            return server.GetFSRules(client);
+            lock (client.SyncAccess)
+            {
+                return server.GetFSRules(client);
+            }
         }
 
         public AppCtrlEvent[] GetAppCtrlEvents(Client client)
         {
             lock (client.SyncAccess)
             {
-                return server.GetAppCtrlEvents(client);
+                int lastId = 0;
+                if (client.AppCtrlEvents != null && client.AppCtrlEvents.Length != 0)
+                {
+                    lastId = client.AppCtrlEvents[0].EventID;
+                }
+                else
+                {
+                    client.AppCtrlEvents = new AppCtrlEvent[0];
+                }
+                
+                AppCtrlEvent[] newAppEvents = server.GetAppCtrlEvents(client, lastId);
+                if (newAppEvents == null || newAppEvents.Length == 0)
+                    return client.AppCtrlEvents;
+
+                AppCtrlEvent[] oldAppEvents = client.AppCtrlEvents;
+                int finalLen = oldAppEvents.Length + newAppEvents.Length;
+                AppCtrlEvent[] finalAppEvents = new AppCtrlEvent[finalLen];
+                
+                Array.Copy(newAppEvents, 0, finalAppEvents, 0, newAppEvents.Length);
+                Array.Copy(oldAppEvents, 0, finalAppEvents, newAppEvents.Length, oldAppEvents.Length);
+                
+                client.AppCtrlEvents = finalAppEvents;
+                return finalAppEvents;
             }
         }
 
@@ -97,37 +120,58 @@ namespace Manager.Controller
 
         public int SendSetOption(Client client, int option, int value)
         {
-            return server.SendSetOption(client, option, value);
+            lock (client.SyncAccess)
+            {
+                return server.SendSetOption(client, option, value);
+            }
         }
 
         public int DeleteAppCtrlRule(Client client, int id)
         {
-            return server.DeleteAppCtrlRule(client, id);
+            lock (client.SyncAccess)
+            {
+                return server.DeleteAppCtrlRule(client, id);
+            }
         }
 
         public int DeleteFSScanRule(Client client, int id)
         {
-            return server.DeleteFSScanRule(client, id);
+            lock (client.SyncAccess)
+            {
+                return server.DeleteFSScanRule(client, id);
+            }
         }
 
         public int AddAppCtrlRule(Client client, AppCtrlRule rule)
         {
-            return server.AddAppCtrlRule(client, rule);
+            lock (client.SyncAccess)
+            {
+                return server.AddAppCtrlRule(client, rule);
+            }
         }
 
         public int AddFSScanRule(Client client, FSRule rule)
         {
-            return server.AddFSScanRule(client, rule);
+            lock (client.SyncAccess)
+            {
+                return server.AddFSScanRule(client, rule);
+            }
         }
 
         public int UpdateAppCtrlRule(Client client, AppCtrlRule rule)
         {
-            return server.UpdateAppCtrlRule(client, rule);
+            lock (client.SyncAccess)
+            {
+                return server.UpdateAppCtrlRule(client, rule);
+            }
         }
 
         public int UpdateFSScanRule(Client client, FSRule rule)
         {
-            return server.UpdateFSScanRule(client, rule);
+            lock (client.SyncAccess)
+            {
+                return server.UpdateFSScanRule(client, rule);
+            }
         }
     }
 }

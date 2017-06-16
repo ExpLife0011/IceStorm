@@ -195,24 +195,199 @@ SendAppCtrlEvents(
         return;
     }
 
-    if (ERROR_SUCCESS != ClSendDWORD(IcServerCommandResult_Success)) return;
-
-    if (ERROR_SUCCESS != ClSendDWORD(dwLength)) return;
-
-    for (idx = 0; idx < dwLength; idx++)
+    __try
     {
-        if (ERROR_SUCCESS != ClSendDWORD(pEvents[idx].DwEventId)) return;
-        if (ERROR_SUCCESS != ClSendString(pEvents[idx].PProcessPath)) return;
-        if (ERROR_SUCCESS != ClSendDWORD(pEvents[idx].DwPid)) return;
-        if (ERROR_SUCCESS != ClSendString(pEvents[idx].PParentPath)) return;
-        if (ERROR_SUCCESS != ClSendDWORD(pEvents[idx].DwParentPid)) return;
-        if (ERROR_SUCCESS != ClSendDWORD(pEvents[idx].Verdict)) return;
-        if (ERROR_SUCCESS != ClSendDWORD(pEvents[idx].DwMatchedRuleId)) return;
-        if (ERROR_SUCCESS != ClSendDWORD(pEvents[idx].DwEventTime)) return;
+        if (ERROR_SUCCESS != ClSendDWORD(IcServerCommandResult_Success)) __leave;
+
+        if (ERROR_SUCCESS != ClSendDWORD(dwLength)) __leave;
+
+        for (idx = 0; idx < dwLength; idx++)
+        {
+            if (ERROR_SUCCESS != ClSendDWORD(pEvents[idx].DwEventId)) __leave;
+            if (ERROR_SUCCESS != ClSendString(pEvents[idx].PProcessPath)) __leave;
+            if (ERROR_SUCCESS != ClSendDWORD(pEvents[idx].DwPid)) __leave;
+            if (ERROR_SUCCESS != ClSendString(pEvents[idx].PParentPath)) __leave;
+            if (ERROR_SUCCESS != ClSendDWORD(pEvents[idx].DwParentPid)) __leave;
+            if (ERROR_SUCCESS != ClSendDWORD(pEvents[idx].Verdict)) __leave;
+            if (ERROR_SUCCESS != ClSendDWORD(pEvents[idx].DwMatchedRuleId)) __leave;
+            if (ERROR_SUCCESS != ClSendDWORD(pEvents[idx].DwEventTime)) __leave;
+        }
+    }
+    __finally
+    {
+        IcFreeAppCtrlEventsList(pEvents, dwLength);
+        pEvents = NULL;
+    }
+}
+
+VOID
+SendAddAppCtrlRule(
+    VOID
+)
+{
+    DWORD               dwStatus                    = ERROR_SUCCESS;
+    IC_STRING_MATCHER   procMatcher                 = IcStringMatcher_Equal;
+    PWCHAR              pProcPath                   = NULL;
+    DWORD               dwPID                       = 0;
+    IC_STRING_MATCHER   parentProcMatcher           = IcStringMatcher_Equal;
+    PWCHAR              pParentProcPath             = NULL;
+    DWORD               dwParentPID                 = 0;
+    ICE_SCAN_VERDICT    verdict                     = IceScanVerdict_Allow;
+    DWORD               dwRuleId                    = 0;
+
+    __try
+    {
+        if (ERROR_SUCCESS != ClRecvDWORD((PDWORD) &procMatcher)) __leave;
+        if (ERROR_SUCCESS != ClRecvString(&pProcPath)) __leave;
+        if (ERROR_SUCCESS != ClRecvDWORD(&dwPID)) __leave;
+        if (ERROR_SUCCESS != ClRecvDWORD((PDWORD) &parentProcMatcher)) __leave;
+        if (ERROR_SUCCESS != ClRecvString(&pParentProcPath)) __leave;
+        if (ERROR_SUCCESS != ClRecvDWORD(&dwParentPID)) __leave;
+        if (ERROR_SUCCESS != ClRecvDWORD((PDWORD) &verdict)) __leave;
+
+        dwStatus = IcAddAppCtrlRule(procMatcher, pProcPath, dwPID, parentProcMatcher, pParentProcPath, dwParentPID, verdict, &dwRuleId);
+        if (ERROR_SUCCESS != dwStatus)
+        {
+            LogErrorWin(dwStatus, L"IcAddAppCtrlRule");
+            ClSendDWORD(IcServerCommandResult_Error);
+            __leave;
+        }
+
+        if (ERROR_SUCCESS != ClSendDWORD(IcServerCommandResult_Success)) __leave;
+
+        if (ERROR_SUCCESS != ClSendDWORD(dwRuleId)) __leave;
+    }
+    __finally
+    {
+        if (NULL != pProcPath)
+        {
+            free(pProcPath);
+            pProcPath = NULL;
+        }
+
+        if (NULL != pParentProcPath)
+        {
+            free(pParentProcPath);
+            pParentProcPath = NULL;
+        }
+    }
+}
+
+VOID
+SendAppCtrlRules(
+    VOID
+)
+{
+    PIC_APPCTRL_RULE    pRules      = NULL;
+    DWORD               dwLength    = 0;
+    DWORD               dwStatus    = ERROR_SUCCESS;
+    DWORD               idx         = 0;
+
+    
+    dwStatus = IcGetAppCtrlRules(&pRules, &dwLength);
+    if (ERROR_SUCCESS != dwStatus && ERROR_NOT_FOUND != dwStatus)
+    {
+        LogErrorWin(dwStatus, L"IcGetAppCtrlRules");
+        ClSendDWORD(IcServerCommandResult_Error);
+        return;
     }
 
-    IcFreeAppCtrlEventsList(pEvents, dwLength);
-    pEvents = NULL;
+    __try 
+    {
+        if (ERROR_SUCCESS != ClSendDWORD(IcServerCommandResult_Success)) __leave;
+
+        if (ERROR_SUCCESS != ClSendDWORD(dwLength)) __leave;
+
+        for (idx = 0; idx < dwLength; idx++)
+        {
+            if (ERROR_SUCCESS != ClSendDWORD(pRules[idx].DwRuleId)) __leave;
+            if (ERROR_SUCCESS != ClSendDWORD(pRules[idx].MatcherProcessPath)) __leave;
+            if (ERROR_SUCCESS != ClSendString(pRules[idx].PProcessPath)) __leave;
+            if (ERROR_SUCCESS != ClSendDWORD(pRules[idx].DwPid)) __leave;
+            if (ERROR_SUCCESS != ClSendDWORD(pRules[idx].MatcherParentPath)) __leave;
+            if (ERROR_SUCCESS != ClSendString(pRules[idx].PParentPath)) __leave;
+            if (ERROR_SUCCESS != ClSendDWORD(pRules[idx].DwParentPid)) __leave;
+            if (ERROR_SUCCESS != ClSendDWORD(pRules[idx].Verdict)) __leave;
+            if (ERROR_SUCCESS != ClSendDWORD(pRules[idx].DwAddTime)) __leave;
+        }
+    }
+    __finally
+    {
+        IcFreeAppCtrlRulesList(pRules, dwLength);
+        pRules = NULL;
+    }
+}
+
+VOID
+SendDeleteAppCtrlRule(
+    VOID
+)
+{
+    DWORD dwRuleId = 0;
+    DWORD dwStatus = ERROR_SUCCESS;
+
+    if (ERROR_SUCCESS != ClRecvDWORD((PDWORD) &dwRuleId)) return;
+
+    dwStatus = IcDeleteAppCtrlRule(dwRuleId);
+    if (ERROR_SUCCESS != dwStatus)
+    {
+        LogErrorWin(dwStatus, L"IcDeleteAppCtrlRule(%d)", dwRuleId);
+    }
+    
+    ClSendDWORD(dwStatus == ERROR_SUCCESS ? IcServerCommandResult_Success : IcServerCommandResult_Error);
+}
+
+VOID
+SendUpdateAppCtrlRule(
+    VOID
+)
+{
+    DWORD               dwStatus                    = ERROR_SUCCESS;
+    IC_STRING_MATCHER   procMatcher                 = IcStringMatcher_Equal;
+    PWCHAR              pProcPath                   = NULL;
+    DWORD               dwPID                       = 0;
+    IC_STRING_MATCHER   parentProcMatcher           = IcStringMatcher_Equal;
+    PWCHAR              pParentProcPath             = NULL;
+    DWORD               dwParentPID                 = 0;
+    ICE_SCAN_VERDICT    verdict                     = IceScanVerdict_Allow;
+    DWORD               dwRuleId                    = 0;
+
+    __try
+    {
+        if (ERROR_SUCCESS != ClRecvDWORD(&dwRuleId)) __leave;
+
+        if (ERROR_SUCCESS != ClRecvDWORD((PDWORD) &procMatcher)) __leave;
+        if (ERROR_SUCCESS != ClRecvString(&pProcPath)) __leave;
+        if (ERROR_SUCCESS != ClRecvDWORD(&dwPID)) __leave;
+        if (ERROR_SUCCESS != ClRecvDWORD((PDWORD) &parentProcMatcher)) __leave;
+        if (ERROR_SUCCESS != ClRecvString(&pParentProcPath)) __leave;
+        if (ERROR_SUCCESS != ClRecvDWORD(&dwParentPID)) __leave;
+        if (ERROR_SUCCESS != ClRecvDWORD((PDWORD) &verdict)) __leave;
+
+        dwStatus = IcUpdateAppCtrlRule(dwRuleId, procMatcher, pProcPath, dwPID, parentProcMatcher, pParentProcPath, dwParentPID, verdict);
+        if (ERROR_SUCCESS != dwStatus)
+        {
+            LogErrorWin(dwStatus, L"IcAddAppCtrlRule");
+            ClSendDWORD(IcServerCommandResult_Error);
+            __leave;
+        }
+
+        if (ERROR_SUCCESS != ClSendDWORD(IcServerCommandResult_Success)) __leave;
+    }
+    __finally
+    {
+        if (NULL != pProcPath)
+        {
+            free(pProcPath);
+            pProcPath = NULL;
+        }
+
+        if (NULL != pParentProcPath)
+        {
+            free(pParentProcPath);
+            pParentProcPath = NULL;
+        }
+    }
 }
 
 VOID
@@ -245,6 +420,23 @@ ExecuteCommand(
         case IcServerCommand_GetAppCtrlEvents:
             SendAppCtrlEvents();
             break;
+
+        case IcServerCommand_AddAppCtrlRule:
+            SendAddAppCtrlRule();
+            break;
+
+        case IcServerCommand_GetAppCtrlRules:
+            SendAppCtrlRules();
+            break;
+
+        case IcServerCommand_DeleteAppCtrlRule:
+            SendDeleteAppCtrlRule();
+            break;
+
+        case IcServerCommand_UpdateAppCtrlRule:
+            SendUpdateAppCtrlRule();
+            break;
+
 
         default:
             LogInfo(L"Unknown command: %d", DwCommand);

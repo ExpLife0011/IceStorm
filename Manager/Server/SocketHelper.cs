@@ -81,6 +81,23 @@ namespace Manager.Server
             return buffer;
         }
 
+        public void SendString(Socket s, string val)
+        {
+            byte[] buffer = new byte[0];
+            int size = 0;
+
+            if (!string.IsNullOrEmpty(val))
+            {
+                buffer = Encoding.Unicode.GetBytes(val);
+                size = buffer.Length;
+            }
+
+            SendDWORD(s, size);
+
+            if (size == 0) return;
+
+            SendMessage(s, buffer, buffer.Length);
+        }
 
         public void SendDWORD(Socket s, int value)
         {

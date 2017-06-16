@@ -26,9 +26,22 @@ typedef enum _IC_SERVER_COMMAND
     IcServerCommand_SetAppCtrlStatus    = 0x8,
     IcServerCommand_SetFSScanStatus     = 0x10,
 
-    IcServerCommand_GetAppCtrlEvents    = 0x20
+    IcServerCommand_GetAppCtrlEvents    = 0x20,
+    IcServerCommand_GetAppCtrlRules     = 0x40,
+    IcServerCommand_AddAppCtrlRule      = 0x80,
+    IcServerCommand_UpdateAppCtrlRule   = 0x100,
+    IcServerCommand_DeleteAppCtrlRule   = 0x200,
+
+    IcServerCommand_GetFSScanEvents     = 0x400,
+    IcServerCommand_GetFSScanRules      = 0x800,
+    IcServerCommand_AddFSScanRule       = 0x1000,
+    IcServerCommand_UpdateFSScanRule    = 0x2000,
+    IcServerCommand_DeleteFSScanRule    = 0x4000,
+    
+    IcServerCommand_SetOption           = 0x8000,
 
 } IC_SERVER_COMMAND, *PIC_SERVER_COMMAND;
+
 
 typedef enum _IC_SERVER_COMMAND_RESULT
 {

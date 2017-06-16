@@ -285,7 +285,7 @@ SQL_STM_GET_APPCTRL_EVENTS(
     VOID
 )
 {
-    return "SELECT * FROM [appctrl_events] WHERE [id] > ? ORDER BY [id] ASC";
+    return "SELECT * FROM [appctrl_events] WHERE [id] > ? ORDER BY [id] DESC";
 
 }
 
@@ -295,7 +295,7 @@ SQL_STM_GET_APPCTRL_EVENTS_COUNT(
     VOID
 )
 {
-    return "SELECT COUNT(*) FROM [appctrl_events] WHERE [id] > ? ORDER BY [id] ASC";
+    return "SELECT COUNT(*) FROM [appctrl_events] WHERE [id] > ? ORDER BY [id] DESC";
 }
 
 __inline
@@ -304,7 +304,7 @@ SQL_STM_GET_FS_EVENTS(
     VOID
 )
 {
-    return "SELECT * FROM [fs_events] WHERE [id] > ? ORDER BY [id] ASC";
+    return "SELECT * FROM [fs_events] WHERE [id] > ? ORDER BY [id] DESC";
 }
 
 __inline
@@ -313,5 +313,5 @@ SQL_STM_GET_FS_EVENTS_COUNT(
     VOID
 )
 {
-    return "SELECT COUNT(*) FROM [fs_events] WHERE [id] > ? ORDER BY [id] ASC";
+    return "SELECT COUNT(*) FROM [fs_events] WHERE [id] > ? ORDER BY [id] DESC";
 }

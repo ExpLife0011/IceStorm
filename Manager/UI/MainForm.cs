@@ -258,7 +258,7 @@ namespace Manager.UI
                     r.ParentPath,
                     r.ParentPID.ToString(), 
                     r.Verdict.ToString(),
-                    r.AddTime.ToString() 
+                    GetTimeString(r.AddTime)
                 };
                 ListViewItem lvi = new ListViewItem(row);
                 listAppRules.Items.Add(lvi);
@@ -306,7 +306,7 @@ namespace Manager.UI
                     r.FilePathMatcher.ToString(),
                     r.FilePath,
                     GetOperationsString(r.DeniedOperations),
-                    r.AddTime.ToString()
+                    GetTimeString(r.AddTime)
                 };
                 ListViewItem lvi = new ListViewItem(row);
                 listFSRules.Items.Add(lvi);
@@ -364,7 +364,7 @@ namespace Manager.UI
             {
                 string[] row = {
                     e.EventID.ToString(), e.ProcessPath, e.PID.ToString(), e.ParentPath, e.ParentPID.ToString(),
-                    e.Verdict.ToString(), e.MatchedRuleID.ToString(), e.EventTime.ToString()
+                    e.Verdict.ToString(), e.MatchedRuleID.ToString(), GetTimeString(e.EventTime)
                 };
                 ListViewItem lvi = new ListViewItem(row);
                 if (e.Verdict == IceScanVerdict.Deny) lvi.ForeColor = System.Drawing.Color.Red;
@@ -413,7 +413,7 @@ namespace Manager.UI
                     GetOperationsString(e.DeniedOperations),
                     GetOperationsString(e.RequiredOperations),
                     e.MatchedRuleID.ToString(),
-                    e.EventTime.ToString()
+                    GetTimeString(e.EventTime)
                 };
                 ListViewItem lvi = new ListViewItem(row);
                 if (e.DeniedOperations != 0) lvi.ForeColor = System.Drawing.Color.Red;
@@ -982,6 +982,14 @@ namespace Manager.UI
             GetNeededList(clients[listClients.SelectedIndices[0]]);
 
             return true;
+        }
+
+        private string GetTimeString(int time)
+        {
+            DateTime epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            DateTime realTime = epoch.AddSeconds(time + 3 * 60 * 60);
+
+            return string.Format("{0:d/M/yyyy HH:mm:ss}", realTime);
         }
     }
 }

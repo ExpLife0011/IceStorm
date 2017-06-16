@@ -67,6 +67,7 @@ GetAppCtrlScanResult(
     appEvent.Verdict = verdict;
     appEvent.PParentPath = PRule->PParentPath;
     appEvent.PProcessPath = PRule->PProcessPath;
+    appEvent.DwMatchedRuleId = PRule->DwRuleId;
 
     DbAddAppEvent(&appEvent);
     
