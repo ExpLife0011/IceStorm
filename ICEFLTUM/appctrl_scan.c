@@ -136,6 +136,82 @@ FreeRule(
 }
 
 VOID
+ClearProcessPath(
+    _Inout_     PWCHAR         *Path
+)
+{
+    PWCHAR  pAuxPath    = NULL;
+    DWORD   dwLen       = 0;
+    DWORD   dwSize      = 0;
+
+    if (0 != memcmp(*Path, L"\\??\\", 8)) return;
+
+    dwLen = (DWORD) (wcslen(*Path) - 4);
+    dwSize = (DWORD) ((dwLen + 3) * sizeof(WCHAR));
+    if (NULL == (pAuxPath = malloc(dwSize))) return;
+    RtlSecureZeroMemory(pAuxPath, dwSize);
+
+    memcpy_s(pAuxPath, dwSize, ((PBYTE) *Path) + 8, (dwLen + 1) * sizeof(WCHAR));
+    
+    free(*Path);
+    *Path = pAuxPath;
+}
+
+VOID
+ConvertAppPathToDOSPath(
+    _Inout_     PWCHAR         *Path
+)
+{
+    DWORD       idxVol          = 0;
+    BOOLEAN     bFound          = FALSE;
+    DWORD       dwPrefixLen     = 0;
+    PWCHAR      pDosVolume      = NULL;
+    DWORD       dwDosVolumeLen  = 0;
+    DWORD       dwSize          = 0;
+    DWORD       dwLen           = 0;
+    PWCHAR      pAxuPath        = NULL;
+
+    for (idxVol = 0; idxVol < gDwNrOfVolumes; idxVol++)
+    {
+        if (0 == memcmp(*Path, gVolumes[idxVol].PDevice, gVolumes[idxVol].LenDevice * sizeof(WCHAR)))
+        {
+            dwPrefixLen = gVolumes[idxVol].LenDevice;
+            pDosVolume = gVolumes[idxVol].PPath;
+            dwDosVolumeLen = gVolumes[idxVol].LenPath;
+            bFound = TRUE;
+            break;
+        }
+
+        if (0 == memcmp(*Path, gVolumes[idxVol].PVolume, gVolumes[idxVol].LenVolume * sizeof(WCHAR)))
+        {
+            dwPrefixLen = gVolumes[idxVol].LenVolume;
+            pDosVolume = gVolumes[idxVol].PPath;
+            dwDosVolumeLen = gVolumes[idxVol].LenPath;
+            bFound = TRUE;
+            break;
+        }
+    }
+
+    if (!bFound) return;
+
+    dwLen = (DWORD) wcslen(*Path);
+    dwSize = (DWORD) ((dwLen + 3) * sizeof(WCHAR));
+    if (NULL == (pAxuPath = malloc(dwSize))) return;
+    RtlSecureZeroMemory(pAxuPath, dwSize);
+
+    memcpy_s(pAxuPath, dwSize, pDosVolume, dwDosVolumeLen * sizeof(WCHAR));
+    memcpy_s(
+        ((PBYTE) pAxuPath) + (dwDosVolumeLen * sizeof(WCHAR)), 
+        dwSize - (dwDosVolumeLen * sizeof(WCHAR)), 
+        ((PBYTE) *Path) + (dwPrefixLen * sizeof(WCHAR)), 
+        (dwLen - dwPrefixLen)* sizeof(WCHAR)
+    );
+
+    free(*Path);
+    *Path = pAxuPath;
+}
+
+VOID
 BuildRuleFromScanRequest(
     _In_    ICE_APP_CTRL_SCAN_REQUEST_PACKET   *PScanRequest,
     _Out_   IC_APPCTRL_RULE                    *PRule
@@ -152,6 +228,8 @@ BuildRuleFromScanRequest(
     RtlSecureZeroMemory(PRule->PProcessPath, dwSize);
     RtlCopyMemory(PRule->PProcessPath, PScanRequest->PStrings, PScanRequest->DwProcessPathSize);
 
+    ClearProcessPath(&PRule->PProcessPath);
+
     dwSize = PScanRequest->DwParentPathSize + sizeof(WCHAR);
     PRule->PParentPath = (PWCHAR) malloc(dwSize);
     if (NULL == PRule->PParentPath) return;
@@ -161,6 +239,8 @@ BuildRuleFromScanRequest(
         ((PBYTE) PScanRequest->PStrings) + PScanRequest->DwProcessPathSize, 
         PScanRequest->DwParentPathSize
     );
+
+    ConvertAppPathToDOSPath(&PRule->PParentPath);
 }
 
 DWORD

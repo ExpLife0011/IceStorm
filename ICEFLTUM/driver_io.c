@@ -8,8 +8,127 @@
 #include "appctrl_scan.h"
 #include "fs_scan.h"
 
-IC_COMMUNICATION_PORTS                      gIcComPort      = { 0 };
+IC_COMMUNICATION_PORTS                      gIcComPort                  = { 0 };
+IC_VOLUME_INFO                              gVolumes[MAX_VOLUMES_SIZE]  = { 0 };
+DWORD                                       gDwNrOfVolumes              = 0;
 
+DWORD
+GetVolumePaths(
+    _Inout_     PIC_VOLUME_INFO             PVolumeInfo
+)
+{
+    DWORD   dwCharCount = MAX_PATH;
+    DWORD   dwStatus    = ERROR_SUCCESS;
+
+    __try
+    {
+        if (!GetVolumePathNamesForVolumeNameW(PVolumeInfo->PVolume, PVolumeInfo->PPath, MAX_PATH, &dwCharCount))
+        {
+            dwStatus = GetLastError();
+            LogErrorWin(dwStatus, L"GetVolumePathNamesForVolumeNameW(%s)", PVolumeInfo->PVolume);
+            __leave;
+        }
+    }
+    __finally
+    {
+
+    }
+
+    return dwStatus;
+}
+
+_Success_(ERROR_SUCCESS == return)
+DWORD
+InitVolumeNames(
+    VOID
+)
+{
+    HANDLE  hFind       = INVALID_HANDLE_VALUE;
+    DWORD   dwStatus    = ERROR_SUCCESS;
+    DWORD   dwIndex     = 0;
+
+    __try
+    {
+        hFind = FindFirstVolumeW(gVolumes[gDwNrOfVolumes].PVolume, MAX_PATH);
+        if (hFind == INVALID_HANDLE_VALUE)
+        {
+            dwStatus = GetLastError();
+            LogErrorWin(dwStatus, L"FindFirstVolumeW");
+            __leave;
+        }
+
+        while (TRUE)
+        {
+            dwIndex = wcslen(gVolumes[gDwNrOfVolumes].PVolume) - 1;
+
+            if (
+                gVolumes[gDwNrOfVolumes].PVolume[0] != L'\\' || 
+                gVolumes[gDwNrOfVolumes].PVolume[1] != L'\\' || 
+                gVolumes[gDwNrOfVolumes].PVolume[2] != L'?' || 
+                gVolumes[gDwNrOfVolumes].PVolume[3] != L'\\' || 
+                gVolumes[gDwNrOfVolumes].PVolume[dwIndex] != L'\\'
+                )
+            {
+                dwStatus = ERROR_BAD_PATHNAME;
+                LogErrorWin(dwStatus, L"FindNextVolumeW returned a bad path: %s", gVolumes[gDwNrOfVolumes].PVolume);
+                break;
+            }
+
+            gVolumes[gDwNrOfVolumes].PVolume[dwIndex] = L'\0';
+            if (0 == QueryDosDeviceW(gVolumes[gDwNrOfVolumes].PVolume + 4, gVolumes[gDwNrOfVolumes].PDevice, MAX_PATH))
+            {
+                dwStatus = GetLastError();
+                LogErrorWin(dwStatus, L"QueryDosDeviceW(%s)", gVolumes[gDwNrOfVolumes].PVolume + 4);
+                __leave;
+            }
+            gVolumes[gDwNrOfVolumes].PVolume[dwIndex] = L'\\';
+
+            dwStatus = GetVolumePaths(gVolumes + gDwNrOfVolumes);
+            if (ERROR_SUCCESS != dwStatus)
+            {
+                LogErrorWin(dwStatus, L"GetVolumePaths");
+                __leave;
+            }
+
+            gVolumes[gDwNrOfVolumes].LenDevice = wcslen(gVolumes[gDwNrOfVolumes].PDevice);
+            gVolumes[gDwNrOfVolumes].LenVolume = wcslen(gVolumes[gDwNrOfVolumes].PVolume);
+            gVolumes[gDwNrOfVolumes].LenPath = wcslen(gVolumes[gDwNrOfVolumes].PPath);
+
+            if (gVolumes[gDwNrOfVolumes].PDevice[gVolumes[gDwNrOfVolumes].LenDevice - 1] != L'\\')
+            {
+                gVolumes[gDwNrOfVolumes].PDevice[gVolumes[gDwNrOfVolumes].LenDevice] = L'\\';
+                gVolumes[gDwNrOfVolumes].PDevice[gVolumes[gDwNrOfVolumes].LenDevice + 1] = 0;
+                gVolumes[gDwNrOfVolumes].LenDevice++;
+            }
+
+            gDwNrOfVolumes++;
+
+            if (!FindNextVolumeW(hFind, gVolumes[gDwNrOfVolumes].PVolume, MAX_PATH))
+            {
+                dwStatus = GetLastError();
+
+                if (dwStatus != ERROR_NO_MORE_FILES)
+                {
+                    LogErrorWin(dwStatus, L"FindNextVolumeW");
+                    break;
+                }
+
+                dwStatus = ERROR_SUCCESS;
+                break;
+            }
+        }
+    }
+    __finally
+    {
+        if (INVALID_HANDLE_VALUE != hFind)
+        {
+            FindVolumeClose(hFind);
+            hFind = INVALID_HANDLE_VALUE;
+        }
+    }
+
+    return dwStatus;
+}
 
 _Use_decl_anno_impl_
 DWORD
@@ -43,6 +162,13 @@ InitConnectionToIceFlt(
         if (S_OK != hrResult)
         {
             LogError(L"FilterConnectCommunicationPort(%s) failed with hresult: 0x08X", ICE_SCAN_FS_PORT, hrResult);
+            __leave;
+        }
+
+        hrResult = InitVolumeNames();
+        if (ERROR_SUCCESS != hrResult)
+        {
+            LogErrorWin(hrResult, L"InitVolumeNames");
             __leave;
         }
 

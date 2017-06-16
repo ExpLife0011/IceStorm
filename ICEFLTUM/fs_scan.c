@@ -55,6 +55,60 @@ FreeFSScanRule(
 }
 
 VOID
+ConvertPathToDOSPath(
+    _In_z_  PWCHAR      *Path
+)
+{
+    DWORD       idxVol          = 0;
+    BOOLEAN     bFound          = FALSE;
+    DWORD       dwPrefixLen     = 0;
+    PWCHAR      pDosVolume      = NULL;
+    DWORD       dwDosVolumeLen  = 0;
+    DWORD       dwSize          = 0;
+    DWORD       dwLen           = 0;
+    PWCHAR      pAxuPath        = NULL;
+    
+    for (idxVol = 0; idxVol < gDwNrOfVolumes; idxVol++)
+    {
+        if (0 == memcmp(*Path, gVolumes[idxVol].PDevice, gVolumes[idxVol].LenDevice * sizeof(WCHAR)))
+        {
+            dwPrefixLen = gVolumes[idxVol].LenDevice;
+            pDosVolume = gVolumes[idxVol].PPath;
+            dwDosVolumeLen = gVolumes[idxVol].LenPath;
+            bFound = TRUE;
+            break;
+        }
+
+        if (0 == memcmp(*Path, gVolumes[idxVol].PVolume, gVolumes[idxVol].LenVolume * sizeof(WCHAR)))
+        {
+            dwPrefixLen = gVolumes[idxVol].LenVolume;
+            pDosVolume = gVolumes[idxVol].PPath;
+            dwDosVolumeLen = gVolumes[idxVol].LenPath;
+            bFound = TRUE;
+            break;
+        }
+    }
+
+    if (!bFound) return;
+
+    dwLen = (DWORD) wcslen(*Path);
+    dwSize = (DWORD) ((dwLen + 3) * sizeof(WCHAR));
+    if (NULL == (pAxuPath = malloc(dwSize))) return;
+    RtlSecureZeroMemory(pAxuPath, dwSize);
+
+    memcpy_s(pAxuPath, dwSize, pDosVolume, dwDosVolumeLen * sizeof(WCHAR));
+    memcpy_s(
+        ((PBYTE) pAxuPath) + (dwDosVolumeLen * sizeof(WCHAR)), 
+        dwSize - (dwDosVolumeLen * sizeof(WCHAR)), 
+        ((PBYTE) *Path) + (dwPrefixLen * sizeof(WCHAR)), 
+        (dwLen - dwPrefixLen)* sizeof(WCHAR)
+    );
+
+    free(*Path);
+    *Path = pAxuPath;
+}
+
+VOID
 BuildFSScanRuleFromScanRequest(
     _In_    ICE_FS_SCAN_REQUEST_PACKET     *PScanRequest,
     _Out_   IC_FS_RULE                     *PRule
@@ -69,6 +123,8 @@ BuildFSScanRuleFromScanRequest(
     if (NULL == PRule->PProcessPath) return;
     RtlSecureZeroMemory(PRule->PProcessPath, dwSize);
     RtlCopyMemory(PRule->PProcessPath, PScanRequest->PStrings, PScanRequest->DwProcessPathSize);
+
+    ConvertPathToDOSPath(&PRule->PProcessPath);
 
     dwSize = PScanRequest->DwFilePathSize + sizeof(WCHAR);
     PRule->PFilePath = (PWCHAR) malloc(dwSize);
