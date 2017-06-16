@@ -64,6 +64,16 @@ SQL_STM_CREATE_TABLES(
         "  [event_time] INTEGER NOT NULL "
         ""
         "); "
+        ""
+        ""
+        // Settings
+        "CREATE TABLE IF NOT EXISTS [ice_setting] ("
+        "  [appctrl_status] INTEGER NOT NULL, "
+        "  [fsscan_status] INTEGER NOT NULL "
+        ""
+        "); "
+        ""
+        ""
         "";
 }
 
@@ -314,4 +324,49 @@ SQL_STM_GET_FS_EVENTS_COUNT(
 )
 {
     return "SELECT COUNT(*) FROM [fs_events] WHERE [id] > ? ORDER BY [id] DESC";
+}
+
+__inline
+PCHAR
+SQL_STM_GET_SETTINGS_COUNT(
+    VOID
+)
+{
+    return "SELECT COUNT(*) FROM [ice_setting]";
+}
+
+__inline
+PCHAR
+SQL_STM_INSERT_SETTINGS_DEFAULT_ROW(
+    VOID
+)
+{
+    return "INSERT INTO [ice_setting] ([appctrl_status], [fsscan_status]) VALUES (0, 0)";
+}
+
+__inline
+PCHAR
+SQL_STM_UPDATE_SETTINGS_APPCTRL(
+    VOID
+)
+{
+    return "UPDATE [ice_setting] SET [appctrl_status] = ?";
+}
+
+__inline
+PCHAR
+SQL_STM_UPDATE_SETTINGS_FSSCAN(
+    VOID
+)
+{
+    return "UPDATE [ice_setting] SET [fsscan_status] = ?";
+}
+
+__inline
+PCHAR
+SQL_STM_GET_SETTINGS(
+    VOID
+)
+{
+    return "SELECT * FROM [ice_setting]";
 }

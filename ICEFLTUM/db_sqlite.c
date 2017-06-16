@@ -53,6 +53,78 @@ CreateTables(
     return dwStatus;
 }
 
+DWORD
+GetNumberOfRows(
+    _In_z_      PCHAR                           PStmtSql
+)
+{
+    DWORD           dwNrOfRows      = 0;
+    sqlite3_stmt   *pStatement      = NULL;
+
+    if (SQLITE_OK != PrepareStmt(PStmtSql, &pStatement)) return dwNrOfRows;
+
+    do 
+    {
+        if (SQLITE_ROW != Step(pStatement)) break;
+
+        dwNrOfRows = (DWORD) sqlite3_column_int64(pStatement, 0);
+        PCHAR pTxt = sqlite3_expanded_sql(pStatement);
+        LogInfo(L"%S returned %d rows", pTxt, dwNrOfRows);
+        sqlite3_free(pTxt);
+    } while (0);
+
+    if (NULL != pStatement)
+    {
+        Reset(pStatement);
+        FinalizeStmt(pStatement);
+        pStatement = NULL;
+    }
+
+    return dwNrOfRows;
+}
+
+_Success_(ERROR_SUCCESS == return)
+DWORD
+CreateSettingsDefaultRow(
+    VOID
+)
+{
+    DWORD               dwStatus    = SQLITE_OK;
+    sqlite3_stmt       *pStatement  = NULL;
+    DWORD               dwRows      = 0;
+
+    dwRows = GetNumberOfRows(SQL_STM_GET_SETTINGS_COUNT());
+    if (dwRows != 0)
+    {
+        return ERROR_SUCCESS;
+    }
+
+    __try
+    {
+        if (SQLITE_OK != (dwStatus = PrepareStmt(SQL_STM_INSERT_SETTINGS_DEFAULT_ROW(), &pStatement))) __leave;
+
+        dwStatus = Step(pStatement);
+        if (SQLITE_DONE != dwStatus)
+        {
+            LogErrorWin(dwStatus, L"Step for SQL_STM_INSERT_SETTINGS_DEFAULT_ROW");
+            __leave;
+        }
+
+        dwStatus = ERROR_SUCCESS;
+    }
+    __finally
+    {
+        if (NULL != pStatement)
+        {
+            Reset(pStatement);
+            FinalizeStmt(pStatement);
+            pStatement = NULL;
+        }
+    }
+
+    return dwStatus;
+}
+
 _Success_(return != NULL)
 PWCHAR
 CreateCopyOfWString(
@@ -153,36 +225,6 @@ CreateAppCtrlEventRow(
 }
 
 DWORD
-GetNumberOfRows(
-    _In_z_      PCHAR                           PStmtSql
-)
-{
-    DWORD           dwNrOfRows      = 0;
-    sqlite3_stmt   *pStatement      = NULL;
-
-    if (SQLITE_OK != PrepareStmt(PStmtSql, &pStatement)) return dwNrOfRows;
-    
-    do 
-    {
-        if (SQLITE_ROW != Step(pStatement)) break;
-
-        dwNrOfRows = (DWORD) sqlite3_column_int64(pStatement, 0);
-        PCHAR pTxt = sqlite3_expanded_sql(pStatement);
-        LogInfo(L"%S returned %d rows", pTxt, dwNrOfRows);
-        sqlite3_free(pTxt);
-    } while (0);
-
-    if (NULL != pStatement)
-    {
-        Reset(pStatement);
-        FinalizeStmt(pStatement);
-        pStatement = NULL;
-    }
-    
-    return dwNrOfRows;
-}
-
-DWORD
 GetNumberOfRowsWithLimit(
     _In_z_      PCHAR                           PStmtSql,
     _In_        DWORD                           DwFirstId
@@ -224,12 +266,28 @@ DBInit(
     VOID
 )
 {
-    DWORD dwStatus = SQLITE_OK;
-    
+    DWORD   dwStatus            = SQLITE_OK;
+    CHAR    pDBPath[MAX_PATH]   = { 0 };
+    DWORD   i                   = 0;
+
     if (gBDBInit) return ERROR_SUCCESS;
 
     __try
     {
+
+        if (0 == GetModuleFileNameA(NULL, pDBPath, MAX_PATH))
+        {
+            dwStatus = GetLastError();
+            LogWarningWin(GetLastError(), L"GetModuleFileNameA");
+            strcpy_s(pDBPath, MAX_PATH, DATABASE_NAME);
+        }
+        else
+        {
+            for (i = (DWORD) strlen(pDBPath); (i > 0) && (pDBPath[i] != L'\\'); i--);
+            pDBPath[i] = 0;
+            sprintf_s(pDBPath, MAX_PATH, "%s\\%s", pDBPath, DATABASE_NAME);
+        }
+
         dwStatus = sqlite3_initialize();
         if (SQLITE_OK != dwStatus)
         {
@@ -237,7 +295,7 @@ DBInit(
             __leave;
         }
 
-        dwStatus = sqlite3_open_v2(DATABASE_NAME, &gPDB, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX, NULL);
+        dwStatus = sqlite3_open_v2(pDBPath, &gPDB, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX, NULL);
         if (SQLITE_OK != dwStatus)
         {
             LogErrorWin(dwStatus, L"sqlite3_open_v2: %S", gPDB ? sqlite3_errmsg(gPDB) : "Probably not enough memory");
@@ -248,6 +306,8 @@ DBInit(
 
         if (SQLITE_OK != (dwStatus = CreateTables())) __leave;
         
+        if (SQLITE_OK != (dwStatus = CreateSettingsDefaultRow())) __leave;
+
         gBDBInit = TRUE;
     }
     __finally
@@ -1224,4 +1284,110 @@ DbFreeAppCtrlEventsList(
 
     free(PEvents);
     PEvents = NULL;
+}
+
+_Use_decl_anno_impl_
+DWORD
+DBSetAppCtrlScanStatus(
+    DWORD                       DwStatus
+)
+{
+    DWORD           dwError     = ERROR_SUCCESS;
+    sqlite3_stmt   *pStatement  = NULL;
+
+    __try
+    {
+        if (SQLITE_OK != (dwError = PrepareStmt(SQL_STM_UPDATE_SETTINGS_APPCTRL(), &pStatement))) __leave;
+        if (SQLITE_OK != (dwError = BindInt(pStatement, 1, DwStatus))) __leave;
+        
+        if (SQLITE_DONE != (dwError = Step(pStatement))) __leave;
+
+        dwError = ERROR_SUCCESS;
+    }
+    __finally
+    {
+        if (NULL != pStatement)
+        {
+            Reset(pStatement);
+            FinalizeStmt(pStatement);
+            pStatement = NULL;
+        }
+    }
+
+    return dwError;
+}
+
+_Use_decl_anno_impl_
+DWORD
+DBSetFSScanStatus(
+    DWORD                       DwStatus
+)
+{
+    DWORD           dwError     = ERROR_SUCCESS;
+    sqlite3_stmt   *pStatement  = NULL;
+
+    __try
+    {
+        if (SQLITE_OK != (dwError = PrepareStmt(SQL_STM_UPDATE_SETTINGS_FSSCAN(), &pStatement))) __leave;
+        if (SQLITE_OK != (dwError = BindInt(pStatement, 1, DwStatus))) __leave;
+
+        if (SQLITE_DONE != (dwError = Step(pStatement))) __leave;
+
+        dwError = ERROR_SUCCESS;
+    }
+    __finally
+    {
+        if (NULL != pStatement)
+        {
+            Reset(pStatement);
+            FinalizeStmt(pStatement);
+            pStatement = NULL;
+        }
+    }
+
+    return dwError;
+}
+
+DWORD
+DbGetScanStatus(
+    DWORD           *PDwAppCtrlStatus,
+    DWORD           *PDwFSScanStatus
+)
+{
+    DWORD               dwStatus            = SQLITE_OK;
+    DWORD               dwStepResult        = 0;
+    DWORD               dwIndex             = 0;
+    sqlite3_stmt       *pStatement          = NULL;
+
+    __try
+    {
+        if (SQLITE_OK != (dwStatus = PrepareStmt(SQL_STM_GET_SETTINGS(), &pStatement))) __leave;
+        
+        dwStepResult = Step(pStatement);
+        if (SQLITE_ROW != dwStepResult && SQLITE_DONE != dwStepResult)
+        {
+            dwStatus = dwStepResult;
+            __leave;
+        }
+
+        while (SQLITE_ROW == dwStepResult)
+        {
+            *PDwAppCtrlStatus = (DWORD) sqlite3_column_int64(pStatement, 0);
+            *PDwFSScanStatus = (DWORD) sqlite3_column_int64(pStatement, 1);
+
+            dwStepResult = Step(pStatement);
+            dwIndex++;
+        }
+    }
+    __finally
+    {
+        if (NULL != pStatement)
+        {
+            Reset(pStatement);
+            FinalizeStmt(pStatement);
+            pStatement = NULL;
+        }
+    }
+
+    return dwStatus;
 }

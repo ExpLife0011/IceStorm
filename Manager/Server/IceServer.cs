@@ -178,7 +178,6 @@ namespace Manager.Server
                 }
                 
                 if (stopEvent.WaitOne(100)) break;
-                log.Info("nu");
             }
 
             if (restartServer && !stopEvent.WaitOne(50))
@@ -287,9 +286,12 @@ namespace Manager.Server
 
             try
             {
-                soc.SendDWORD(c.Socket, (int)IceServerCommand.Ping);
-                int r = soc.RecvDWORD(c.Socket);
-                isConnected = r == (int)IceServerCommandResult.Success;
+                lock (c.SyncAccess)
+                {
+                    soc.SendDWORD(c.Socket, (int)IceServerCommand.Ping);
+                    int r = soc.RecvDWORD(c.Socket);
+                    isConnected = r == (int)IceServerCommandResult.Success;
+                }
             }
             catch (Exception ex)
             {
@@ -478,10 +480,17 @@ namespace Manager.Server
 
         public int SendSetOption(Client client, int option, int value)
         {
-            return 1;
-            //log.Info("Setoption " + option + " " + value);
+            soc.SendDWORD(client.Socket, (int)IceServerCommand.SetOption);
+            soc.SendDWORD(client.Socket, option);
+            soc.SendDWORD(client.Socket, value);
 
-            //return 1;
+            int errorCode = soc.RecvDWORD(client.Socket); ;
+            IceServerCommandResult cmdResult = (IceServerCommandResult)soc.RecvDWORD(client.Socket);
+            if (cmdResult != IceServerCommandResult.Success)
+                throw new Exception(
+                    string.Format("Failed to Send Set Option {0} {1} client {2} (Error: {3})", option, value, client.Name, errorCode));
+
+            return 1;
         }
 
         public int DeleteFSScanRule(Client client, int id)

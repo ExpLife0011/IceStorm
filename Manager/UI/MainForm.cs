@@ -70,9 +70,9 @@ namespace Manager.UI
                         ResetAllLists();
                         SetRuleInfo();
 
-                        foreach (Client c in lst)
+                        for (int i = 0; i < lst.Length; i++)
                         {
-                            listClients.Items.Add(new ListViewItem(c.Name));
+                            listClients.Items.Add(new ListViewItem(string.Format("{0}. {1}", i+1, lst[i].Name)));
                         }
                     }), 
                     clients, context);

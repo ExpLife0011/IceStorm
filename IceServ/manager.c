@@ -391,6 +391,29 @@ SendUpdateAppCtrlRule(
 }
 
 VOID
+SendSetOptionCmd(
+    VOID
+)
+{
+    DWORD dwStatus  = ERROR_SUCCESS;
+    DWORD dwOption  = 0;
+    DWORD dwValue   = 0;
+
+    if (ERROR_SUCCESS != ClRecvDWORD(&dwOption)) return;
+    if (ERROR_SUCCESS != ClRecvDWORD(&dwValue)) return;
+
+    dwStatus = IcSendSetOption(dwOption, dwValue);
+    if (ERROR_SUCCESS != dwStatus)
+    {
+        LogErrorWin(dwStatus, L"IcSendSetOption(%d, %d)", dwOption, dwValue);
+    }
+
+    if (ERROR_SUCCESS != ClSendDWORD(dwStatus)) return;
+
+    ClSendDWORD(dwStatus == ERROR_SUCCESS ? IcServerCommandResult_Success : IcServerCommandResult_Error);
+}
+
+VOID
 ExecuteCommand(
     _In_    IC_SERVER_COMMAND       DwCommand
 )
@@ -435,6 +458,10 @@ ExecuteCommand(
 
         case IcServerCommand_UpdateAppCtrlRule:
             SendUpdateAppCtrlRule();
+            break;
+
+        case IcServerCommand_SetOption:
+            SendSetOptionCmd();
             break;
 
 

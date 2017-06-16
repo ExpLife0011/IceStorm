@@ -151,6 +151,25 @@ DbFreeAppCtrlEventsList(
     _In_        DWORD                       DwLength
 );
 
+_Success_(ERROR_SUCCESS == return)
+DWORD
+DBSetAppCtrlScanStatus(
+    _In_        DWORD                       DwStatus
+);
+
+_Success_(ERROR_SUCCESS == return)
+DWORD
+DBSetFSScanStatus(
+    _In_        DWORD                       DwStatus
+);
+
+_Success_(ERROR_SUCCESS == return)
+DWORD
+DbGetScanStatus(
+    _Out_       DWORD                      *PDwAppCtrlStatus,
+    _Out_       DWORD                      *PDwFSScanStatus
+);
+
 #ifdef __cplusplus
 } // extern "C"
 #endif // __cplusplus

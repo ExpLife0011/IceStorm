@@ -5,6 +5,9 @@
 #include "global_data.h"
 #include "db_sqlite.h"
 
+#include "appctrl_scan.h"
+#include "fs_scan.h"
+
 IC_COMMUNICATION_PORTS                      gIcComPort      = { 0 };
 
 
@@ -14,7 +17,9 @@ InitConnectionToIceFlt(
     VOID
 )
 {
-    HRESULT hrResult = S_OK;
+    HRESULT hrResult        = S_OK;
+    DWORD   dwAppCtrlStatus = 0;
+    DWORD   dwFSScanStatus  = 0;
 
     __try
     {
@@ -46,6 +51,42 @@ InitConnectionToIceFlt(
         {
             LogErrorWin(hrResult, L"DBInit");
             __leave;
+        }
+
+        hrResult = DbGetScanStatus(&dwAppCtrlStatus, &dwFSScanStatus);
+        if (ERROR_SUCCESS != hrResult)
+        {
+            LogErrorWin(hrResult, L"DbGetScanStatus");
+            __leave;
+        }
+
+
+        if (dwAppCtrlStatus == 1)
+        {
+            hrResult = StartAppCtrlScan();
+            if (ERROR_SUCCESS != hrResult)
+            {
+                LogErrorWin(hrResult, L"StartAppCtrlScan");
+                __leave;
+            }
+        }
+        else
+        {
+            StopAppCtrlScan();
+        }
+
+        if (dwFSScanStatus == 1)
+        {
+            hrResult = StartFSScan();
+            if (ERROR_SUCCESS != hrResult)
+            {
+                LogErrorWin(hrResult, L"StartFSScan");
+                __leave;
+            }
+        }
+        else
+        {
+            StopFSScan();
         }
     }
     __finally

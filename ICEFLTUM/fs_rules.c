@@ -11,12 +11,12 @@ InitFSScanRules(
 
     __try
     {
-        //dwResult = DBInit();
-        //if (ERROR_SUCCESS != dwResult)
-        //{
-        //    LogErrorWin(dwResult, L"DBInit");
-        //    __leave;
-        //}
+        dwResult = DBSetFSScanStatus(1);
+        if (ERROR_SUCCESS != dwResult)
+        {
+            LogErrorWin(dwResult, L"DBSetFSScanStatus(1)");
+            __leave;
+        }
     }
     __finally
     {
@@ -36,11 +36,11 @@ UninitFSScanRules(
 {
     DWORD dwResult = ERROR_SUCCESS;
 
-    //dwResult = DBUninit();
-    //if (ERROR_SUCCESS != dwResult)
-    //{
-    //    LogWarningWin(dwResult, L"DBUninit");
-    //}
+    dwResult = DBSetFSScanStatus(0);
+    if (ERROR_SUCCESS != dwResult)
+    {
+        LogWarningWin(dwResult, L"DBSetFSScanStatus(0)");
+    }
 
     return dwResult;
 }
