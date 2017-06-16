@@ -340,27 +340,34 @@ namespace Manager.Server
 
         public FSRule[] GetFSRules(Client client)
         {
-            return new FSRule[0];
-            //if (null != client.FSRules) return client.FSRules;
+            soc.SendDWORD(client.Socket, (int)IceServerCommand.GetFSScanRules);
 
-            //FSRule[] fakeFSRules = new FSRule[10];
+            IceServerCommandResult cmdResult = (IceServerCommandResult)soc.RecvDWORD(client.Socket);
+            if (cmdResult != IceServerCommandResult.Success)
+                throw new Exception("Failed to get FSScan Rules for client " + client.Name);
 
-            //for (int i = 0; i < fakeFSRules.Length; i++)
-            //{
-            //    fakeFSRules[i] = new FSRule();
+            int len = soc.RecvDWORD(client.Socket);
 
-            //    fakeFSRules[i].RuleID = i + 1;
-            //    fakeFSRules[i].ProcessPathMatcher = ((i % 2) == 1) ? IceStringMatcher.Equal : IceStringMatcher.Wildmat;
-            //    fakeFSRules[i].ProcessPath = "C:\\path\\proces" + i + ".exe";
-            //    fakeFSRules[i].PID = (i + 1) * 20;
-            //    fakeFSRules[i].FilePathMatcher = ((i % 2) == 1) ? IceStringMatcher.Equal : IceStringMatcher.Wildmat;
-            //    fakeFSRules[i].FilePath = "C:\\fisiere\\file" + i + ".txt";
-            //    fakeFSRules[i].DeniedOperations = i;
-            //    fakeFSRules[i].AddTime = 5000 + i;
-            //}
+            if (len == 0) return new FSRule[0];
 
-            //client.FSRules = fakeFSRules;
-            //return fakeFSRules;
+            FSRule[] fsRules = new FSRule[len];
+
+            for (int i = 0; i < len; i++)
+            {
+                fsRules[i] = new FSRule();
+
+                fsRules[i].RuleID = soc.RecvDWORD(client.Socket);
+                fsRules[i].ProcessPathMatcher = (IceStringMatcher)soc.RecvDWORD(client.Socket);
+                fsRules[i].ProcessPath = soc.RecvString(client.Socket);
+                fsRules[i].PID = soc.RecvDWORD(client.Socket);
+                fsRules[i].FilePathMatcher = (IceStringMatcher)soc.RecvDWORD(client.Socket);
+                fsRules[i].FilePath = soc.RecvString(client.Socket);
+                fsRules[i].DeniedOperations = soc.RecvDWORD(client.Socket);
+                fsRules[i].AddTime = soc.RecvDWORD(client.Socket);
+            }
+
+            client.FSRules = fsRules;
+            return fsRules;
         }
 
         public AppCtrlEvent[] GetAppCtrlEvents(Client client, int lastID)
@@ -391,37 +398,41 @@ namespace Manager.Server
                 appEvents[i].MatchedRuleID = soc.RecvDWORD(client.Socket);
                 appEvents[i].EventTime = soc.RecvDWORD(client.Socket);
             }
-
-            //client.AppCtrlEvents = appEvents;
+            
             return appEvents;
         }
 
-        public FSEvent[] GetFSEvents(Client client)
+        public FSEvent[] GetFSEvents(Client client, int lastID)
         {
-            return new FSEvent[0];
+            soc.SendDWORD(client.Socket, (int)IceServerCommand.GetFSScanEvents);
+            soc.SendDWORD(client.Socket, lastID);
 
+            IceServerCommandResult cmdResult = (IceServerCommandResult)soc.RecvDWORD(client.Socket);
+            if (cmdResult != IceServerCommandResult.Success)
+                throw new Exception("Failed to get FSScan Events for client " + client.Name);
 
-            //if (null != client.FSEvents) return client.FSEvents;
+            int len = soc.RecvDWORD(client.Socket);
 
-            //FSEvent[] fakeFSEvents = new FSEvent[10];
+            if (len == 0) return new FSEvent[0];
 
-            //for (int i = 0; i < fakeFSEvents.Length; i++)
-            //{
-            //    fakeFSEvents[i] = new FSEvent();
+            FSEvent[] fsEvents = new FSEvent[len];
 
-            //    fakeFSEvents[i].EventID = i + 1;
-            //    fakeFSEvents[i].ProcessPath = "C:\\path\\proces" + i + ".exe";
-            //    fakeFSEvents[i].PID = (i + 1) * 20;
-            //    fakeFSEvents[i].FilePath = "C:\\fisiere\\file" + i + ".txt";
-            //    fakeFSEvents[i].RequiredOperations = i + 10;
-            //    fakeFSEvents[i].DeniedOperations = i + 10 - 5;
-            //    fakeFSEvents[i].RequiredOperations = i;
-            //    fakeFSEvents[i].MatchedRuleID = i * 2 + 1;
-            //    fakeFSEvents[i].EventTime = 7000 + i;
-            //}
+            for (int i = 0; i < len; i++)
+            {
+                fsEvents[i] = new FSEvent();
 
-            //client.FSEvents = fakeFSEvents;
-            //return fakeFSEvents;
+                fsEvents[i].EventID = soc.RecvDWORD(client.Socket);
+                fsEvents[i].ProcessPath = soc.RecvString(client.Socket);
+                fsEvents[i].PID = soc.RecvDWORD(client.Socket);
+                fsEvents[i].FilePath = soc.RecvString(client.Socket);
+                fsEvents[i].RequiredOperations = soc.RecvDWORD(client.Socket);
+                fsEvents[i].DeniedOperations = soc.RecvDWORD(client.Socket);
+                fsEvents[i].RemainingOperations = soc.RecvDWORD(client.Socket);
+                fsEvents[i].MatchedRuleID = soc.RecvDWORD(client.Socket);
+                fsEvents[i].EventTime = soc.RecvDWORD(client.Socket);
+            }
+
+            return fsEvents;
         }
 
         public int GetAppCtrlStatus(Client client)
@@ -495,9 +506,15 @@ namespace Manager.Server
 
         public int DeleteFSScanRule(Client client, int id)
         {
+            soc.SendDWORD(client.Socket, (int)IceServerCommand.DeleteFSScanRule);
+
+            soc.SendDWORD(client.Socket, id);
+
+            IceServerCommandResult cmdResult = (IceServerCommandResult)soc.RecvDWORD(client.Socket);
+            if (cmdResult != IceServerCommandResult.Success)
+                throw new Exception("Failed to Delete FSScan Rule " + id + " for client " + client.Name);
+
             return 1;
-            //client.FSRules = client.FSRules.Where(rule => rule.RuleID != id).ToArray();
-            //return 1;
         }
 
         public int AddAppCtrlRule(Client client, AppCtrlRule rule)
@@ -524,16 +541,23 @@ namespace Manager.Server
 
         public int AddFSScanRule(Client client, FSRule rule)
         {
-            return 1;
-            //rule.RuleID = client.FSRules.Length + 1;
-            //FSRule[] rules = client.FSRules;
-            //int len = client.FSRules.Length;
+            soc.SendDWORD(client.Socket, (int)IceServerCommand.AddFSScanRule);
 
-            //Array.Resize(ref rules, rules.Length + 1);
-            //rules[len] = rule;
+            soc.SendDWORD(client.Socket, (int)rule.ProcessPathMatcher);
+            soc.SendString(client.Socket, rule.ProcessPath);
+            soc.SendDWORD(client.Socket, rule.PID);
+            soc.SendDWORD(client.Socket, (int)rule.FilePathMatcher);
+            soc.SendString(client.Socket, rule.FilePath);
+            soc.SendDWORD(client.Socket, rule.DeniedOperations);
 
-            //client.FSRules = rules;
-            //return rule.RuleID;
+            IceServerCommandResult cmdResult = (IceServerCommandResult)soc.RecvDWORD(client.Socket);
+            if (cmdResult != IceServerCommandResult.Success)
+                throw new Exception("Failed to Add FSScan Rule for client " + client.Name);
+
+            int ruleId = soc.RecvDWORD(client.Socket);
+
+            log.Info("FSScan rule was added: " + ruleId);
+            return ruleId;
         }
 
         public int DeleteAppCtrlRule(Client client, int id)
@@ -571,31 +595,21 @@ namespace Manager.Server
 
         public int UpdateFSScanRule(Client client, FSRule rule)
         {
+            soc.SendDWORD(client.Socket, (int)IceServerCommand.UpdateFSScanRule);
+            soc.SendDWORD(client.Socket, rule.RuleID);
+
+            soc.SendDWORD(client.Socket, (int)rule.ProcessPathMatcher);
+            soc.SendString(client.Socket, rule.ProcessPath);
+            soc.SendDWORD(client.Socket, rule.PID);
+            soc.SendDWORD(client.Socket, (int)rule.FilePathMatcher);
+            soc.SendString(client.Socket, rule.FilePath);
+            soc.SendDWORD(client.Socket, rule.DeniedOperations);
+
+            IceServerCommandResult cmdResult = (IceServerCommandResult)soc.RecvDWORD(client.Socket);
+            if (cmdResult != IceServerCommandResult.Success)
+                throw new Exception("Failed to Update FSScan Rule " + rule.RuleID + "  for client " + client.Name);
+
             return 1;
-            //for (int i = 0; i < clients.Length; i++)
-            //{
-            //    if (clients[i].ClientID == client.ClientID)
-            //    {
-            //        for (int j = 0; j < clients[i].FSRules.Length; j++)
-            //        {
-            //            if (clients[i].FSRules[j].RuleID == rule.RuleID)
-            //            {
-            //                clients[i].FSRules[j].ProcessPathMatcher = rule.ProcessPathMatcher;
-            //                clients[i].FSRules[j].ProcessPath = rule.ProcessPath;
-            //                clients[i].FSRules[j].PID = rule.PID;
-            //                clients[i].FSRules[j].FilePathMatcher = rule.FilePathMatcher;
-            //                clients[i].FSRules[j].FilePath = rule.FilePath;
-            //                clients[i].FSRules[j].DeniedOperations = rule.DeniedOperations;
-
-            //                break;
-            //            }
-            //        }
-
-            //        break;
-            //    }
-            //}
-
-            //return 1;
         }
     }
 }

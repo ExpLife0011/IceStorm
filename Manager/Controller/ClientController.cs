@@ -82,7 +82,29 @@ namespace Manager.Controller
         {
             lock (client.SyncAccess)
             {
-                return server.GetFSEvents(client);
+                int lastId = 0;
+                if (client.FSEvents != null && client.FSEvents.Length != 0)
+                {
+                    lastId = client.FSEvents[0].EventID;
+                }
+                else
+                {
+                    client.FSEvents = new FSEvent[0];
+                }
+
+                FSEvent[] newFSEvents = server.GetFSEvents(client, lastId);
+                if (newFSEvents == null || newFSEvents.Length == 0)
+                    return client.FSEvents;
+
+                FSEvent[] oldFSEvents = client.FSEvents;
+                int finalLen = oldFSEvents.Length + newFSEvents.Length;
+                FSEvent[] finalFSEvents = new FSEvent[finalLen];
+
+                Array.Copy(newFSEvents, 0, finalFSEvents, 0, newFSEvents.Length);
+                Array.Copy(oldFSEvents, 0, finalFSEvents, newFSEvents.Length, oldFSEvents.Length);
+
+                client.FSEvents = finalFSEvents;
+                return finalFSEvents;
             }
         }
 

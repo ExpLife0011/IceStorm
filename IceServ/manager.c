@@ -283,7 +283,6 @@ SendAppCtrlRules(
     DWORD               dwStatus    = ERROR_SUCCESS;
     DWORD               idx         = 0;
 
-    
     dwStatus = IcGetAppCtrlRules(&pRules, &dwLength);
     if (ERROR_SUCCESS != dwStatus && ERROR_NOT_FOUND != dwStatus)
     {
@@ -414,6 +413,217 @@ SendSetOptionCmd(
 }
 
 VOID
+SendAddFSScanRule(
+    VOID
+)
+{
+    DWORD               dwStatus                    = ERROR_SUCCESS;
+    IC_STRING_MATCHER   procMatcher                 = IcStringMatcher_Equal;
+    PWCHAR              pProcPath                   = NULL;
+    DWORD               dwPID                       = 0;
+    IC_STRING_MATCHER   fileProcMatcher           = IcStringMatcher_Equal;
+    PWCHAR              pFilePath                   = NULL;
+    DWORD               dwDeniedOperations          = 0;
+    DWORD               dwRuleId                    = 0;
+
+    __try
+    {
+        if (ERROR_SUCCESS != ClRecvDWORD((PDWORD) &procMatcher)) __leave;
+        if (ERROR_SUCCESS != ClRecvString(&pProcPath)) __leave;
+        if (ERROR_SUCCESS != ClRecvDWORD(&dwPID)) __leave;
+        if (ERROR_SUCCESS != ClRecvDWORD((PDWORD) &fileProcMatcher)) __leave;
+        if (ERROR_SUCCESS != ClRecvString(&pFilePath)) __leave;
+        if (ERROR_SUCCESS != ClRecvDWORD((PDWORD) &dwDeniedOperations)) __leave;
+
+        dwStatus = IcAddFSScanRule(procMatcher, pProcPath, dwPID, fileProcMatcher, pFilePath, dwDeniedOperations, &dwRuleId);
+        if (ERROR_SUCCESS != dwStatus)
+        {
+            LogErrorWin(dwStatus, L"IcAddFSScanRule");
+            ClSendDWORD(IcServerCommandResult_Error);
+            __leave;
+        }
+
+        if (ERROR_SUCCESS != ClSendDWORD(IcServerCommandResult_Success)) __leave;
+
+        if (ERROR_SUCCESS != ClSendDWORD(dwRuleId)) __leave;
+    }
+    __finally
+    {
+        if (NULL != pProcPath)
+        {
+            free(pProcPath);
+            pProcPath = NULL;
+        }
+
+        if (NULL != pFilePath)
+        {
+            free(pFilePath);
+            pFilePath = NULL;
+        }
+    }
+}
+
+VOID
+SendFSScanRules(
+    VOID
+)
+{
+    PIC_FS_RULE         pRules      = NULL;
+    DWORD               dwLength    = 0;
+    DWORD               dwStatus    = ERROR_SUCCESS;
+    DWORD               idx         = 0;
+
+    dwStatus = IcGetFSScanRules(&pRules, &dwLength);
+    if (ERROR_SUCCESS != dwStatus && ERROR_NOT_FOUND != dwStatus)
+    {
+        LogErrorWin(dwStatus, L"IcGetFSScanRules");
+        ClSendDWORD(IcServerCommandResult_Error);
+        return;
+    }
+
+    __try 
+    {
+        if (ERROR_SUCCESS != ClSendDWORD(IcServerCommandResult_Success)) __leave;
+
+        if (ERROR_SUCCESS != ClSendDWORD(dwLength)) __leave;
+
+        for (idx = 0; idx < dwLength; idx++)
+        {
+            if (ERROR_SUCCESS != ClSendDWORD(pRules[idx].DwRuleId)) __leave;
+            if (ERROR_SUCCESS != ClSendDWORD(pRules[idx].MatcherProcessPath)) __leave;
+            if (ERROR_SUCCESS != ClSendString(pRules[idx].PProcessPath)) __leave;
+            if (ERROR_SUCCESS != ClSendDWORD(pRules[idx].DwPid)) __leave;
+            if (ERROR_SUCCESS != ClSendDWORD(pRules[idx].MatcherFilePath)) __leave;
+            if (ERROR_SUCCESS != ClSendString(pRules[idx].PFilePath)) __leave;
+            if (ERROR_SUCCESS != ClSendDWORD(pRules[idx].UlDeniedOperations)) __leave;
+            if (ERROR_SUCCESS != ClSendDWORD(pRules[idx].DwAddTime)) __leave;
+        }
+    }
+    __finally
+    {
+        IcFreeFSScanList(pRules, dwLength);
+        pRules = NULL;
+    }
+}
+
+VOID
+SendFSScanEvents(
+    VOID
+)
+{
+    PIC_FS_EVENT        pEvents     = NULL;
+    DWORD               dwLength    = 0;
+    DWORD               dwStatus    = ERROR_SUCCESS;
+    DWORD               dwFirstId   = 0;
+    DWORD               idx         = 0;
+
+    if (ERROR_SUCCESS != ClRecvDWORD(&dwFirstId)) return;
+
+    dwStatus = IcGetFSEvents(&pEvents, &dwLength, dwFirstId);
+    if (ERROR_SUCCESS != dwStatus && ERROR_NOT_FOUND != dwStatus)
+    {
+        LogErrorWin(dwStatus, L"IcGetFSEvents");
+        ClSendDWORD(IcServerCommandResult_Error);
+        return;
+    }
+
+    __try
+    {
+        if (ERROR_SUCCESS != ClSendDWORD(IcServerCommandResult_Success)) __leave;
+
+        if (ERROR_SUCCESS != ClSendDWORD(dwLength)) __leave;
+
+        for (idx = 0; idx < dwLength; idx++)
+        {
+            if (ERROR_SUCCESS != ClSendDWORD(pEvents[idx].DwEventId)) __leave;
+            if (ERROR_SUCCESS != ClSendString(pEvents[idx].PProcessPath)) __leave;
+            if (ERROR_SUCCESS != ClSendDWORD(pEvents[idx].DwPid)) __leave;
+            if (ERROR_SUCCESS != ClSendString(pEvents[idx].PFilePath)) __leave;
+            if (ERROR_SUCCESS != ClSendDWORD(pEvents[idx].UlRequiredOperations)) __leave;
+            if (ERROR_SUCCESS != ClSendDWORD(pEvents[idx].UlDeniedOperations)) __leave;
+            if (ERROR_SUCCESS != ClSendDWORD(pEvents[idx].UlRemainingOperations)) __leave;
+            if (ERROR_SUCCESS != ClSendDWORD(pEvents[idx].DwMatchedRuleId)) __leave;
+            if (ERROR_SUCCESS != ClSendDWORD(pEvents[idx].DwEventTime)) __leave;
+        }
+    }
+    __finally
+    {
+        IcFreeFSEventsList(pEvents, dwLength);
+        pEvents = NULL;
+    }
+}
+
+VOID
+SendDeleteFSScanRule(
+    VOID
+)
+{
+    DWORD dwRuleId = 0;
+    DWORD dwStatus = ERROR_SUCCESS;
+
+    if (ERROR_SUCCESS != ClRecvDWORD((PDWORD) &dwRuleId)) return;
+
+    dwStatus = IcDeleteFSScanRule(dwRuleId);
+    if (ERROR_SUCCESS != dwStatus)
+    {
+        LogErrorWin(dwStatus, L"IcDeleteFSScanRule(%d)", dwRuleId);
+    }
+
+    ClSendDWORD(dwStatus == ERROR_SUCCESS ? IcServerCommandResult_Success : IcServerCommandResult_Error);
+}
+
+VOID
+SendUpdateFSScanRule(
+    VOID
+)
+{
+    DWORD               dwStatus                    = ERROR_SUCCESS;
+    IC_STRING_MATCHER   procMatcher                 = IcStringMatcher_Equal;
+    PWCHAR              pProcPath                   = NULL;
+    DWORD               dwPID                       = 0;
+    IC_STRING_MATCHER   fileProcMatcher           = IcStringMatcher_Equal;
+    PWCHAR              pFilePath                   = NULL;
+    DWORD               dwDeniedOperations          = 0;
+    DWORD               dwRuleId                    = 0;
+
+    __try
+    {
+        if (ERROR_SUCCESS != ClRecvDWORD(&dwRuleId)) __leave;
+
+        if (ERROR_SUCCESS != ClRecvDWORD((PDWORD) &procMatcher)) __leave;
+        if (ERROR_SUCCESS != ClRecvString(&pProcPath)) __leave;
+        if (ERROR_SUCCESS != ClRecvDWORD(&dwPID)) __leave;
+        if (ERROR_SUCCESS != ClRecvDWORD((PDWORD) &fileProcMatcher)) __leave;
+        if (ERROR_SUCCESS != ClRecvString(&pFilePath)) __leave;
+        if (ERROR_SUCCESS != ClRecvDWORD((PDWORD) &dwDeniedOperations)) __leave;
+
+        dwStatus = IcUpdateFSScanRule(dwRuleId, procMatcher, pProcPath, dwPID, fileProcMatcher, pFilePath, dwDeniedOperations);
+        if (ERROR_SUCCESS != dwStatus)
+        {
+            LogErrorWin(dwStatus, L"IcAddFSScanRule");
+            ClSendDWORD(IcServerCommandResult_Error);
+            __leave;
+        }
+
+        if (ERROR_SUCCESS != ClSendDWORD(IcServerCommandResult_Success)) __leave;
+    }
+    __finally
+    {
+        if (NULL != pProcPath)
+        {
+            free(pProcPath);
+            pProcPath = NULL;
+        }
+
+        if (NULL != pFilePath)
+        {
+            free(pFilePath);
+            pFilePath = NULL;
+        }
+    }
+}
+
+VOID
 ExecuteCommand(
     _In_    IC_SERVER_COMMAND       DwCommand
 )
@@ -464,6 +674,25 @@ ExecuteCommand(
             SendSetOptionCmd();
             break;
 
+        case IcServerCommand_AddFSScanRule:
+            SendAddFSScanRule();
+            break;
+
+        case IcServerCommand_GetFSScanRules:
+            SendFSScanRules();
+            break;
+
+        case IcServerCommand_GetFSScanEvents:
+            SendFSScanEvents();
+            break;
+
+        case IcServerCommand_DeleteFSScanRule:
+            SendDeleteFSScanRule();
+            break;
+
+        case IcServerCommand_UpdateFSScanRule:
+            SendUpdateFSScanRule();
+            break;
 
         default:
             LogInfo(L"Unknown command: %d", DwCommand);

@@ -4,6 +4,7 @@ using Manager.Controller;
 using Manager.Domain;
 using Manager.Log;
 using System.ComponentModel;
+using System.Drawing;
 
 namespace Manager.UI
 {
@@ -411,14 +412,24 @@ namespace Manager.UI
                     e.FilePath,
                     GetOperationsString(e.RequiredOperations),
                     GetOperationsString(e.DeniedOperations),
-                    GetOperationsString(e.RequiredOperations),
+                    GetOperationsString(e.RemainingOperations),
                     e.MatchedRuleID.ToString(),
                     GetTimeString(e.EventTime)
                 };
+
                 ListViewItem lvi = new ListViewItem(row);
-                if (e.DeniedOperations != 0) lvi.ForeColor = System.Drawing.Color.Red;
+                lvi.ForeColor = GetColorForFSEvent(e);
                 listFSEvents.Items.Add(lvi);
             }
+        }
+
+        private Color GetColorForFSEvent(FSEvent e)
+        {
+            if (e.RemainingOperations == (int) IceFSFlags.None) return Color.Red;
+            if ((e.RemainingOperations & ((int) IceFSFlags.Create | (int) IceFSFlags.Open)) == 0) return Color.Red;
+            if ((e.RemainingOperations & ((int) IceFSFlags.Read | (int) IceFSFlags.Write | (int)IceFSFlags.Delete)) == 0) return Color.Red;
+
+            return Color.Black;
         }
 
         private void listAppRules_SelectedIndexChanged(object sender, EventArgs e)

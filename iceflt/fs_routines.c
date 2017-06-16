@@ -390,7 +390,7 @@ IcePreCreate(
         if (ulPreOpFlags == ulNewOpFlags) __leave;
 
 
-        if (ulNewOpFlags == 0)
+        if (ulNewOpFlags == 0 || (ulNewOpFlags & (ICE_FS_FLAG_READ | ICE_FS_FLAG_WRITE | ICE_FS_FLAG_DELETE)) == 0)
         {
             bDenyOperation = TRUE;
         }
