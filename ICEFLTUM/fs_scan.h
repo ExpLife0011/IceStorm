@@ -12,7 +12,7 @@ StartFSScan(
 _Success_(ERROR_SUCCESS == return)
 DWORD
 StopFSScan(
-    VOID
+    _In_        BOOLEAN                     BPersistent
 );
 
 _Success_(ERROR_SUCCESS == return)

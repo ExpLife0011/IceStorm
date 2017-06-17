@@ -27,7 +27,6 @@ typedef enum _ICE_FS_CREATE_FLAGS
 
 } ICE_FS_CREATE_FLAGS, *PICE_FS_CREATE_FLAGS;
 
-
 #pragma pack(push)      
 #pragma pack(8)      
 

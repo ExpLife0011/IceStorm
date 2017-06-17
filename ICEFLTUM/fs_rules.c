@@ -22,26 +22,30 @@ InitFSScanRules(
     {
         if (ERROR_SUCCESS != dwResult)
         {
-            UninitFSScanRules();
+            UninitFSScanRules(TRUE);
         }
     }
     
     return dwResult;
 }
 
+_Use_decl_anno_impl_
 DWORD
 UninitFSScanRules(
-    VOID
+    BOOLEAN                         BPersistent
 )
 {
     DWORD dwResult = ERROR_SUCCESS;
 
-    dwResult = DBSetFSScanStatus(0);
-    if (ERROR_SUCCESS != dwResult)
+    if (BPersistent)
     {
-        LogWarningWin(dwResult, L"DBSetFSScanStatus(0)");
+        dwResult = DBSetFSScanStatus(0);
+        if (ERROR_SUCCESS != dwResult)
+        {
+            LogWarningWin(dwResult, L"DBSetFSScanStatus(0)");
+        }
     }
-
+    
     return dwResult;
 }
 

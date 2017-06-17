@@ -189,6 +189,8 @@ IceGetFileEncrypted(
     NTSTATUS                ntStatus    = STATUS_SUCCESS;
     FILE_BASIC_INFORMATION  basicInfo   = { 0 };
 
+    PAGED_CODE();
+
     ntStatus = FltQueryInformationFile(PInstance, PFileObject, &basicInfo, sizeof(FILE_BASIC_INFORMATION), FileBasicInformation, NULL);
     if (NT_SUCCESS(ntStatus)) 
     {

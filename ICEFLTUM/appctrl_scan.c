@@ -421,7 +421,7 @@ StartAppCtrlScan(
         if (STATUS_SUCCESS != dwResult)
         {
             gBAppCtrlStarted = TRUE;
-            StopAppCtrlScan();
+            StopAppCtrlScan(TRUE);
             gBAppCtrlStarted = FALSE;
         }
     }
@@ -432,7 +432,7 @@ StartAppCtrlScan(
 _Use_decl_anno_impl_
 DWORD
 StopAppCtrlScan(
-    VOID
+    BOOLEAN                             BPersistent
 )
 {
     DWORD                   dwResult    = ERROR_SUCCESS;
@@ -527,7 +527,7 @@ StopAppCtrlScan(
         gHEventAppCtrlScanReqAdded = NULL;
     }
 
-    dwResult = UninitAppCtrlRules();
+    dwResult = UninitAppCtrlRules(BPersistent);
     if (ERROR_SUCCESS != dwResult)
     {
         LogWarningWin(dwResult, L"UninitAppCtrlRules");

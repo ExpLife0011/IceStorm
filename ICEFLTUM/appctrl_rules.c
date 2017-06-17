@@ -23,7 +23,7 @@ InitAppCtrlRules(
     {
         if (ERROR_SUCCESS != dwResult)
         {
-            UninitAppCtrlRules();
+            UninitAppCtrlRules(TRUE);
         }
     }
     
@@ -32,16 +32,20 @@ InitAppCtrlRules(
 
 DWORD
 UninitAppCtrlRules(
-    VOID
+    BOOLEAN                     BPersistent
 )
 {
     DWORD dwResult = ERROR_SUCCESS;
 
-    dwResult = DBSetAppCtrlScanStatus(0);
-    if (ERROR_SUCCESS != dwResult)
+    if (BPersistent)
     {
-        LogErrorWin(dwResult, L"DBSetAppCtrlScanStatus(1)");
+        dwResult = DBSetAppCtrlScanStatus(0);
+        if (ERROR_SUCCESS != dwResult)
+        {
+            LogErrorWin(dwResult, L"DBSetAppCtrlScanStatus(1)");
+        }
     }
+    
     return dwResult;
 }
 

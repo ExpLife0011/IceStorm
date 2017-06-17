@@ -18,27 +18,27 @@ typedef struct _ICE_PRE2POST_CREATE_CONTEXT
     ULONG           UlNewCreateOptions;
 
 } ICE_PRE2POST_CREATE_CONTEXT, *PICE_PRE2POST_CREATE_CONTEXT;
-
-PCHAR GET_FLAGS_STR(ULONG f)
-{
-    DWORD dwLen = 500;
-    PCHAR s = ExAllocatePoolWithTag(NonPagedPool, dwLen, 'aaaa');
-    s[0] = 0;
-
-    if (!f)
-    {
-        sprintf_s(s, dwLen, "NONE");
-        return s;
-    }
-    
-    if (f & ICE_FS_FLAG_CREATE) sprintf_s(s, dwLen, "%s_CREATE", s);
-    if (f & ICE_FS_FLAG_OPEN) sprintf_s(s, dwLen, "%s_OPEN", s);
-    if (f & ICE_FS_FLAG_READ) sprintf_s(s, dwLen, "%s_READ", s);
-    if (f & ICE_FS_FLAG_WRITE) sprintf_s(s, dwLen, "%s_WRITE", s);
-    if (f & ICE_FS_FLAG_DELETE) sprintf_s(s, dwLen, "%s_DELETE", s);
-
-    return s;
-}
+//
+//PCHAR GET_FLAGS_STR(ULONG f)
+//{
+//    DWORD dwLen = 500;
+//    PCHAR s = ExAllocatePoolWithTag(NonPagedPool, dwLen, 'aaaa');
+//    s[0] = 0;
+//
+//    if (!f)
+//    {
+//        sprintf_s(s, dwLen, "NONE");
+//        return s;
+//    }
+//    
+//    if (f & ICE_FS_FLAG_CREATE) sprintf_s(s, dwLen, "%s_CREATE", s);
+//    if (f & ICE_FS_FLAG_OPEN) sprintf_s(s, dwLen, "%s_OPEN", s);
+//    if (f & ICE_FS_FLAG_READ) sprintf_s(s, dwLen, "%s_READ", s);
+//    if (f & ICE_FS_FLAG_WRITE) sprintf_s(s, dwLen, "%s_WRITE", s);
+//    if (f & ICE_FS_FLAG_DELETE) sprintf_s(s, dwLen, "%s_DELETE", s);
+//
+//    return s;
+//}
 
 VOID
 IceGetFsScanFlags(
@@ -205,6 +205,8 @@ IceGetFsScanFlags(
 {
     ULONG flags = 0;
 
+    PAGED_CODE();
+
     DesiredAccess &= (~SYNCHRONIZE);
 
     if (
@@ -255,6 +257,37 @@ IceGetFsScanFlags(
     *PFsScanFlags = flags;
 }
 
+BOOLEAN HbFindPrefetchEcp(PFLT_CALLBACK_DATA Data)
+{
+    PECP_LIST EcpList = 0;
+    PVOID EcpContext = 0;
+    BOOLEAN bFind = FALSE;
+    NTSTATUS status = 0;
+
+    PAGED_CODE();
+
+    do
+    {
+
+        status = FltGetEcpListFromCallbackData(gPData->PFilter, Data, &EcpList);
+
+        if (!NT_SUCCESS(status)) break;
+
+        if (!EcpList) break;
+
+        status = FltFindExtraCreateParameter(gPData->PFilter, EcpList, &GUID_ECP_PREFETCH_OPEN, &EcpContext, NULL);
+
+        if (!NT_SUCCESS(status)) break;
+
+        if (FltIsEcpFromUserMode(gPData->PFilter, EcpContext)) break;
+
+        bFind = TRUE;
+
+    } while (0);
+
+    return bFind;
+}
+
 _Use_decl_anno_impl_
 FLT_PREOP_CALLBACK_STATUS
 IcePreCreate(
@@ -285,7 +318,9 @@ IcePreCreate(
     BOOLEAN                         bDenyOperation          = FALSE;
     PICE_PRE2POST_CREATE_CONTEXT    pPre2Post               = NULL;
 
+
     PAGED_CODE();
+    *PPCompletionContext = NULL;
 
     ulCreateDisposition = PData->Iopb->Parameters.Create.Options >> 24;
     ulDesiredAccess = PData->Iopb->Parameters.Create.SecurityContext->DesiredAccess;
@@ -295,7 +330,7 @@ IcePreCreate(
     {
         return FLT_PREOP_SUCCESS_NO_CALLBACK;
     }
-
+    
     IoGetStackLimits(&stackLow, &stackHigh);
     if (((ULONG_PTR) pFileObject > stackLow) && ((ULONG_PTR) pFileObject < stackHigh))
     {
@@ -316,19 +351,17 @@ IcePreCreate(
     if (
         (pFileObject == NULL) ||
         FlagOn(PData->Iopb->Parameters.Create.Options, FILE_DIRECTORY_FILE) ||
-        FlagOn(PData->Iopb->OperationFlags, SL_OPEN_PAGING_FILE) ||
+        FlagOn(PData->Iopb->OperationFlags, SL_OPEN_TARGET_DIRECTORY | SL_OPEN_PAGING_FILE) ||
         FlagOn(PFltObjects->FileObject->Flags, FO_VOLUME_OPEN) ||
+        FlagOn(ulCreateOptions, FILE_OPEN_BY_FILE_ID) ||
         IceIsCsvDlEcpPresent(PData) ||
+        IceIsPrefetchEcpPresent(PData) ||
         (pUSFilePath == NULL || pUSFilePath->Length == 0 || pUSFilePath->Buffer == NULL)
         )
     {
         return FLT_PREOP_SUCCESS_NO_CALLBACK;
     }
 
-    if (IceIsPrefetchEcpPresent(PData))
-    {
-        //SetFlag(pStreamHandleContext.Flags, ICE_FLAG_PREFETCH);
-    }
 
     __try
     {
@@ -342,13 +375,6 @@ IcePreCreate(
             __leave;
         }
 
-        //ntStatus = IceGetUMProcessPath(pUSProcessPath, &pUMProcPath);
-        //if (!NT_SUCCESS(ntStatus))
-        //{
-        //    LogErrorNt(ntStatus, "IceGetUMProcessPath(%wZ)", pUSProcessPath);
-        //    __leave;
-        //}
-        
         ntStatus = IceGetUMFilePath(PData, &pUMFilePath);
         if (!NT_SUCCESS(ntStatus))
         {
@@ -357,22 +383,6 @@ IcePreCreate(
         }
 
         IceGetFsScanFlags(ulCreateDisposition, ulDesiredAccess, ulCreateOptions, &ulPreOpFlags);
-
-        // debug
-        {
-            UNICODE_STRING pus2 = { 0 };
-            pus2.Buffer = L"\\test.txt";
-            pus2.Length = 18;
-            pus2.MaximumLength = 18;
-            if (RtlEqualUnicodeString(pUSFilePath, &pus2, TRUE))
-            {
-                PCHAR s = GET_FLAGS_STR(ulPreOpFlags);
-                LogInfo(">>> File: %wZ, Proc: %wZ, pid: %d, flags: %s", pUSFilePath, pUSProcessPath, hProcessPid, s);
-                ExFreePoolWithTag(s, 'aaaa');
-
-                LogInfo("%wZ --> %wZ", pUSFilePath, pUMFilePath);
-            }
-        }
 
         ntStatus = IceScanFSPreCreate(
             hProcessPid,
@@ -390,6 +400,8 @@ IcePreCreate(
         if (ulPreOpFlags == ulNewOpFlags) __leave;
 
 
+        //__debugbreak();
+
         if (ulNewOpFlags == 0 || (ulNewOpFlags & (ICE_FS_FLAG_READ | ICE_FS_FLAG_WRITE | ICE_FS_FLAG_DELETE)) == 0)
         {
             bDenyOperation = TRUE;
@@ -402,21 +414,10 @@ IcePreCreate(
             );
         }
         
-        // debug
-        {
-            PCHAR s1 = GET_FLAGS_STR(ulPreOpFlags);
-            PCHAR s2 = GET_FLAGS_STR(ulNewOpFlags);
-
-            LogInfo("**** File: %wZ, Pr: %wZ, orig: %d, new: %d", pUSFilePath, pUSProcessPath, ulPreOpFlags, ulNewOpFlags);
-            LogInfo("**** Orig: %s, new: %s, Deny: %d, CDisp: %d, COpt: %d, DA: %d", s1, s2, bDenyOperation, ulNewCreateDisposition, ulNewCreateOptions, ulNewDesiredAccess);
-
-            ExFreePoolWithTag(s1, 'aaaa');
-            ExFreePoolWithTag(s2, 'aaaa');
-        }
-
         if (bDenyOperation)
         {
             PData->IoStatus.Status = STATUS_ACCESS_DENIED;
+            PData->IoStatus.Information = 0;
             ntRetVal = FLT_PREOP_COMPLETE;
             __leave;
         }
@@ -440,7 +441,7 @@ IcePreCreate(
         pPre2Post->UlNewCreateOptions = ulNewCreateOptions;
         pPre2Post->UlNewCreateDisposition = ulNewCreateDisposition;
 
-        ntRetVal = FLT_PREOP_SYNCHRONIZE;
+        ntRetVal = FLT_PREOP_SUCCESS_WITH_CALLBACK;
         
         //IcePreCreateCsvfs(PData, PFltObjects);
     }
@@ -489,17 +490,19 @@ IcePostCreate(
 
     if (PCompletionContext == NULL) return FLT_POSTOP_FINISHED_PROCESSING;
 
+    //__debugbreak();
+
     pPre2Post = PCompletionContext;
 
 
-    pPre2Post->UlNewCreateOptions = pPre2Post->UlNewCreateOptions | (pPre2Post->UlNewCreateDisposition << 24);
-    PData->Iopb->Parameters.Create.Options = pPre2Post->UlNewCreateOptions;
-    PData->Iopb->Parameters.Create.SecurityContext->DesiredAccess = pPre2Post->UlNewDesiredAccess;
-    PData->Iopb->Parameters.Create.SecurityContext->AccessState->RemainingDesiredAccess = pPre2Post->UlNewDesiredAccess;
+    //pPre2Post->UlNewCreateOptions = pPre2Post->UlNewCreateOptions | (pPre2Post->UlNewCreateDisposition << 24);
+    //PData->Iopb->Parameters.Create.Options = pPre2Post->UlNewCreateOptions;
+    //PData->Iopb->Parameters.Create.SecurityContext->DesiredAccess = pPre2Post->UlNewDesiredAccess;
+    //PData->Iopb->Parameters.Create.SecurityContext->AccessState->RemainingDesiredAccess = pPre2Post->UlNewDesiredAccess;
 
 
-    FltSetCallbackDataDirty(PData);
-    
+    //FltSetCallbackDataDirty(PData);
+    //
     ExFreePoolWithTag(pPre2Post, TAG_IC2P);
     pPre2Post = NULL;
 

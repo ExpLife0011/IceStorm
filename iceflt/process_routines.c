@@ -4,9 +4,26 @@
 #include "ice_app_ctrl_scan.h"
 #include "ice_user_common.h"
 
-VOID IceStartProcessCallback(PEPROCESS PProcess, HANDLE HProcessId, PPS_CREATE_NOTIFY_INFO PCreateInfo);
-VOID IceStopProcessCallback(PEPROCESS PProcess, HANDLE HProcessId);
-VOID IceCreateProcessCallback(PEPROCESS PProcess, HANDLE HProcessId, PPS_CREATE_NOTIFY_INFO PCreateInfo);
+
+VOID
+IceStartProcessCallback(
+    _Inout_     PEPROCESS                   PProcess,
+    _In_        HANDLE                      HProcessId,
+    _Inout_opt_ PPS_CREATE_NOTIFY_INFO      PCreateInfo
+);
+
+VOID
+IceStopProcessCallback(
+    _Inout_     PEPROCESS                   PProcess,
+    _In_        HANDLE                      HProcessId
+);
+
+VOID
+IceCreateProcessCallback(
+    _Inout_     PEPROCESS                   PProcess,
+    _In_        HANDLE                      HProcessId,
+    _Inout_opt_ PPS_CREATE_NOTIFY_INFO      PCreateInfo
+);
 
 #ifdef ALLOC_PRAGMA
     #pragma alloc_text(PAGE, IceStartProcessCallback)
@@ -15,12 +32,12 @@ VOID IceCreateProcessCallback(PEPROCESS PProcess, HANDLE HProcessId, PPS_CREATE_
     #pragma alloc_text(INIT, IceRegisterProcessCallback)
 #endif
 
-
+_Use_decl_anno_impl_
 VOID
 IceStartProcessCallback(
-    _Inout_     PEPROCESS                   PProcess,
-    _In_        HANDLE                      HProcessId,
-    _Inout_opt_ PPS_CREATE_NOTIFY_INFO      PCreateInfo
+    PEPROCESS                               PProcess,
+    HANDLE                                  HProcessId,
+    PPS_CREATE_NOTIFY_INFO                  PCreateInfo
 )
 {
     NTSTATUS    ntStatus        = STATUS_SUCCESS;;
@@ -57,11 +74,12 @@ IceStartProcessCallback(
     PCreateInfo->CreationStatus = ntScanResult;
 }
 
-VOID 
+_Use_decl_anno_impl_
+VOID
 IceStopProcessCallback(
-    _Inout_     PEPROCESS                   PProcess,
-    _In_        HANDLE                      HProcessId
-    )
+    PEPROCESS                               PProcess,
+    HANDLE                                  HProcessId
+)
 {
     PAGED_CODE();
     UNREFERENCED_PARAMETER(PProcess);
@@ -71,13 +89,16 @@ IceStopProcessCallback(
 }
 
 // https://msdn.microsoft.com/en-us/library/ff542860(v=vs.85).aspx
+_Use_decl_anno_impl_
 VOID
 IceCreateProcessCallback(
-    _Inout_     PEPROCESS                   PProcess,
-    _In_        HANDLE                      HProcessId,
-    _Inout_opt_ PPS_CREATE_NOTIFY_INFO      PCreateInfo
+    PEPROCESS                               PProcess,
+    HANDLE                                  HProcessId,
+    PPS_CREATE_NOTIFY_INFO                  PCreateInfo
     )
 {
+    PAGED_CODE();
+
     if (gPData->BUnloading)
     {
         LogInfo("Process %s (%d) while driver is unloading", (NULL != PCreateInfo) ? "STARTING" : "STOPPING", (ULONG)(ULONG_PTR) HProcessId);

@@ -391,7 +391,7 @@ StartFSScan(
         if (STATUS_SUCCESS != dwResult)
         {
             gBFSScanStarted = TRUE;
-            StopFSScan();
+            StopFSScan(TRUE);
             gBFSScanStarted = FALSE;
         }
     }
@@ -402,7 +402,7 @@ StartFSScan(
 _Use_decl_anno_impl_
 DWORD
 StopFSScan(
-    VOID
+    BOOLEAN                                 BPersistent
 )
 {
     DWORD                   dwResult    = ERROR_SUCCESS;
@@ -498,7 +498,7 @@ StopFSScan(
         gHEventFSScanReqAdded = NULL;
     }
 
-    dwResult = UninitFSScanRules();
+    dwResult = UninitFSScanRules(BPersistent);
     if (ERROR_SUCCESS != dwResult)
     {
         LogWarningWin(dwResult, L"UninitFSRules");

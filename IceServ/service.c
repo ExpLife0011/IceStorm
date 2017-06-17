@@ -20,6 +20,7 @@ HANDLE  gHStopEvent     = NULL;
 BOOLEAN gBInitCalled    = FALSE;
 HANDLE  gHManagerThread = NULL;
 
+_Use_decl_anno_impl_
 DWORD
 SrvInit(
     VOID
@@ -73,6 +74,7 @@ SrvInit(
     return dwRetVal;
 }
 
+_Use_decl_anno_impl_
 DWORD
 SrvDone(
     VOID
@@ -100,6 +102,10 @@ SrvDone(
             gHStopEvent = NULL;
         }
 
+        (VOID) IcStopAppCtrlScan(FALSE);
+
+        (VOID) IcStopFSScan(FALSE);
+
         dwRetVal = IcUninitConnectionToIceFlt();
         if (ERROR_SUCCESS != dwRetVal)
         {
@@ -117,7 +123,7 @@ SrvDone(
     gBInitCalled = FALSE;
     return dwRetVal;
 }
-
+_Use_decl_anno_impl_
 DWORD
 SrvStop(
     VOID
@@ -136,6 +142,7 @@ SrvStop(
     return ERROR_SUCCESS;
 }
 
+_Use_decl_anno_impl_
 DWORD
 SrvRun(
     VOID

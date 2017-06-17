@@ -62,7 +62,7 @@ IceBuildScanRequest(
     PScanRequest->DwPid             = (DWORD) (SIZE_T) HProcessId;
     PScanRequest->DwProcessPathSize = PUSProcPath->Length;
     PScanRequest->DwParentPid       = (DWORD) (SIZE_T) PCreateInfo->ParentProcessId;
-    PScanRequest->DwParentPathSize  = PUSParentPath->Length;
+    PScanRequest->DwParentPathSize  = PUSParentPath ? PUSParentPath->Length : 0;
 
     LogInfo("---- Scan Request ----");
     LogInfo("Proc (%d) [%wZ]", PScanRequest->DwPid, PUSProcPath);

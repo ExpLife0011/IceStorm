@@ -66,7 +66,7 @@ ClSendString(
 )
 {
     DWORD dwResult  = ERROR_SUCCESS;
-    DWORD dwSize    = (NULL == PString) ? 0 : (wcslen(PString) * sizeof(WCHAR));
+    DWORD dwSize    = (NULL == PString) ? 0 : (DWORD) (wcslen(PString) * sizeof(WCHAR));
 
     if (ERROR_SUCCESS != (dwResult = ClSendDWORD(dwSize))) return dwResult;
     
@@ -244,7 +244,14 @@ ClRecvDWORD(
     DWORD           *PDwValue
 )
 {
-    return ClRecvMessageWithoutSize((PBYTE) PDwValue, sizeof(DWORD));
+    DWORD dwValue   = 0;
+    DWORD dwStatus  = ERROR_SUCCESS;
+
+    if (ERROR_SUCCESS != (dwStatus = ClRecvMessageWithoutSize((PBYTE) &dwValue, sizeof(DWORD)))) return dwStatus;
+    LogInfo(L"Received DWORD: %d", dwValue);
+    *PDwValue = dwValue;
+
+    return dwStatus;
 }
 
 _Use_decl_anno_impl_

@@ -59,7 +59,7 @@ InitVolumeNames(
 
         while (TRUE)
         {
-            dwIndex = wcslen(gVolumes[gDwNrOfVolumes].PVolume) - 1;
+            dwIndex = (DWORD) (wcslen(gVolumes[gDwNrOfVolumes].PVolume) - 1);
 
             if (
                 gVolumes[gDwNrOfVolumes].PVolume[0] != L'\\' || 
@@ -90,9 +90,9 @@ InitVolumeNames(
                 __leave;
             }
 
-            gVolumes[gDwNrOfVolumes].LenDevice = wcslen(gVolumes[gDwNrOfVolumes].PDevice);
-            gVolumes[gDwNrOfVolumes].LenVolume = wcslen(gVolumes[gDwNrOfVolumes].PVolume);
-            gVolumes[gDwNrOfVolumes].LenPath = wcslen(gVolumes[gDwNrOfVolumes].PPath);
+            gVolumes[gDwNrOfVolumes].LenDevice = (DWORD) wcslen(gVolumes[gDwNrOfVolumes].PDevice);
+            gVolumes[gDwNrOfVolumes].LenVolume = (DWORD) wcslen(gVolumes[gDwNrOfVolumes].PVolume);
+            gVolumes[gDwNrOfVolumes].LenPath = (DWORD) wcslen(gVolumes[gDwNrOfVolumes].PPath);
 
             if (gVolumes[gDwNrOfVolumes].PDevice[gVolumes[gDwNrOfVolumes].LenDevice - 1] != L'\\')
             {
@@ -110,13 +110,21 @@ InitVolumeNames(
                 if (dwStatus != ERROR_NO_MORE_FILES)
                 {
                     LogErrorWin(dwStatus, L"FindNextVolumeW");
-                    break;
+                    __leave;
                 }
 
                 dwStatus = ERROR_SUCCESS;
                 break;
             }
         }
+
+        wcscpy_s(gVolumes[gDwNrOfVolumes].PDevice, MAX_PATH, L"\\SystemRoot\\");
+        wcscpy_s(gVolumes[gDwNrOfVolumes].PVolume, MAX_PATH, L"\\SystemRoot\\");
+        wcscpy_s(gVolumes[gDwNrOfVolumes].PPath, MAX_PATH, L"c:\\Windows\\");
+        gVolumes[gDwNrOfVolumes].LenDevice = (DWORD) wcslen(L"\\SystemRoot\\");
+        gVolumes[gDwNrOfVolumes].LenVolume = gVolumes[gDwNrOfVolumes].LenDevice;
+        gVolumes[gDwNrOfVolumes].LenPath = (DWORD) wcslen(L"c:\\Windows\\");
+        gDwNrOfVolumes++;
     }
     __finally
     {
@@ -198,7 +206,7 @@ InitConnectionToIceFlt(
         }
         else
         {
-            StopAppCtrlScan();
+            StopAppCtrlScan(TRUE);
         }
 
         if (dwFSScanStatus == 1)
@@ -212,7 +220,7 @@ InitConnectionToIceFlt(
         }
         else
         {
-            StopFSScan();
+            StopFSScan(TRUE);
         }
     }
     __finally

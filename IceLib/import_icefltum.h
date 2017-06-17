@@ -33,7 +33,7 @@ DWORD(*PFUNC_IcStartAppCtrlScan) (
 typedef
 _Success_(ERROR_SUCCESS == return)
 DWORD(*PFUNC_IcStopAppCtrlScan) (
-    VOID
+    _In_        BOOLEAN                     BPersistent
     );
 
 typedef
@@ -91,7 +91,7 @@ DWORD(*PFUNC_IcStartFSScan) (
 typedef
 _Success_(ERROR_SUCCESS == return)
 DWORD(*PFUNC_IcStopFSScan) (
-    VOID
+    _In_        BOOLEAN                     BPersistent
     );
 
 typedef

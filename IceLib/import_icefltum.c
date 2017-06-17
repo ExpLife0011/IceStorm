@@ -82,7 +82,7 @@ IcImportIcefltUmAPI(
             __leave;
         }
 
-        IcStopAppCtrlScan = (PFUNC_IcStartAppCtrlScan) GetProcAddress(gHIcefltUM, "IcStopAppCtrlScan");
+        IcStopAppCtrlScan = (PFUNC_IcStopAppCtrlScan) GetProcAddress(gHIcefltUM, "IcStopAppCtrlScan");
         if (NULL == IcStopAppCtrlScan)
         {
             ntStatus = NTSTATUS_FROM_WIN32(GetLastError());

@@ -388,16 +388,14 @@ DbGetAppCtrlVerdict(
         if (dwStepResult == SQLITE_DONE)
         {
             LogInfo(L"No rule found.");
-            *PVerdict = IceScanVerdict_Allow;
+            dwRuleId = 0;
+            dwVerdict = IceScanVerdict_Allow;
             __leave;
         }
 
         dwRuleId = (DWORD) sqlite3_column_int64(pStatement, 0);
         dwVerdict = (DWORD) sqlite3_column_int64(pStatement, 1);
         LogInfo(L"Found %s rule, id: %d.", dwVerdict ? L"DENY" : L"ALLOW", dwRuleId);
-
-        PRule->DwRuleId = dwRuleId;
-        *PVerdict = dwVerdict;
     }
     __finally
     {
@@ -408,6 +406,9 @@ DbGetAppCtrlVerdict(
             pStatement = NULL;
         }
     }
+    
+    PRule->DwRuleId = dwRuleId;
+    *PVerdict = dwVerdict;
 
     return dwStatus;
 }

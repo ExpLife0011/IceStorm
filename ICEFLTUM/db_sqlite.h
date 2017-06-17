@@ -104,7 +104,6 @@ DbGetFSScanRules(
     _Inout_     DWORD                      *PDwLength
 );
 
-_Success_(ERROR_SUCCESS == return)
 VOID
 DbFreeFSScanRulesList(
     _Inout_     PIC_FS_RULE                 PRules,

@@ -12,7 +12,7 @@ StartAppCtrlScan(
 _Success_(ERROR_SUCCESS == return)
 DWORD
 StopAppCtrlScan(
-    VOID
+    _In_        BOOLEAN                     BPersistent
 );
 
 _Success_(ERROR_SUCCESS == return)

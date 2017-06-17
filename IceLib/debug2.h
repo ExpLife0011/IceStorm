@@ -63,7 +63,7 @@ IcDebugPrint(
 #define IcDebugLogWin(WinError, PLevel, PFormat, ...)                   {NOTHING;}
 #define IcDebugLogNt(NtStatus, PLevel, PFormat, ...)                    {NOTHING;}
 
-#endif // !DBG
+#endif // !_DEBUG
 
 
 

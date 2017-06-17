@@ -368,7 +368,11 @@ namespace Manager.UI
                     e.Verdict.ToString(), e.MatchedRuleID.ToString(), GetTimeString(e.EventTime)
                 };
                 ListViewItem lvi = new ListViewItem(row);
-                if (e.Verdict == IceScanVerdict.Deny) lvi.ForeColor = System.Drawing.Color.Red;
+
+                Color foreColor = Color.Black;
+                if (e.Verdict == IceScanVerdict.Deny) lvi.ForeColor = Color.Red;
+                else if (e.MatchedRuleID != 0) lvi.ForeColor = Color.Green;
+
                 listAppEvents.Items.Add(lvi);
             }
         }

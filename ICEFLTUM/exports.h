@@ -37,8 +37,8 @@ ICEFLTUM_API
 _Success_(ERROR_SUCCESS == return)
 DWORD
 IcSendSetOption(
-    _In_          DWORD                       DwOption,
-    _In_          DWORD                       DwValue
+    _In_          DWORD                     DwOption,
+    _In_          DWORD                     DwValue
 );
 
 ICEFLTUM_API
@@ -52,7 +52,7 @@ ICEFLTUM_API
 _Success_(ERROR_SUCCESS == return)
 DWORD
 IcStopAppCtrlScan(
-    VOID
+    BOOLEAN                                 BPersistent
 );
 
 ICEFLTUM_API
@@ -99,7 +99,6 @@ IcGetAppCtrlRules(
 );
 
 ICEFLTUM_API
-_Success_(ERROR_SUCCESS == return)
 VOID
 IcFreeAppCtrlRulesList(
     _Inout_     PIC_APPCTRL_RULE           PRules,
@@ -118,7 +117,7 @@ ICEFLTUM_API
 _Success_(ERROR_SUCCESS == return)
 DWORD
 IcStopFSScan(
-    VOID
+    _In_        BOOLEAN                     BPersistent
 );
 
 ICEFLTUM_API

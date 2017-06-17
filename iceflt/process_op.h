@@ -18,7 +18,7 @@ IceGetProcessPathByPid(
 NTSTATUS
 IceGetUMFilePath(
     _In_    PFLT_CALLBACK_DATA                  PData,
-    _In_    PUNICODE_STRING                    *PPUSUmFilePath
+    _Inout_ PUNICODE_STRING                    *PPUSUmFilePath
 );
 
 NTSTATUS

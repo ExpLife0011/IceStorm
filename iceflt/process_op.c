@@ -131,14 +131,14 @@ IceCreateUMPath(
     if (VolumeKMName->Length > KMName->Length)
     {
         LogInfo("haaaa?????");
-        __debugbreak();
+        //__debugbreak();
         return STATUS_INVALID_PARAMETER;
     }
 
     if (VolumeKMName->Length != RtlCompareMemory(KMName->Buffer, VolumeKMName->Buffer, VolumeKMName->Length))
     {
         LogInfo("WTFFFFFFFF?????");
-        __debugbreak();
+        //__debugbreak();
         return STATUS_INVALID_PARAMETER;
     }
 

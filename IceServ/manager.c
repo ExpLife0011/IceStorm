@@ -5,6 +5,8 @@
 #include "client_helpers.h"
 #include "import_icefltum.h"
 
+#define CONFIG_FILE_NAME L"icestorm.ipv4"
+
 BOOLEAN
 SleepOrExit(
     _In_    DWORD           DwMilliseconds
@@ -28,8 +30,67 @@ LoadServerInfo(
     _Inout_     PCHAR           PPort
 )
 {
-    sprintf_s(PIpAddr, MAX_PATH, "192.168.194.1");
-    sprintf_s(PPort, MAX_PATH, "12345");
+    DWORD       dwStatus                    = ERROR_SUCCESS;
+    DWORD       i                           = 0;
+    DWORD       dwRead                      = 0;
+    WCHAR       pConfigPath[MAX_PATH]       = { 0 };
+    HANDLE      hFile                       = ERROR_SUCCESS;
+    CHAR        pBuffer[MAX_PATH]           = { 0 };
+
+    if (0 == GetModuleFileNameW(NULL, pConfigPath, MAX_PATH))
+    {
+        dwStatus = GetLastError();
+        LogWarningWin(GetLastError(), L"GetModuleFileNameA");
+        wcscpy_s(pConfigPath, MAX_PATH, CONFIG_FILE_NAME);
+    }
+    else
+    {
+        for (i = (DWORD) wcslen(pConfigPath); (i > 0) && (pConfigPath[i] != L'\\'); i--);
+        pConfigPath[i] = 0;
+        swprintf_s(pConfigPath, MAX_PATH, L"%s\\%s", pConfigPath, CONFIG_FILE_NAME);
+    }
+
+    __try
+    {
+        hFile = CreateFile(pConfigPath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+        if (INVALID_HANDLE_VALUE == hFile)
+        {
+            dwStatus = GetLastError();
+            LogErrorWin(dwStatus, L"CreateFile(%s)", pConfigPath);
+            __leave;
+        }
+
+        if (!ReadFile(hFile, pBuffer, MAX_PATH, &dwRead, NULL))
+        {
+            dwStatus = GetLastError();
+            LogErrorWin(dwStatus, L"ReadFile");
+            __leave;
+        }
+
+        LogInfo(L">>>>>>>>>>>>>>>>>>>>>>>> %S", pBuffer);
+        for (i = 0; i < dwRead && pBuffer[i] && pBuffer[i] != ':'; i++)
+        {
+            PIpAddr[i] = pBuffer[i];
+        }
+        strcpy_s(PPort, MAX_PATH, pBuffer + i + 1);
+
+        LogInfo(L">>>>>>>>>> IP: %S", PIpAddr);
+        LogInfo(L">>>>>>>>>> Port: %S", PPort);
+    }
+    __finally
+    {
+        if (INVALID_HANDLE_VALUE != hFile)
+        {
+            CloseHandle(hFile);
+            hFile = INVALID_HANDLE_VALUE;
+        }
+
+        if (ERROR_SUCCESS != dwStatus)
+        {
+            sprintf_s(PIpAddr, MAX_PATH, "192.168.194.1");
+            sprintf_s(PPort, MAX_PATH, "12345");
+        }
+    }
 }
 
 VOID
@@ -125,7 +186,7 @@ SendSetAppCtrlStatus(
 
     if (ERROR_SUCCESS != ClRecvDWORD(&dwEnable)) return;
 
-    dwStatus = (dwEnable == 1) ? IcStartAppCtrlScan() : IcStopAppCtrlScan();
+    dwStatus = (dwEnable == 1) ? IcStartAppCtrlScan() : IcStopAppCtrlScan(TRUE);
     if (dwStatus != ERROR_SUCCESS)
     {
         LogErrorWin(dwStatus, L"%s", (dwEnable == 1) ? L"IcStartAppCtrlScan" : L"IcStopAppCtrlScan");
@@ -165,7 +226,7 @@ SendSetFSScanStatus(
 
     if (ERROR_SUCCESS != ClRecvDWORD(&dwEnable)) return;
 
-    dwStatus = (dwEnable == 1) ? IcStartFSScan() : IcStopFSScan();
+    dwStatus = (dwEnable == 1) ? IcStartFSScan() : IcStopFSScan(TRUE);
     if (dwStatus != ERROR_SUCCESS)
     {
         LogErrorWin(dwStatus, L"%s", (dwEnable == 1) ? L"IcStartFSScan" : L"IcStopFSScan");
@@ -600,7 +661,7 @@ SendUpdateFSScanRule(
         dwStatus = IcUpdateFSScanRule(dwRuleId, procMatcher, pProcPath, dwPID, fileProcMatcher, pFilePath, dwDeniedOperations);
         if (ERROR_SUCCESS != dwStatus)
         {
-            LogErrorWin(dwStatus, L"IcAddFSScanRule");
+            LogErrorWin(dwStatus, L"IcUpdateFSScanRule");
             ClSendDWORD(IcServerCommandResult_Error);
             __leave;
         }
@@ -774,7 +835,6 @@ ManagerThread(
 
             if (SleepOrExit(5 * 1000)) __leave;
         }
-
     }
     __finally
     {

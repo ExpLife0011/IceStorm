@@ -12,7 +12,7 @@ InitAppCtrlRules(
 _Success_(return == ERROR_SUCCESS)
 DWORD
 UninitAppCtrlRules(
-    VOID
+    _In_    BOOLEAN                     BPersistent
 );
 
 _Success_(return == ERROR_SUCCESS)
@@ -61,7 +61,6 @@ GetAppCtrlRules(
     _Inout_     DWORD                      *PDwLength
 );
 
-_Success_(ERROR_SUCCESS == return)
 VOID
 FreeAppCtrlRulesList(
     _Inout_     PIC_APPCTRL_RULE           PRules,

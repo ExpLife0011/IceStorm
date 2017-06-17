@@ -122,7 +122,7 @@
             this.mainLayout.RowCount = 2;
             this.mainLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.mainLayout.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.mainLayout.Size = new System.Drawing.Size(1384, 660);
+            this.mainLayout.Size = new System.Drawing.Size(1484, 660);
             this.mainLayout.TabIndex = 1;
             // 
             // tabControl
@@ -134,11 +134,11 @@
             this.tabControl.Controls.Add(this.tabFSRules);
             this.tabControl.Controls.Add(this.tabAppCtrlEvents);
             this.tabControl.Controls.Add(this.tabFSEvents);
-            this.tabControl.Location = new System.Drawing.Point(279, 3);
+            this.tabControl.Location = new System.Drawing.Point(299, 3);
             this.tabControl.Margin = new System.Windows.Forms.Padding(3, 3, 20, 3);
             this.tabControl.Name = "tabControl";
             this.tabControl.SelectedIndex = 0;
-            this.tabControl.Size = new System.Drawing.Size(1085, 324);
+            this.tabControl.Size = new System.Drawing.Size(1165, 324);
             this.tabControl.TabIndex = 1;
             this.tabControl.SelectedIndexChanged += new System.EventHandler(this.tabControl_SelectedIndexChanged);
             // 
@@ -196,7 +196,7 @@
             // chAR3
             // 
             this.chAR3.Text = "Process Path";
-            this.chAR3.Width = 300;
+            this.chAR3.Width = 275;
             // 
             // chAR4
             // 
@@ -210,11 +210,12 @@
             // chAR6
             // 
             this.chAR6.Text = "Parent Path";
-            this.chAR6.Width = 300;
+            this.chAR6.Width = 275;
             // 
             // chAR7
             // 
             this.chAR7.Text = "Parent PID";
+            this.chAR7.Width = 70;
             // 
             // chAR8
             // 
@@ -223,7 +224,7 @@
             // chAR9
             // 
             this.chAR9.Text = "Add Time";
-            this.chAR9.Width = 100;
+            this.chAR9.Width = 120;
             // 
             // tabFSRules
             // 
@@ -275,7 +276,7 @@
             // chFR3
             // 
             this.chFR3.Text = "Proc Path";
-            this.chFR3.Width = 300;
+            this.chFR3.Width = 275;
             // 
             // chFR4
             // 
@@ -288,7 +289,7 @@
             // chFR6
             // 
             this.chFR6.Text = "File Path";
-            this.chFR6.Width = 300;
+            this.chFR6.Width = 275;
             // 
             // chFR7
             // 
@@ -298,6 +299,7 @@
             // chFR8
             // 
             this.chFR8.Text = "Add Time";
+            this.chFR8.Width = 80;
             // 
             // tabAppCtrlEvents
             // 
@@ -344,7 +346,7 @@
             // columnHeader2
             // 
             this.columnHeader2.Text = "Process Path";
-            this.columnHeader2.Width = 300;
+            this.columnHeader2.Width = 275;
             // 
             // columnHeader3
             // 
@@ -353,11 +355,12 @@
             // columnHeader4
             // 
             this.columnHeader4.Text = "Parent Path";
-            this.columnHeader4.Width = 300;
+            this.columnHeader4.Width = 275;
             // 
             // columnHeader5
             // 
             this.columnHeader5.Text = "Parent PID";
+            this.columnHeader5.Width = 70;
             // 
             // columnHeader6
             // 
@@ -369,7 +372,8 @@
             // 
             // columnHeader8
             // 
-            this.columnHeader8.Text = "Event TIme";
+            this.columnHeader8.Text = "Event Time";
+            this.columnHeader8.Width = 80;
             // 
             // tabFSEvents
             // 
@@ -377,7 +381,7 @@
             this.tabFSEvents.Location = new System.Drawing.Point(4, 22);
             this.tabFSEvents.Name = "tabFSEvents";
             this.tabFSEvents.Padding = new System.Windows.Forms.Padding(3);
-            this.tabFSEvents.Size = new System.Drawing.Size(1077, 298);
+            this.tabFSEvents.Size = new System.Drawing.Size(1157, 298);
             this.tabFSEvents.TabIndex = 3;
             this.tabFSEvents.Text = "FS Events";
             this.tabFSEvents.UseVisualStyleBackColor = true;
@@ -404,7 +408,7 @@
             this.listFSEvents.Location = new System.Drawing.Point(0, 0);
             this.listFSEvents.MultiSelect = false;
             this.listFSEvents.Name = "listFSEvents";
-            this.listFSEvents.Size = new System.Drawing.Size(1077, 298);
+            this.listFSEvents.Size = new System.Drawing.Size(1157, 298);
             this.listFSEvents.TabIndex = 0;
             this.listFSEvents.UseCompatibleStateImageBehavior = false;
             this.listFSEvents.View = System.Windows.Forms.View.Details;
@@ -417,7 +421,7 @@
             // columnHeader10
             // 
             this.columnHeader10.Text = "Process Path";
-            this.columnHeader10.Width = 300;
+            this.columnHeader10.Width = 250;
             // 
             // columnHeader11
             // 
@@ -426,22 +430,22 @@
             // columnHeader12
             // 
             this.columnHeader12.Text = "File Path";
-            this.columnHeader12.Width = 300;
+            this.columnHeader12.Width = 250;
             // 
             // columnHeader13
             // 
             this.columnHeader13.Text = "Required Operation";
-            this.columnHeader13.Width = 100;
+            this.columnHeader13.Width = 120;
             // 
             // columnHeader14
             // 
             this.columnHeader14.Text = "Denied Operations";
-            this.columnHeader14.Width = 100;
+            this.columnHeader14.Width = 120;
             // 
             // columnHeader15
             // 
             this.columnHeader15.Text = "Remaining Operations";
-            this.columnHeader15.Width = 100;
+            this.columnHeader15.Width = 120;
             // 
             // columnHeader16
             // 
@@ -450,6 +454,7 @@
             // columnHeader17
             // 
             this.columnHeader17.Text = "Event Time";
+            this.columnHeader17.Width = 80;
             // 
             // listClients
             // 
@@ -463,7 +468,7 @@
             this.listClients.Location = new System.Drawing.Point(3, 3);
             this.listClients.MultiSelect = false;
             this.listClients.Name = "listClients";
-            this.listClients.Size = new System.Drawing.Size(270, 324);
+            this.listClients.Size = new System.Drawing.Size(290, 324);
             this.listClients.Sorting = System.Windows.Forms.SortOrder.Ascending;
             this.listClients.TabIndex = 2;
             this.listClients.UseCompatibleStateImageBehavior = false;
@@ -494,7 +499,7 @@
             this.groupBoxClient.Margin = new System.Windows.Forms.Padding(3, 3, 3, 50);
             this.groupBoxClient.MinimumSize = new System.Drawing.Size(270, 270);
             this.groupBoxClient.Name = "groupBoxClient";
-            this.groupBoxClient.Size = new System.Drawing.Size(270, 277);
+            this.groupBoxClient.Size = new System.Drawing.Size(290, 277);
             this.groupBoxClient.TabIndex = 3;
             this.groupBoxClient.TabStop = false;
             this.groupBoxClient.Text = "Client Info";
@@ -645,10 +650,10 @@
             this.groupBoxRule.Controls.Add(this.btnDelete);
             this.groupBoxRule.Controls.Add(this.btnUpdate);
             this.groupBoxRule.Controls.Add(this.btnAdd);
-            this.groupBoxRule.Location = new System.Drawing.Point(279, 333);
+            this.groupBoxRule.Location = new System.Drawing.Point(299, 333);
             this.groupBoxRule.Margin = new System.Windows.Forms.Padding(3, 3, 20, 50);
             this.groupBoxRule.Name = "groupBoxRule";
-            this.groupBoxRule.Size = new System.Drawing.Size(1085, 277);
+            this.groupBoxRule.Size = new System.Drawing.Size(1165, 277);
             this.groupBoxRule.TabIndex = 4;
             this.groupBoxRule.TabStop = false;
             this.groupBoxRule.Text = "Rule";
@@ -656,7 +661,7 @@
             // btnDelete
             // 
             this.btnDelete.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnDelete.Location = new System.Drawing.Point(957, 20);
+            this.btnDelete.Location = new System.Drawing.Point(1037, 20);
             this.btnDelete.Name = "btnDelete";
             this.btnDelete.Size = new System.Drawing.Size(120, 23);
             this.btnDelete.TabIndex = 2;
@@ -667,7 +672,7 @@
             // btnUpdate
             // 
             this.btnUpdate.Anchor = System.Windows.Forms.AnchorStyles.Top;
-            this.btnUpdate.Location = new System.Drawing.Point(482, 20);
+            this.btnUpdate.Location = new System.Drawing.Point(522, 20);
             this.btnUpdate.Name = "btnUpdate";
             this.btnUpdate.Size = new System.Drawing.Size(120, 23);
             this.btnUpdate.TabIndex = 1;
@@ -689,7 +694,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1384, 661);
+            this.ClientSize = new System.Drawing.Size(1484, 661);
             this.Controls.Add(this.mainLayout);
             this.MinimumSize = new System.Drawing.Size(800, 700);
             this.Name = "MainForm";

@@ -4,6 +4,7 @@
 #include "appctrl_rules.h"
 #include "fs_scan.h"
 #include "fs_rules.h"
+#include "debug2.h"
 
 _Use_decl_anno_impl_
 DWORD
@@ -45,10 +46,10 @@ IcStartAppCtrlScan(
 _Use_decl_anno_impl_
 DWORD
 IcStopAppCtrlScan(
-    VOID
+    BOOLEAN                                 BPersistent
 )
 {
-    return StopAppCtrlScan();
+    return StopAppCtrlScan(BPersistent);
 }
 
 _Use_decl_anno_impl_
@@ -149,10 +150,10 @@ IcStartFSScan(
 _Use_decl_anno_impl_
 DWORD
 IcStopFSScan(
-    VOID
+    BOOLEAN                         BPersistent
 )
 {
-    return StopFSScan();
+    return StopFSScan(BPersistent);
 }
 
 _Use_decl_anno_impl_
@@ -201,8 +202,9 @@ IcUpdateFSScanRule(
     ULONG                           UlDeniedOperations
 )
 {
-    if ((DwRuleId == 0) || (NULL == PProcessPath && 0 == DwPid && NULL == PProcessPath))
+    if ((DwRuleId == 0) || (NULL == PProcessPath && 0 == DwPid && NULL == PFilePath))
     {
+        LogInfo(L"DwRuleId: %d, PProcessPath: %d, PFilePath: %d", DwRuleId, PProcessPath, PFilePath);
         return ERROR_INVALID_PARAMETER;
     }
 

@@ -53,6 +53,7 @@ namespace Manager.Log
             }
         }
 
+        [Conditional("DEBUG")]
         public void Info(string message)
         {
             WriteMessage("[INFO]", message);

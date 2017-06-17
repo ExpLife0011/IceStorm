@@ -12,15 +12,15 @@ InitFSScanRules(
 _Success_(return == ERROR_SUCCESS)
 DWORD
 UninitFSScanRules(
-    VOID
+    _In_        BOOLEAN                     BPersistent
 );
 
 _Success_(return == ERROR_SUCCESS)
 DWORD
 GetFSScanResult(
-    _In_    ULONG                           UlOriginalFlags,
-    _In_    IC_FS_RULE                     *PRule,
-    _Inout_ ICE_FS_SCAN_RESULT_PACKET      *PResultPack
+    _In_        ULONG                       UlOriginalFlags,
+    _In_        IC_FS_RULE                 *PRule,
+    _Inout_     ICE_FS_SCAN_RESULT_PACKET  *PResultPack
 );
 
 _Success_(ERROR_SUCCESS == return)

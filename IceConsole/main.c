@@ -132,7 +132,7 @@ EnableAppCtrl(
     }
     else
     {
-        dwResult = IcStopAppCtrlScan();
+        dwResult = IcStopAppCtrlScan(TRUE);
         if (ERROR_SUCCESS != dwResult)
         {
             LogErrorWin(dwResult, L"IcStopAppCtrlScan");
@@ -386,7 +386,7 @@ EnableFSScan(
     }
     else
     {
-        dwResult = IcStopFSScan();
+        dwResult = IcStopFSScan(TRUE);
         if (ERROR_SUCCESS != dwResult)
         {
             LogErrorWin(dwResult, L"IcStopFSScan");
@@ -760,9 +760,9 @@ wmain(
     }
     __finally
     {
-        IcStopAppCtrlScan();
+        IcStopAppCtrlScan(TRUE);
         
-        IcStopFSScan();
+        IcStopFSScan(TRUE);
 
         IcUninitConnectionToIceFlt();
 

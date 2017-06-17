@@ -2,6 +2,7 @@
 using Manager.Log;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -48,8 +49,21 @@ namespace Manager.Server
 
         private void LoadConfig()
         {
-            serverIp = "192.168.194.1";
-            port = 12345;
+            try
+            {
+                string filePath = string.Format("{0}\\{1}", Directory.GetCurrentDirectory(), "iceserv.ipv4");
+                StreamReader file = new StreamReader(filePath);
+                string line = file.ReadLine();
+                string[] lst = line.Split(':');
+                serverIp = lst[0];
+                port = int.Parse(lst[1]);
+            }
+            catch (Exception ex)
+            {
+                log.Error(ex.Message);
+                serverIp = "192.168.194.1";
+                port = 12345;
+            }
         }
         
         private IPEndPoint GetIPEndPoint()
