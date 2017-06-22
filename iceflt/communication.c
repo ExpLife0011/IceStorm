@@ -333,7 +333,6 @@ IceMessageCallback(
                 qwValue = *((UINT64 *) (pInputBuffer + 1));
                 gPData->IceSettings.BtEnableAppCtrlScan = (BYTE) qwValue;
                 LogInfo("EnableAppCtrlScan is now set on: %d, %I64d", gPData->IceSettings.BtEnableAppCtrlScan, qwValue);
-                LogInfo("EnableFSScan is set on: %d, %I64d", gPData->IceSettings.BtEnableFSScan, qwValue);
                 break;
             }
 
@@ -342,7 +341,6 @@ IceMessageCallback(
                 qwValue = *((UINT64 *) (pInputBuffer + 1));
                 gPData->IceSettings.BtEnableFSScan = (BYTE) qwValue;
                 LogInfo("EnableFSScan is now set on: %d, %I64d", gPData->IceSettings.BtEnableFSScan, qwValue);
-                LogInfo("EnableAppCtrlScan is set on: %d, %I64d", gPData->IceSettings.BtEnableAppCtrlScan, qwValue);
                 break;
             }
 

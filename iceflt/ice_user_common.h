@@ -14,7 +14,6 @@
 
 #define ICE_APPCTRL_PORT                    L"\\IceAppCtrlPort"
 #define ICE_SCAN_CONTROL_PORT               L"\\IceScanControlPort"
-
 #define ICE_SCAN_FS_PORT                    L"\\IceScanFSPort"
 
 typedef enum _ICE_FS_CREATE_FLAGS
@@ -110,7 +109,7 @@ typedef enum _ICE_SCAN_VERDICT
 {
     IceScanVerdict_Allow = 0, // ERROR_SUCCESS
     IceScanVerdict_Deny = 5 // ERROR_ACCESS_DENIED
-} ICE_SCAN_VERDICT;
+} ICE_SCAN_VERDICT, *PICE_SCAN_VERDICT;
 
 
 

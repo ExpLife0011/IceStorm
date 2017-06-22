@@ -19,7 +19,7 @@ CONST FLT_CONTEXT_REGISTRATION ContextRegistration_Win8[] = {
 
 CONST FLT_OPERATION_REGISTRATION Callbacks[] = 
 {
-    {IRP_MJ_CREATE,                 FLTFL_OPERATION_REGISTRATION_SKIP_CACHED_IO | FLTFL_OPERATION_REGISTRATION_SKIP_PAGING_IO, IcePreCreate,            IcePostCreate},
+    {IRP_MJ_CREATE,                 0, IcePreCreate,            IcePostCreate},
     {IRP_MJ_READ,                   0, IcePreRead,              IcePostRead},
     {IRP_MJ_WRITE,                  0, IcePreWrite,             IcePostWrite},
     {IRP_MJ_CLEANUP,                0, IcePreCleanup,           IcePostCleanup},

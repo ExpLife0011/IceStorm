@@ -96,7 +96,7 @@ IceScanFSPreCreate(
         }
 
         ulPacketLength = IceGetFSPreCreateScanRequestSize(PUSFilePath, PUSProcessPath);
-        pPacket = (PICE_GENERIC_PACKET) ExAllocatePoolWithTag(NonPagedPool, ulPacketLength, TAG_ICFS);
+        pPacket = (PICE_GENERIC_PACKET) ExAllocatePoolWithTag(NonPagedPoolNx, ulPacketLength, TAG_ICFS);
         if (pPacket == NULL)
         {
             ntStatus = STATUS_INSUFFICIENT_RESOURCES;

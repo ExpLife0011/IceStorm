@@ -7,6 +7,8 @@
 #include "ice_user_common.h"
 #include "ice_fs_scan.h"
 
+volatile LONG counter = 0;
+
 typedef struct _ICE_PRE2POST_CREATE_CONTEXT
 {
     ULONG           UlOldCreateDisposition;
@@ -17,28 +19,9 @@ typedef struct _ICE_PRE2POST_CREATE_CONTEXT
     ULONG           UlNewDesiredAccess;
     ULONG           UlNewCreateOptions;
 
+    BOOLEAN         BDeny;
+
 } ICE_PRE2POST_CREATE_CONTEXT, *PICE_PRE2POST_CREATE_CONTEXT;
-//
-//PCHAR GET_FLAGS_STR(ULONG f)
-//{
-//    DWORD dwLen = 500;
-//    PCHAR s = ExAllocatePoolWithTag(NonPagedPool, dwLen, 'aaaa');
-//    s[0] = 0;
-//
-//    if (!f)
-//    {
-//        sprintf_s(s, dwLen, "NONE");
-//        return s;
-//    }
-//    
-//    if (f & ICE_FS_FLAG_CREATE) sprintf_s(s, dwLen, "%s_CREATE", s);
-//    if (f & ICE_FS_FLAG_OPEN) sprintf_s(s, dwLen, "%s_OPEN", s);
-//    if (f & ICE_FS_FLAG_READ) sprintf_s(s, dwLen, "%s_READ", s);
-//    if (f & ICE_FS_FLAG_WRITE) sprintf_s(s, dwLen, "%s_WRITE", s);
-//    if (f & ICE_FS_FLAG_DELETE) sprintf_s(s, dwLen, "%s_DELETE", s);
-//
-//    return s;
-//}
 
 VOID
 IceGetFsScanFlags(
@@ -108,7 +91,10 @@ IceGetNewFileFlags(
 
     PreOpFlags;
 
-    if (!(NewOpFlags & ICE_FS_FLAG_CREATE) && !(NewOpFlags & ICE_FS_FLAG_OPEN))
+    if (
+        (!(NewOpFlags & (ICE_FS_FLAG_CREATE | ICE_FS_FLAG_OPEN))) ||
+        (!(NewOpFlags & (ICE_FS_FLAG_READ | ICE_FS_FLAG_WRITE | ICE_FS_FLAG_DELETE)))
+        )
     {
         *DenyOp = TRUE;
         return;
@@ -147,8 +133,14 @@ IceGetNewFileFlags(
 
     if (!(NewOpFlags & ICE_FS_FLAG_READ)) newDesiredAccess &= (~readFlags);
     
-    if (!(NewOpFlags & ICE_FS_FLAG_WRITE)) newDesiredAccess &= (~writeFlags);
-    
+    if (!(NewOpFlags & ICE_FS_FLAG_WRITE))
+    {
+        newDesiredAccess &= (~writeFlags);
+
+        if (newCreateDisposition == FILE_OVERWRITE) newCreateDisposition = FILE_OPEN;
+        if (newCreateDisposition == FILE_OVERWRITE_IF) newCreateDisposition = FILE_OPEN_IF;
+    }
+
     if (!(NewOpFlags & ICE_FS_FLAG_DELETE))
     {
         newDesiredAccess &= (~DELETE);
@@ -219,7 +211,8 @@ IceGetFsScanFlags(
 
     if (
         (DesiredAccess & (FILE_WRITE_DATA | FILE_WRITE_ATTRIBUTES | FILE_WRITE_EA | FILE_APPEND_DATA |
-                            WRITE_DAC | WRITE_OWNER | FILE_GENERIC_WRITE | GENERIC_WRITE | GENERIC_ALL | MAXIMUM_ALLOWED))
+                            WRITE_DAC | WRITE_OWNER | FILE_GENERIC_WRITE | GENERIC_WRITE | GENERIC_ALL | MAXIMUM_ALLOWED)) ||
+        (CreateDisposition == FILE_OVERWRITE) || (CreateDisposition == FILE_OVERWRITE_IF)
         )
     {
         flags |= ICE_FS_FLAG_WRITE;
@@ -255,37 +248,6 @@ IceGetFsScanFlags(
     }
 
     *PFsScanFlags = flags;
-}
-
-BOOLEAN HbFindPrefetchEcp(PFLT_CALLBACK_DATA Data)
-{
-    PECP_LIST EcpList = 0;
-    PVOID EcpContext = 0;
-    BOOLEAN bFind = FALSE;
-    NTSTATUS status = 0;
-
-    PAGED_CODE();
-
-    do
-    {
-
-        status = FltGetEcpListFromCallbackData(gPData->PFilter, Data, &EcpList);
-
-        if (!NT_SUCCESS(status)) break;
-
-        if (!EcpList) break;
-
-        status = FltFindExtraCreateParameter(gPData->PFilter, EcpList, &GUID_ECP_PREFETCH_OPEN, &EcpContext, NULL);
-
-        if (!NT_SUCCESS(status)) break;
-
-        if (FltIsEcpFromUserMode(gPData->PFilter, EcpContext)) break;
-
-        bFind = TRUE;
-
-    } while (0);
-
-    return bFind;
 }
 
 _Use_decl_anno_impl_
@@ -365,7 +327,6 @@ IcePreCreate(
 
     __try
     {
-        
         hProcessPid = PsGetProcessId(pECurrentProcess);
 
         ntStatus = IceGetProcessPathByPid(hProcessPid, &pUSProcessPath);
@@ -400,20 +361,49 @@ IcePreCreate(
         if (ulPreOpFlags == ulNewOpFlags) __leave;
 
 
-        //__debugbreak();
+        IceGetNewFileFlags(
+            ulPreOpFlags, ulNewOpFlags, ulDesiredAccess, ulCreateOptions, ulCreateDisposition,
+            &ulNewDesiredAccess, &ulNewCreateOptions, &ulNewCreateDisposition, &bDenyOperation
+        );
 
-        if (ulNewOpFlags == 0 || (ulNewOpFlags & (ICE_FS_FLAG_READ | ICE_FS_FLAG_WRITE | ICE_FS_FLAG_DELETE)) == 0)
+#if DBG
+        ULONG c = InterlockedAdd(&counter, 1);
+
+        LogInfo("%d) *********************************************", c);
+        LogInfo("%d) PP: [%wZ]", c, pUSProcessPath);
+        LogInfo("%d) PF: [%wZ]", c, pUSFilePath);
+        LogInfo("%d) deny: %d", c, bDenyOperation);
+        LogInfo("%d) of: %d, nf: %d", c, ulPreOpFlags, ulNewOpFlags);
+        LogInfo("%d) of: %d, nf: %d", c, ulPreOpFlags, ulNewOpFlags);
+        LogInfo("%d) cd: %d, ncd: %d", c, ulCreateDisposition, ulNewCreateDisposition);
+        LogInfo("%d) co: %d, nco: %d", c, ulCreateOptions, ulNewCreateOptions);
+        LogInfo("%d) da: %d, nda: %d", c, ulDesiredAccess, ulNewDesiredAccess);
+        LogInfo("%d) --------------------------------------------", c);
+#endif // DBG
+
+
+        if (ulCreateDisposition == FILE_OVERWRITE_IF)
         {
-            bDenyOperation = TRUE;
+            LogWarningNt(PData->IoStatus.Status, "Skipping file: [%wZ], Proc: [%wZ], ", pUSFilePath, pUSProcessPath);
+
+            pPre2Post = ExAllocatePoolWithTag(NonPagedPoolNx, sizeof(ICE_PRE2POST_CREATE_CONTEXT), TAG_IC2P);
+            if (NULL == pPre2Post) __leave;
+
+
+            pPre2Post->UlOldDesiredAccess = ulDesiredAccess;
+            pPre2Post->UlOldCreateOptions = ulCreateOptions;
+            pPre2Post->UlOldCreateDisposition = ulCreateDisposition;
+
+            pPre2Post->UlNewDesiredAccess = ulNewDesiredAccess;
+            pPre2Post->UlNewCreateOptions = ulNewCreateOptions;
+            pPre2Post->UlNewCreateDisposition = ulNewCreateDisposition;
+
+            pPre2Post->BDeny = bDenyOperation;
+
+            ntRetVal = FLT_PREOP_SUCCESS_WITH_CALLBACK;
+            __leave;
         }
-        else
-        {
-            IceGetNewFileFlags(
-                ulPreOpFlags, ulNewOpFlags, ulDesiredAccess, ulCreateOptions, ulCreateDisposition,
-                &ulNewDesiredAccess, &ulNewCreateOptions, &ulNewCreateDisposition, &bDenyOperation
-            );
-        }
-        
+
         if (bDenyOperation)
         {
             PData->IoStatus.Status = STATUS_ACCESS_DENIED;
@@ -429,21 +419,7 @@ IcePreCreate(
 
         FltSetCallbackDataDirty(PData);
 
-        pPre2Post = ExAllocatePoolWithTag(NonPagedPool, sizeof(ICE_PRE2POST_CREATE_CONTEXT), TAG_IC2P);
-        if (NULL == pPre2Post) __leave;
-        
-
-        pPre2Post->UlOldDesiredAccess = ulDesiredAccess;
-        pPre2Post->UlOldCreateOptions = ulCreateOptions;
-        pPre2Post->UlOldCreateDisposition = ulCreateDisposition;
-
-        pPre2Post->UlNewDesiredAccess = ulNewDesiredAccess;
-        pPre2Post->UlNewCreateOptions = ulNewCreateOptions;
-        pPre2Post->UlNewCreateDisposition = ulNewCreateDisposition;
-
-        ntRetVal = FLT_PREOP_SUCCESS_WITH_CALLBACK;
-        
-        //IcePreCreateCsvfs(PData, PFltObjects);
+        ntRetVal = FLT_PREOP_SUCCESS_NO_CALLBACK;
     }
     __finally
     {
@@ -480,33 +456,45 @@ IcePostCreate(
     FLT_POST_OPERATION_FLAGS    Flags
 )
 {
-    PICE_PRE2POST_CREATE_CONTEXT    pPre2Post = NULL;
-
+    PICE_PRE2POST_CREATE_CONTEXT    pPre2Post   = NULL;
+    NTSTATUS                        ntRetVal    = FLT_POSTOP_FINISHED_PROCESSING;
+    
     PAGED_CODE();
 
-    UNREFERENCED_PARAMETER(Flags);
-    UNREFERENCED_PARAMETER(PData);
-    UNREFERENCED_PARAMETER(PFltObjects);
+    if (PCompletionContext == NULL) return ntRetVal;
 
-    if (PCompletionContext == NULL) return FLT_POSTOP_FINISHED_PROCESSING;
+    if (FlagOn(Flags, FLTFL_POST_OPERATION_DRAINING))
+    {
+        ExFreePoolWithTag(pPre2Post, TAG_IC2P);
+        pPre2Post = NULL;
+        return ntRetVal;
+    }
 
-    //__debugbreak();
-
+    
     pPre2Post = PCompletionContext;
 
+    if (pPre2Post->BDeny)
+    {
+        PData->IoStatus.Status = STATUS_ACCESS_DENIED;
+        PData->IoStatus.Information = 0;
+        FltCancelFileOpen(PFltObjects->Instance, PFltObjects->FileObject);
+        LogInfo("Canceled: %wZ", &PData->Iopb->TargetFileObject->FileName);
+        ntRetVal = FLT_POSTOP_FINISHED_PROCESSING;
+    }
+    else
+    {
+        pPre2Post->UlNewCreateOptions = pPre2Post->UlNewCreateOptions | (pPre2Post->UlNewCreateDisposition << 24);
+        PData->Iopb->Parameters.Create.Options = pPre2Post->UlNewCreateOptions;
+        PData->Iopb->Parameters.Create.SecurityContext->DesiredAccess = pPre2Post->UlNewDesiredAccess;
+        PData->Iopb->Parameters.Create.SecurityContext->AccessState->RemainingDesiredAccess = pPre2Post->UlNewDesiredAccess;
 
-    //pPre2Post->UlNewCreateOptions = pPre2Post->UlNewCreateOptions | (pPre2Post->UlNewCreateDisposition << 24);
-    //PData->Iopb->Parameters.Create.Options = pPre2Post->UlNewCreateOptions;
-    //PData->Iopb->Parameters.Create.SecurityContext->DesiredAccess = pPre2Post->UlNewDesiredAccess;
-    //PData->Iopb->Parameters.Create.SecurityContext->AccessState->RemainingDesiredAccess = pPre2Post->UlNewDesiredAccess;
+        FltSetCallbackDataDirty(PData);
+    }
 
-
-    //FltSetCallbackDataDirty(PData);
-    //
     ExFreePoolWithTag(pPre2Post, TAG_IC2P);
     pPre2Post = NULL;
 
-    return FLT_POSTOP_FINISHED_PROCESSING;
+    return ntRetVal;
 }
 
 FLT_PREOP_CALLBACK_STATUS

@@ -27,7 +27,7 @@ SrvInit(
 )
 {
     DWORD           dwRetVal    = ERROR_SUCCESS;
-
+    
     __try
     {
         gHStopEvent = CreateEvent(NULL, TRUE, FALSE, NULL);

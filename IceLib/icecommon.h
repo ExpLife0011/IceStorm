@@ -10,7 +10,7 @@ typedef enum _IC_STRING_MATCHER
 {
     IcStringMatcher_Equal = 0,
     IcStringMatcher_Wildmat = 1
-} IC_STRING_MATCHER;
+} IC_STRING_MATCHER, *PIC_STRING_MATCHER;
 
 typedef struct _IC_APPCTRL_RULE
 {

@@ -144,7 +144,7 @@ IceCreateUMPath(
 
     nameSize = (KMName->Length - VolumeKMName->Length) + VolumeDosName->Length + sizeof(WCHAR);
     
-    pAuxName = ExAllocatePoolWithTag(NonPagedPool, nameSize + sizeof(WCHAR) + sizeof(UNICODE_STRING), TAG_ICUP);
+    pAuxName = ExAllocatePoolWithTag(NonPagedPoolNx, nameSize + sizeof(WCHAR) + sizeof(UNICODE_STRING), TAG_ICUP);
     if (NULL == pAuxName)
     {
         return STATUS_INSUFFICIENT_RESOURCES;
@@ -305,7 +305,7 @@ IceGetUMProcessPath(
             __leave;
         }
         
-        pKMVolumeName = ExAllocatePoolWithTag(NonPagedPool, ulVolumeNameSize, TAG_ICVN);
+        pKMVolumeName = ExAllocatePoolWithTag(NonPagedPoolNx, ulVolumeNameSize, TAG_ICVN);
         if (NULL == pKMVolumeName)
         {
             ntStatus = STATUS_INSUFFICIENT_RESOURCES;

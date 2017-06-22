@@ -213,7 +213,7 @@ IceUnload(
     if ((gPData->IceSettings.UlAllowUnload != 1) && !(UlFlags & FLTFL_FILTER_UNLOAD_MANDATORY))
     { 
         LogInfo("--->> UlAllowUnload is not 1, Driver should not unload... in the final version");
-        //return STATUS_FLT_DO_NOT_DETACH;
+        return STATUS_FLT_DO_NOT_DETACH;
     }
 
     gPData->BUnloading = TRUE;

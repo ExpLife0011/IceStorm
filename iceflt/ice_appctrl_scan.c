@@ -124,9 +124,14 @@ IceAppCtrlScanProcess(
             }
         }
 
-        IceGetProcessPathByPid(PCreateInfo->ParentProcessId, &pKMParentPath);
+        ntStatus = IceGetProcessPathByPid(PCreateInfo->ParentProcessId, &pKMParentPath);
+        if (!NT_SUCCESS(ntStatus))
+        {
+            LogErrorNt(ntStatus, "IceGetProcessPathByPid(%d) for parent path", (ULONG) (ULONG_PTR) PCreateInfo->ParentProcessId);
+            __leave;
+        }
 
-        // construiesc pachetul pentru scanare
+        
         ulPacketLength = IceGetScanRequestSize(pKMProcPath, pKMParentPath);
         pPacket = (PICE_GENERIC_PACKET) ExAllocatePoolWithTag(PagedPool, ulPacketLength, TAG_ICSP);
         if (NULL == pPacket)
@@ -135,7 +140,6 @@ IceAppCtrlScanProcess(
             __leave;
         }
 
-        LogInfo("ulPacketLength: %d", ulPacketLength);
         pPacket->DwPacketLength = ulPacketLength;
         pPacket->DwRequestType = ICE_FILTER_REQUEST_SCAN_PROCESS;
         pScanRequest = (PICE_APP_CTRL_SCAN_REQUEST_PACKET) (pPacket + 1);
@@ -146,16 +150,14 @@ IceAppCtrlScanProcess(
             LogErrorNt(ntStatus, "IceBuildScanRequest");
             __leave;
         }
-        
-        // trimit requestul
-        liTimeout.QuadPart = (-10000LL * 500); //-10000LL * 5000
 
+        
+        liTimeout.QuadPart = (-10000LL * 500); // 0.5 sec - valoare negativa = valoare relativa
 
         pReplyHeader = (PFILTER_REPLY_HEADER) pResponseBuffer;
         pResponsePacket = (PICE_GENERIC_PACKET) (pReplyHeader + 1);
         ulResponseLength = sizeof(pResponseBuffer);
 
-        LogInfo("ulResponseLength: %d", ulResponseLength);
         ntStatus = FltSendMessage(gPData->PFilter, &gPIceComPorts->PClientAppCtrlPort, pPacket, pPacket->DwPacketLength, 
             pResponsePacket, &ulResponseLength, &liTimeout);
         if (!NT_SUCCESS(ntStatus) || ntStatus == STATUS_TIMEOUT)

@@ -59,7 +59,7 @@ IceInitGlobalData(
         if (NULL == gPData)
         {
             ntStatus = STATUS_INSUFFICIENT_RESOURCES;
-            LogErrorNt(ntStatus, "ExAllocatePoolWithTag(NonPagedPool, %d, 'FSgd')", (DWORD) sizeof(ICE_GLOBAL_DATA));
+            LogErrorNt(ntStatus, "ExAllocatePoolWithTag(NonPagedPoolNx, %d, 'FSgd')", (DWORD) sizeof(ICE_GLOBAL_DATA));
             __leave;
         }
         RtlZeroMemory(gPData, sizeof(ICE_GLOBAL_DATA));
