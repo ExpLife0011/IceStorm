@@ -1,5 +1,6 @@
 #include "debug2.h"
 #include "import_icefltum.h"
+#include "custom_tests.h"
 #include <stdio.h>
 #include <conio.h>
 #include <windows.h>
@@ -644,7 +645,7 @@ GetAllAppEvents(
 DWORD
 wmain(
     _In_        DWORD                       DwArgc,
-    _In_        PWCHAR                     *PPArcv
+    _In_        PWCHAR                     *PPArgv
 )
 {
     PWCHAR                                  pCmd;
@@ -655,8 +656,11 @@ wmain(
     ntStatus                                = STATUS_SUCCESS;
     dwStatusReturned                        = ERROR_SUCCESS;
     
-    UNREFERENCED_PARAMETER(DwArgc);
-    UNREFERENCED_PARAMETER(PPArcv);
+    
+    if (DwArgc > 1)
+    {
+        return RunCustomTestOperation(DwArgc, PPArgv);
+    }
 
     ntStatus = IcImportIcefltUmAPI();
     if (!NT_SUCCESS(ntStatus))

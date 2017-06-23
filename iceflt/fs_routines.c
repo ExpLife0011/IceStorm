@@ -91,6 +91,8 @@ IceGetNewFileFlags(
 
     PreOpFlags;
 
+    //__debugbreak();
+
     if (
         (!(NewOpFlags & (ICE_FS_FLAG_CREATE | ICE_FS_FLAG_OPEN))) ||
         (!(NewOpFlags & (ICE_FS_FLAG_READ | ICE_FS_FLAG_WRITE | ICE_FS_FLAG_DELETE)))
@@ -104,22 +106,21 @@ IceGetNewFileFlags(
     DesiredAccess &= (~SYNCHRONIZE);
 
     
-    if (DesiredAccess & GENERIC_ALL)
+    if (DesiredAccess & FILE_ALL_ACCESS)
     {
-        newDesiredAccess = (DesiredAccess & (~GENERIC_ALL));
+        newDesiredAccess = (DesiredAccess & (~FILE_ALL_ACCESS));
         
-        if (NewOpFlags & ICE_FS_FLAG_READ) newDesiredAccess |= (GENERIC_READ | GENERIC_EXECUTE);
-        if (NewOpFlags & ICE_FS_FLAG_WRITE) newDesiredAccess |= GENERIC_WRITE;
+        if (NewOpFlags & ICE_FS_FLAG_READ) newDesiredAccess |= (FILE_GENERIC_READ | FILE_GENERIC_EXECUTE);
+        if (NewOpFlags & ICE_FS_FLAG_WRITE) newDesiredAccess |= FILE_GENERIC_WRITE;
 
         requieredAll = TRUE;
     }
-
-    if (DesiredAccess & MAXIMUM_ALLOWED)
+    else if (DesiredAccess & MAXIMUM_ALLOWED)
     {
         newDesiredAccess = (DesiredAccess & (~MAXIMUM_ALLOWED));
 
-        if (NewOpFlags & ICE_FS_FLAG_READ) newDesiredAccess |= (GENERIC_READ | GENERIC_EXECUTE);
-        if (NewOpFlags & ICE_FS_FLAG_WRITE) newDesiredAccess |= GENERIC_WRITE;
+        if (NewOpFlags & ICE_FS_FLAG_READ) newDesiredAccess |= (FILE_GENERIC_READ | FILE_GENERIC_EXECUTE);
+        if (NewOpFlags & ICE_FS_FLAG_WRITE) newDesiredAccess |= FILE_GENERIC_WRITE;
         if (NewOpFlags & ICE_FS_FLAG_DELETE) newDesiredAccess |= DELETE;
         
         requieredAll = TRUE;
@@ -153,28 +154,39 @@ IceGetNewFileFlags(
     }
 
 
-    if (!(NewOpFlags & ICE_FS_FLAG_OPEN))
+    if (!(NewOpFlags & ICE_FS_FLAG_CREATE))
+    {
+        if (newCreateDisposition == FILE_CREATE)
+        {
+            deny = TRUE;
+        }
+        else if (newCreateDisposition == FILE_OPEN_IF)
+        {
+            newCreateDisposition = FILE_OPEN;
+        }
+        else if ((newCreateDisposition == FILE_OVERWRITE_IF) || (newCreateDisposition == FILE_SUPERSEDE))
+        {
+            newCreateDisposition = FILE_OVERWRITE;
+        }
+    }
+
+    if (!deny && !(NewOpFlags & ICE_FS_FLAG_OPEN))
     {
         if (
             (newCreateDisposition == FILE_OPEN) ||
-            (newCreateDisposition == FILE_OPEN_IF) ||
-            (newCreateDisposition == FILE_OVERWRITE_IF)
+            (newCreateDisposition == FILE_OVERWRITE)
             )
         {
             deny = TRUE;
         }
-    }
-
-    if (!deny && !(NewOpFlags & ICE_FS_FLAG_CREATE))
-    {
-        if (
-            (newCreateDisposition == FILE_CREATE) ||
+        else if (
             (newCreateDisposition == FILE_OPEN_IF) ||
-            (newCreateDisposition == FILE_OVERWRITE) ||
+            (newCreateDisposition == FILE_SUPERSEDE) ||
             (newCreateDisposition == FILE_OVERWRITE_IF)
             )
         {
-            deny = TRUE;
+            if (!(NewOpFlags & ICE_FS_FLAG_CREATE)) deny = TRUE;
+            else newCreateDisposition = FILE_CREATE;
         }
     }
 
@@ -280,19 +292,19 @@ IcePreCreate(
     BOOLEAN                         bDenyOperation          = FALSE;
     PICE_PRE2POST_CREATE_CONTEXT    pPre2Post               = NULL;
 
-
     PAGED_CODE();
-    *PPCompletionContext = NULL;
 
-    ulCreateDisposition = PData->Iopb->Parameters.Create.Options >> 24;
-    ulDesiredAccess = PData->Iopb->Parameters.Create.SecurityContext->DesiredAccess;
-    ulCreateOptions = PData->Iopb->Parameters.Create.Options;
+    *PPCompletionContext = NULL;
 
     if (InterlockedCompareExchange(&gPData->LnInit, 1, 1) == 0 || gPData->BUnloading)
     {
         return FLT_PREOP_SUCCESS_NO_CALLBACK;
     }
-    
+
+    ulCreateDisposition = PData->Iopb->Parameters.Create.Options >> 24;
+    ulDesiredAccess = PData->Iopb->Parameters.Create.SecurityContext->DesiredAccess;
+    ulCreateOptions = PData->Iopb->Parameters.Create.Options;
+
     IoGetStackLimits(&stackLow, &stackHigh);
     if (((ULONG_PTR) pFileObject > stackLow) && ((ULONG_PTR) pFileObject < stackHigh))
     {
@@ -412,7 +424,7 @@ IcePreCreate(
             __leave;
         }
         
-        ulNewCreateOptions = ulNewCreateOptions | (ulNewCreateDisposition << 24);
+        ulNewCreateOptions = (ulNewCreateOptions & 0x00FFFFFF) | (ulNewCreateDisposition << 24);
         PData->Iopb->Parameters.Create.Options = ulNewCreateOptions;
         PData->Iopb->Parameters.Create.SecurityContext->DesiredAccess = ulNewDesiredAccess;
         PData->Iopb->Parameters.Create.SecurityContext->AccessState->RemainingDesiredAccess = ulNewDesiredAccess;
@@ -477,9 +489,9 @@ IcePostCreate(
     {
         PData->IoStatus.Status = STATUS_ACCESS_DENIED;
         PData->IoStatus.Information = 0;
+
         FltCancelFileOpen(PFltObjects->Instance, PFltObjects->FileObject);
         LogInfo("Canceled: %wZ", &PData->Iopb->TargetFileObject->FileName);
-        ntRetVal = FLT_POSTOP_FINISHED_PROCESSING;
     }
     else
     {
