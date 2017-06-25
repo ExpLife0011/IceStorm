@@ -149,7 +149,7 @@
             this.tabAppCtrlRules.Location = new System.Drawing.Point(4, 22);
             this.tabAppCtrlRules.Name = "tabAppCtrlRules";
             this.tabAppCtrlRules.Padding = new System.Windows.Forms.Padding(3);
-            this.tabAppCtrlRules.Size = new System.Drawing.Size(1077, 298);
+            this.tabAppCtrlRules.Size = new System.Drawing.Size(1157, 298);
             this.tabAppCtrlRules.TabIndex = 0;
             this.tabAppCtrlRules.Text = "AppCtrl Rules";
             this.tabAppCtrlRules.UseVisualStyleBackColor = true;
@@ -177,7 +177,7 @@
             this.listAppRules.Location = new System.Drawing.Point(0, 0);
             this.listAppRules.MultiSelect = false;
             this.listAppRules.Name = "listAppRules";
-            this.listAppRules.Size = new System.Drawing.Size(1077, 298);
+            this.listAppRules.Size = new System.Drawing.Size(1155, 298);
             this.listAppRules.TabIndex = 0;
             this.listAppRules.UseCompatibleStateImageBehavior = false;
             this.listAppRules.View = System.Windows.Forms.View.Details;
@@ -232,7 +232,7 @@
             this.tabFSRules.Location = new System.Drawing.Point(4, 22);
             this.tabFSRules.Name = "tabFSRules";
             this.tabFSRules.Padding = new System.Windows.Forms.Padding(3);
-            this.tabFSRules.Size = new System.Drawing.Size(1077, 298);
+            this.tabFSRules.Size = new System.Drawing.Size(1157, 298);
             this.tabFSRules.TabIndex = 1;
             this.tabFSRules.Text = "FS Rules";
             this.tabFSRules.UseVisualStyleBackColor = true;
@@ -258,7 +258,7 @@
             this.listFSRules.Location = new System.Drawing.Point(0, 0);
             this.listFSRules.MultiSelect = false;
             this.listFSRules.Name = "listFSRules";
-            this.listFSRules.Size = new System.Drawing.Size(1077, 298);
+            this.listFSRules.Size = new System.Drawing.Size(1155, 298);
             this.listFSRules.TabIndex = 0;
             this.listFSRules.UseCompatibleStateImageBehavior = false;
             this.listFSRules.View = System.Windows.Forms.View.Details;
@@ -294,12 +294,12 @@
             // chFR7
             // 
             this.chFR7.Text = "Denied Operations";
-            this.chFR7.Width = 100;
+            this.chFR7.Width = 150;
             // 
             // chFR8
             // 
             this.chFR8.Text = "Add Time";
-            this.chFR8.Width = 80;
+            this.chFR8.Width = 120;
             // 
             // tabAppCtrlEvents
             // 
@@ -307,7 +307,7 @@
             this.tabAppCtrlEvents.Location = new System.Drawing.Point(4, 22);
             this.tabAppCtrlEvents.Name = "tabAppCtrlEvents";
             this.tabAppCtrlEvents.Padding = new System.Windows.Forms.Padding(3);
-            this.tabAppCtrlEvents.Size = new System.Drawing.Size(1077, 298);
+            this.tabAppCtrlEvents.Size = new System.Drawing.Size(1157, 298);
             this.tabAppCtrlEvents.TabIndex = 2;
             this.tabAppCtrlEvents.Text = "AppCtrl Events";
             this.tabAppCtrlEvents.UseVisualStyleBackColor = true;
@@ -333,7 +333,7 @@
             this.listAppEvents.Location = new System.Drawing.Point(0, 0);
             this.listAppEvents.MultiSelect = false;
             this.listAppEvents.Name = "listAppEvents";
-            this.listAppEvents.Size = new System.Drawing.Size(1077, 298);
+            this.listAppEvents.Size = new System.Drawing.Size(1155, 298);
             this.listAppEvents.TabIndex = 0;
             this.listAppEvents.UseCompatibleStateImageBehavior = false;
             this.listAppEvents.View = System.Windows.Forms.View.Details;
@@ -368,12 +368,12 @@
             // 
             // columnHeader7
             // 
-            this.columnHeader7.Text = "Matched Rule ID";
+            this.columnHeader7.Text = "Rule ID";
             // 
             // columnHeader8
             // 
             this.columnHeader8.Text = "Event Time";
-            this.columnHeader8.Width = 80;
+            this.columnHeader8.Width = 120;
             // 
             // tabFSEvents
             // 
@@ -408,7 +408,7 @@
             this.listFSEvents.Location = new System.Drawing.Point(0, 0);
             this.listFSEvents.MultiSelect = false;
             this.listFSEvents.Name = "listFSEvents";
-            this.listFSEvents.Size = new System.Drawing.Size(1157, 298);
+            this.listFSEvents.Size = new System.Drawing.Size(1155, 298);
             this.listFSEvents.TabIndex = 0;
             this.listFSEvents.UseCompatibleStateImageBehavior = false;
             this.listFSEvents.View = System.Windows.Forms.View.Details;
@@ -421,7 +421,7 @@
             // columnHeader10
             // 
             this.columnHeader10.Text = "Process Path";
-            this.columnHeader10.Width = 250;
+            this.columnHeader10.Width = 220;
             // 
             // columnHeader11
             // 
@@ -430,12 +430,12 @@
             // columnHeader12
             // 
             this.columnHeader12.Text = "File Path";
-            this.columnHeader12.Width = 250;
+            this.columnHeader12.Width = 220;
             // 
             // columnHeader13
             // 
             this.columnHeader13.Text = "Required Operation";
-            this.columnHeader13.Width = 120;
+            this.columnHeader13.Width = 140;
             // 
             // columnHeader14
             // 
@@ -449,12 +449,12 @@
             // 
             // columnHeader16
             // 
-            this.columnHeader16.Text = "Matched Rule ID";
+            this.columnHeader16.Text = "Rule ID";
             // 
             // columnHeader17
             // 
             this.columnHeader17.Text = "Event Time";
-            this.columnHeader17.Width = 80;
+            this.columnHeader17.Width = 120;
             // 
             // listClients
             // 
@@ -555,7 +555,7 @@
             // lblPlatform
             // 
             this.lblPlatform.AutoSize = true;
-            this.lblPlatform.Location = new System.Drawing.Point(53, 102);
+            this.lblPlatform.Location = new System.Drawing.Point(93, 102);
             this.lblPlatform.Name = "lblPlatform";
             this.lblPlatform.Size = new System.Drawing.Size(10, 13);
             this.lblPlatform.TabIndex = 9;
@@ -564,7 +564,7 @@
             // lblOS
             // 
             this.lblOS.AutoSize = true;
-            this.lblOS.Location = new System.Drawing.Point(53, 86);
+            this.lblOS.Location = new System.Drawing.Point(93, 86);
             this.lblOS.Name = "lblOS";
             this.lblOS.Size = new System.Drawing.Size(10, 13);
             this.lblOS.TabIndex = 8;
@@ -573,7 +573,7 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(-1, 102);
+            this.label4.Location = new System.Drawing.Point(22, 102);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(48, 13);
             this.label4.TabIndex = 7;
@@ -582,7 +582,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(22, 86);
+            this.label2.Location = new System.Drawing.Point(45, 86);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(25, 13);
             this.label2.TabIndex = 6;
@@ -591,7 +591,7 @@
             // lblProc
             // 
             this.lblProc.AutoSize = true;
-            this.lblProc.Location = new System.Drawing.Point(53, 66);
+            this.lblProc.Location = new System.Drawing.Point(93, 66);
             this.lblProc.Name = "lblProc";
             this.lblProc.Size = new System.Drawing.Size(10, 13);
             this.lblProc.TabIndex = 5;
@@ -600,7 +600,7 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(4, 66);
+            this.label5.Location = new System.Drawing.Point(27, 66);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(43, 13);
             this.label5.TabIndex = 4;
@@ -609,7 +609,7 @@
             // lblIP
             // 
             this.lblIP.AutoSize = true;
-            this.lblIP.Location = new System.Drawing.Point(53, 49);
+            this.lblIP.Location = new System.Drawing.Point(93, 49);
             this.lblIP.Name = "lblIP";
             this.lblIP.Size = new System.Drawing.Size(10, 13);
             this.lblIP.TabIndex = 3;
@@ -618,7 +618,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(27, 49);
+            this.label3.Location = new System.Drawing.Point(50, 49);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(20, 13);
             this.label3.TabIndex = 2;
@@ -627,7 +627,7 @@
             // lblName
             // 
             this.lblName.AutoSize = true;
-            this.lblName.Location = new System.Drawing.Point(53, 31);
+            this.lblName.Location = new System.Drawing.Point(93, 31);
             this.lblName.Name = "lblName";
             this.lblName.Size = new System.Drawing.Size(10, 13);
             this.lblName.TabIndex = 1;
@@ -636,7 +636,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(9, 31);
+            this.label1.Location = new System.Drawing.Point(32, 31);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(38, 13);
             this.label1.TabIndex = 0;

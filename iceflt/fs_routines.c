@@ -115,7 +115,8 @@ IceGetNewFileFlags(
 
         requieredAll = TRUE;
     }
-    else if (DesiredAccess & MAXIMUM_ALLOWED)
+    
+    if (DesiredAccess & MAXIMUM_ALLOWED)
     {
         newDesiredAccess = (DesiredAccess & (~MAXIMUM_ALLOWED));
 
@@ -140,6 +141,7 @@ IceGetNewFileFlags(
 
         if (newCreateDisposition == FILE_OVERWRITE) newCreateDisposition = FILE_OPEN;
         if (newCreateDisposition == FILE_OVERWRITE_IF) newCreateDisposition = FILE_OPEN_IF;
+        if (newCreateDisposition == FILE_SUPERSEDE) newCreateDisposition = FILE_OPEN_IF;
     }
 
     if (!(NewOpFlags & ICE_FS_FLAG_DELETE))
@@ -212,10 +214,10 @@ IceGetFsScanFlags(
     PAGED_CODE();
 
     DesiredAccess &= (~SYNCHRONIZE);
-
+    
     if (
         (DesiredAccess & (FILE_READ_DATA | FILE_READ_ATTRIBUTES | FILE_READ_EA | READ_CONTROL | FILE_EXECUTE | READ_CONTROL |
-                            FILE_GENERIC_READ | FILE_GENERIC_EXECUTE | GENERIC_READ | GENERIC_EXECUTE | GENERIC_ALL | MAXIMUM_ALLOWED))
+                            FILE_GENERIC_READ | FILE_GENERIC_EXECUTE | GENERIC_READ | GENERIC_EXECUTE | GENERIC_ALL | MAXIMUM_ALLOWED | FILE_ALL_ACCESS))
         )
     {
         flags |= ICE_FS_FLAG_READ;
@@ -223,7 +225,7 @@ IceGetFsScanFlags(
 
     if (
         (DesiredAccess & (FILE_WRITE_DATA | FILE_WRITE_ATTRIBUTES | FILE_WRITE_EA | FILE_APPEND_DATA |
-                            WRITE_DAC | WRITE_OWNER | FILE_GENERIC_WRITE | GENERIC_WRITE | GENERIC_ALL | MAXIMUM_ALLOWED)) ||
+                            WRITE_DAC | WRITE_OWNER | FILE_GENERIC_WRITE | GENERIC_WRITE | GENERIC_ALL | MAXIMUM_ALLOWED | FILE_ALL_ACCESS)) ||
         (CreateDisposition == FILE_OVERWRITE) || (CreateDisposition == FILE_OVERWRITE_IF)
         )
     {
@@ -243,7 +245,6 @@ IceGetFsScanFlags(
         (CreateDisposition == FILE_SUPERSEDE) || 
         (CreateDisposition == FILE_CREATE) || 
         (CreateDisposition == FILE_OPEN_IF) || 
-        (CreateDisposition == FILE_OVERWRITE) ||
         (CreateDisposition == FILE_OVERWRITE_IF)
         )
     {
@@ -251,8 +252,10 @@ IceGetFsScanFlags(
     }
 
     if (
-        (CreateDisposition == FILE_OPEN) || 
-        (CreateDisposition == FILE_OPEN_IF) || 
+        (CreateDisposition == FILE_SUPERSEDE) ||
+        (CreateDisposition == FILE_OPEN) ||
+        (CreateDisposition == FILE_OPEN_IF) ||
+        (CreateDisposition == FILE_OVERWRITE) ||
         (CreateDisposition == FILE_OVERWRITE_IF)
         )
     {

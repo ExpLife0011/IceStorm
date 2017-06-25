@@ -990,13 +990,42 @@ namespace Manager.UI
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
-            if (keyData != Keys.F5) return false;
+            if (keyData == Keys.F5)
+            {
+                if (listClients.SelectedIndices.Count == 0) return false;
 
-            if (listClients.SelectedIndices.Count == 0) return false;
+                GetNeededList(clients[listClients.SelectedIndices[0]]);
 
-            GetNeededList(clients[listClients.SelectedIndices[0]]);
+                return true;
+            }
 
-            return true;
+            if (keyData == (Keys.Control | Keys.Oemplus))
+            {
+                foreach (Control c in Controls)
+                {
+                    Font f = c.Font;
+                    c.Font = new Font(f.FontFamily, f.Size + 1, f.Style);
+                }
+
+                return true;
+            }
+
+            if (keyData == (Keys.Control | Keys.OemMinus))
+            {
+                foreach (Control c in Controls)
+                {
+                    Font f = c.Font;
+                    float newSize = f.Size - 1;
+                    if (newSize > 1)
+                    {
+                        c.Font = new Font(f.FontFamily, f.Size - 1, f.Style);
+                    }
+                }
+
+                return true;
+            }
+
+            return false;
         }
 
         private string GetTimeString(int time)

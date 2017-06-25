@@ -1106,6 +1106,8 @@ DbGetFSEvents(
             __leave;
         }
 
+        if (dwNrOfEvents > 500) dwNrOfEvents = 500;
+
         pEvents = (PIC_FS_EVENT) malloc(dwNrOfEvents * sizeof(IC_FS_EVENT));
         if (NULL == pEvents)
         {
@@ -1208,6 +1210,8 @@ DbGetAppCtrlEvents(
             LogWarningWin(dwStatus, L"No events were found in database");
             __leave;
         }
+
+        if (dwNrOfEvents > 500) dwNrOfEvents = 500;
 
         pEvents = (PIC_APPCTRL_EVENT) malloc(dwNrOfEvents * sizeof(IC_APPCTRL_EVENT));
         if (NULL == pEvents)

@@ -295,7 +295,7 @@ SQL_STM_GET_APPCTRL_EVENTS(
     VOID
 )
 {
-    return "SELECT * FROM [appctrl_events] WHERE [id] > ? ORDER BY [id] DESC";
+    return "SELECT * FROM [appctrl_events] WHERE [id] > ? ORDER BY [id] DESC LIMIT 500";
 
 }
 
@@ -305,7 +305,7 @@ SQL_STM_GET_APPCTRL_EVENTS_COUNT(
     VOID
 )
 {
-    return "SELECT COUNT(*) FROM [appctrl_events] WHERE [id] > ? ORDER BY [id] DESC";
+    return "SELECT COUNT(*) FROM [appctrl_events] WHERE [id] > ? ORDER BY [id] DESC LIMIT 500";
 }
 
 __inline
@@ -314,7 +314,7 @@ SQL_STM_GET_FS_EVENTS(
     VOID
 )
 {
-    return "SELECT * FROM [fs_events] WHERE [id] > ? ORDER BY [id] DESC";
+    return "SELECT * FROM [fs_events] WHERE [id] > ? ORDER BY [id] DESC LIMIT 500";
 }
 
 __inline
@@ -323,7 +323,7 @@ SQL_STM_GET_FS_EVENTS_COUNT(
     VOID
 )
 {
-    return "SELECT COUNT(*) FROM [fs_events] WHERE [id] > ? ORDER BY [id] DESC";
+    return "SELECT COUNT(*) FROM [fs_events] WHERE [id] > ? ORDER BY [id] DESC LIMIT 500";
 }
 
 __inline
